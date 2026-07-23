@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { 
-    ShoppingBag, 
-    Truck, 
-    ArrowLeft, 
-    Plus, 
-    Minus, 
-    Trash2, 
-    CheckCircle2, 
-    Clock, 
-    MapPin, 
-    Flame, 
+import {
+    ShoppingBag,
+    Truck,
+    ArrowLeft,
+    Plus,
+    Minus,
+    Trash2,
+    CheckCircle2,
+    Clock,
+    MapPin,
+    Flame,
     AlertCircle,
     ShoppingCart,
     ChevronLeft,
@@ -450,11 +450,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
-                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                                            selectedCategory === cat
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === cat
                                                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
                                                 : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
-                                        }`}
+                                            }`}
                                     >
                                         {cat === 'All' ? 'All Items' : cat === 'Rice Meals' ? 'Sizzling Rice Meals' : cat}
                                     </button>
@@ -478,9 +477,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         return (
                                             <div
                                                 key={product.id}
-                                                className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${
-                                                    isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
-                                                }`}
+                                                className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
+                                                    }`}
                                             >
                                                 <div>
                                                     <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
@@ -559,11 +557,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 <button
                                                     key={pageNum}
                                                     onClick={() => setCurrentPage(pageNum)}
-                                                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all ${
-                                                        currentPage === pageNum
+                                                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all ${currentPage === pageNum
                                                             ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
                                                             : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {pageNum}
                                                 </button>
@@ -605,11 +602,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('pickup')}
-                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${
-                                                orderType === 'pickup'
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${orderType === 'pickup'
                                                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
                                                     : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
-                                            }`}
+                                                }`}
                                         >
                                             <ShoppingBag className="w-4 h-4" />
                                             <span>Pick-Up</span>
@@ -617,11 +613,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('delivery')}
-                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${
-                                                orderType === 'delivery'
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${orderType === 'delivery'
                                                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
                                                     : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
-                                            }`}
+                                                }`}
                                         >
                                             <Truck className="w-4 h-4" />
                                             <span>Delivery</span>
@@ -789,7 +784,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
                                                     >
                                                         {city === 'Silang' && (
-                                                            <optgroup label="✨ Bulihan District (FREE Delivery)">
+                                                            <optgroup label="Bulihan District (FREE Delivery)">
                                                                 {BULIHAN_BARANGAYS.map((brgy) => (
                                                                     <option key={brgy} value={brgy}>
                                                                         {brgy} (Bulihan)
@@ -863,22 +858,20 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     <button
                                                         type="button"
                                                         onClick={() => setPaymentMethod('GCash')}
-                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                                                            paymentMethod === 'GCash'
+                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${paymentMethod === 'GCash'
                                                                 ? 'bg-orange-500/20 border-orange-500 text-white'
                                                                 : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         GCash
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setPaymentMethod('Cash')}
-                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                                                            paymentMethod === 'Cash'
+                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${paymentMethod === 'Cash'
                                                                 ? 'bg-orange-500/20 border-orange-500 text-white'
                                                                 : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         Cash
                                                     </button>
