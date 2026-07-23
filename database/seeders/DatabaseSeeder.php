@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'employee'
         ]);
 
-        // Saddle Ranch Menu Products (12 Items in total)
+        // Saddle Ranch Menu Products (15 Items in total)
         Product::create([
             'name' => 'Sizzling Pork Sisig',
             'description' => 'Crispy pork belly seasoned with local spices, served on a sizzling hot plate with egg.',
@@ -140,6 +140,34 @@ class DatabaseSeeder extends Seeder
             'price' => 275.00,
             'image_path' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
             'stock_quantity' => 25,
+            'is_active' => true,
+        ]);
+
+        // Beverages & Add-Ons
+        Product::create([
+            'name' => 'Extra Garlic Rice',
+            'description' => 'Fragrant fried garlic rice served piping hot.',
+            'price' => 35.00,
+            'image_path' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            'stock_quantity' => 100,
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'name' => 'Signature Red Iced Tea (1 Litro)',
+            'description' => 'Chilled house-brewed red iced tea pitcher (1 Litro).',
+            'price' => 95.00,
+            'image_path' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+            'stock_quantity' => 60,
+            'is_active' => true,
+        ]);
+
+        Product::create([
+            'name' => 'Fresh Dalandan Juice (1 Litro)',
+            'description' => 'Freshly squeezed citrus dalandan juice pitcher (1 Litro).',
+            'price' => 110.00,
+            'image_path' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            'stock_quantity' => 60,
             'is_active' => true,
         ]);
 

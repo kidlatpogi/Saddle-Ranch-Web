@@ -14,7 +14,9 @@ import {
     AlertCircle,
     ShoppingCart,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Info,
+    Filter
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -33,6 +35,8 @@ interface OrderProps {
     products?: Product[];
 }
 
+type CategoryType = 'All' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
+
 export default function CustomerOrder({ products = [] }: OrderProps) {
     const { flash } = usePage<PageProps>().props;
 
@@ -45,38 +49,209 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [pickupTime, setPickupTime] = useState('ASAP (15-20 mins)');
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [deliveryNotes, setDeliveryNotes] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('GCash');
+
+    // Item 1, 2 & 4: Payment method rules (GCash & Cash for Pick-up; Cash on Delivery for Delivery)
+    const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
+
+    // Update payment method when orderType changes
+    useEffect(() => {
+        if (orderType === 'delivery') {
+            setPaymentMethod('Cash on Delivery');
+        } else {
+            setPaymentMethod('GCash');
+        }
+    }, [orderType]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
-    // Item 4: Pagination State (Show 3 rows = 6 items per page in 2-column grid)
+    // Item 5: Category Sort Filter State
+    const [selectedCategory, setSelectedCategory] = useState<CategoryType>('All');
+
+    // Item 3: Auto-detect Bulihan address
+    const isBulihanAddress = deliveryAddress.trim().toLowerCase().includes('bulihan');
+
+    // Fallback menu list with 15 items including drinks & rice
+    const fallbackProducts: Product[] = [
+        {
+            id: 1,
+            name: 'Sizzling Pork Sisig',
+            description: 'Crispy pork belly seasoned with local spices, served on a sizzling cast-iron skillet with fresh egg.',
+            price: 180.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
+            stock_quantity: 50,
+            is_active: true,
+        },
+        {
+            id: 2,
+            name: 'Sizzling Pork T-Bone Steak',
+            description: 'Tender T-Bone steak seared hard on cast iron, topped with rich roadhouse gravy and buttered vegetables.',
+            price: 280.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
+            stock_quantity: 30,
+            is_active: true,
+        },
+        {
+            id: 3,
+            name: 'Sizzling Bulalo Steak',
+            description: 'Rich beef shank served with simmering bone marrow gravy on a smoking sizzling plate.',
+            price: 450.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
+            stock_quantity: 15,
+            is_active: true,
+        },
+        {
+            id: 4,
+            name: 'Sizzling Chicken Inasal Platter',
+            description: 'Chargrilled Bacolod-style chicken served sizzling hot with annatto garlic butter oil and rice.',
+            price: 220.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
+            stock_quantity: 40,
+            is_active: true,
+        },
+        {
+            id: 5,
+            name: 'Sizzling Beef Pepper Rice',
+            description: 'Thinly sliced tender beef with ground black pepper, sweet corn, and garlic rice on hot iron.',
+            price: 195.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            stock_quantity: 35,
+            is_active: true,
+        },
+        {
+            id: 6,
+            name: 'Sizzling Gambas Al Ajillo',
+            description: 'Succulent shrimp sautéed in garlic oil, chili flakes, and butter on a smoking cast-iron platter.',
+            price: 260.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+            stock_quantity: 25,
+            is_active: true,
+        },
+        {
+            id: 7,
+            name: 'Sizzling Pork Chop Supreme',
+            description: 'Thick-cut marinating pork chops seared on hot cast iron with savory house gravy.',
+            price: 210.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
+            stock_quantity: 30,
+            is_active: true,
+        },
+        {
+            id: 8,
+            name: 'Sizzling Bangus Sisig',
+            description: 'Deboned milkfish flaked and crisp-fried with onions, calamansi, and chili on a sizzling plate.',
+            price: 190.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
+            stock_quantity: 45,
+            is_active: true,
+        },
+        {
+            id: 9,
+            name: 'Sizzling Ribeye Steak Deluxe',
+            description: 'Premium bone-in cowboy ribeye steak with signature herb butter and roasted garlic cloves.',
+            price: 490.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAqtvjGjUsuBGyzBHVhntcLtTHQL442EMNheO8rq-4bOP-zq35cYw-DswcOn6dpMuPv5ukX12iSEzREwKgb6iPoUk64ETmBeEcSAd_ACcZoIibAIU9yR4PAPlj2o5GbDfdalWoY2tkEYUIrX_067eJx75-iVNUhMQQwzXdK3OmEDSQSGelDLgr5zgcY5sN7zsIqaaHUGQXrLpgju8NF3deoQjQPo--R-W6fwR50zfB_tGo3dBdO2gM7hr6EUUVxLgCF5gCn94DbGA_N',
+            stock_quantity: 20,
+            is_active: true,
+        },
+        {
+            id: 10,
+            name: 'Sizzling Lechon Kawali',
+            description: 'Super crispy deep-fried pork belly served sizzling with lechon sauce and chili peppers.',
+            price: 240.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
+            stock_quantity: 28,
+            is_active: true,
+        },
+        {
+            id: 11,
+            name: 'Sizzling Squid Flower',
+            description: 'Tender ocean squid scored into flowers and seared in sweet-spicy garlic glaze.',
+            price: 230.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+            stock_quantity: 22,
+            is_active: true,
+        },
+        {
+            id: 12,
+            name: 'Sizzling Garlic Butter Shrimp',
+            description: 'Plump jumbo tiger prawns tossed in melted butter, roasted garlic, and scallions on cast iron.',
+            price: 275.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            stock_quantity: 25,
+            is_active: true,
+        },
+        {
+            id: 13,
+            name: 'Extra Garlic Rice',
+            description: 'Fragrant fried garlic rice served piping hot.',
+            price: 35.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            stock_quantity: 100,
+            is_active: true,
+        },
+        {
+            id: 14,
+            name: 'Signature Red Iced Tea (1 Litro)',
+            description: 'Chilled house-brewed red iced tea pitcher (1 Litro).',
+            price: 95.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+            stock_quantity: 60,
+            is_active: true,
+        },
+        {
+            id: 15,
+            name: 'Fresh Dalandan Juice (1 Litro)',
+            description: 'Freshly squeezed citrus dalandan juice pitcher (1 Litro).',
+            price: 110.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            stock_quantity: 60,
+            is_active: true,
+        },
+    ];
+
+    const allProducts = products && products.length > 0 ? products : fallbackProducts;
+
+    // Helper to categorize products
+    const getProductCategory = (p: Product): CategoryType => {
+        const name = p.name.toLowerCase();
+        if (name.includes('tea') || name.includes('juice') || name.includes('extra garlic rice') || name.includes('beverage')) {
+            return 'Drinks & Extra Rice';
+        }
+        if (name.includes('pepper rice') || name.includes('pork chop supreme') || name.includes('inasal')) {
+            return 'Rice Meals';
+        }
+        if (name.includes('sisig') || name.includes('lechon') || name.includes('bulalo')) {
+            return 'Authentic Filipino';
+        }
+        if (name.includes('ribeye') || name.includes('t-bone') || name.includes('gambas') || name.includes('squid')) {
+            return 'Barkada Platters';
+        }
+        return 'Rice Meals';
+    };
+
+    // Filter products based on selected category tab
+    const filteredProducts = selectedCategory === 'All'
+        ? allProducts
+        : allProducts.filter((p) => getProductCategory(p) === selectedCategory);
+
+    // Item 4: Pagination State (3 rows = 6 items per page in 2-column grid)
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6; // 3 rows of 2 columns
-    const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
-    const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const itemsPerPage = 6;
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+    const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    // Reset pagination to page 1 whenever category changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedCategory]);
 
     const { cart, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount } = useCart();
 
     const getProductImage = (p: Product) => {
         if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
-        if (p.name.toLowerCase().includes('sisig')) {
-            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
-        }
-        if (p.name.toLowerCase().includes('steak') || p.name.toLowerCase().includes('t-bone')) {
-            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
-        }
-        if (p.name.toLowerCase().includes('bulalo')) {
-            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC';
-        }
-        if (p.name.toLowerCase().includes('chicken')) {
-            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx';
-        }
-        if (p.name.toLowerCase().includes('rice') || p.name.toLowerCase().includes('pepper')) {
-            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ';
-        }
-        return 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl';
+        return fallbackProducts[0].image_path;
     };
 
     useEffect(() => {
@@ -101,7 +276,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         }
 
         if (orderType === 'delivery' && !deliveryAddress.trim()) {
-            setValidationError('Please provide your delivery address in Bulihan.');
+            setValidationError('Please provide your delivery address.');
             return;
         }
 
@@ -153,7 +328,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <h1 className="text-xl font-black text-white flex items-center gap-2">
                                     <span>Saddle Ranch Menu & Cart</span>
                                 </h1>
-                                <p className="text-xs text-stone-400">Order online for fast pickup or hot delivery in Bulihan</p>
+                                <p className="text-xs text-stone-400">Order online for fast pickup or hot delivery</p>
                             </div>
                         </div>
                     </div>
@@ -168,88 +343,112 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Menu Selection (Left 7 Cols) - Paginated 3 rows (6 items) at a time */}
+                        {/* Menu Selection (Left 7 Cols) - Paginated 3 rows (6 items) with Category Filters */}
                         <div className="lg:col-span-7 space-y-6">
-                            <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-stone-800">
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                     <Flame className="w-5 h-5 text-orange-500" />
                                     <span>Select Sizzling Plates</span>
                                 </h2>
                                 <span className="text-xs text-stone-400">
-                                    Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, products.length)} of {products.length} Items
+                                    Showing {filteredProducts.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} Items
                                 </span>
+                            </div>
+
+                            {/* Item 5: Category Filter Tabs */}
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                                {(['All', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                                            selectedCategory === cat
+                                                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                                                : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
+                                        }`}
+                                    >
+                                        {cat === 'All' ? 'All Items' : cat === 'Rice Meals' ? 'Sizzling Rice Meals' : cat}
+                                    </button>
+                                ))}
                             </div>
 
                             {/* 3 Rows x 2 Columns Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-h-[540px]">
-                                {paginatedProducts.map((product) => {
-                                    const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                    const isOutOfStock = product.stock_quantity <= 0;
-                                    const cartEntry = cart.find((i) => i.product.id === product.id);
-                                    const imgUrl = getProductImage(product);
+                                {paginatedProducts.length === 0 ? (
+                                    <div className="col-span-2 flex flex-col items-center justify-center py-16 text-stone-500 text-xs">
+                                        <Filter className="w-8 h-8 mb-2 opacity-40 text-stone-600" />
+                                        No items available in this category.
+                                    </div>
+                                ) : (
+                                    paginatedProducts.map((product) => {
+                                        const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const cartEntry = cart.find((i) => i.product.id === product.id);
+                                        const imgUrl = getProductImage(product);
 
-                                    return (
-                                        <div
-                                            key={product.id}
-                                            className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${
-                                                isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
-                                            }`}
-                                        >
-                                            <div>
-                                                <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
-                                                    <img
-                                                        src={imgUrl}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90"
-                                                    />
-                                                    <div className="absolute top-2.5 right-2.5">
-                                                        <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-0.5 rounded shadow">
-                                                            ₱{numPrice.toFixed(2)}
-                                                        </span>
+                                        return (
+                                            <div
+                                                key={product.id}
+                                                className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${
+                                                    isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
+                                                }`}
+                                            >
+                                                <div>
+                                                    <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
+                                                        <img
+                                                            src={imgUrl}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                        />
+                                                        <div className="absolute top-2.5 right-2.5">
+                                                            <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-0.5 rounded shadow">
+                                                                ₱{numPrice.toFixed(2)}
+                                                            </span>
+                                                        </div>
                                                     </div>
+
+                                                    <h3 className="font-bold text-white text-base group-hover:text-orange-400 transition-colors">{product.name}</h3>
+                                                    <p className="text-xs text-stone-400 mt-1 line-clamp-2">{product.description}</p>
                                                 </div>
 
-                                                <h3 className="font-bold text-white text-base group-hover:text-orange-400 transition-colors">{product.name}</h3>
-                                                <p className="text-xs text-stone-400 mt-1 line-clamp-2">{product.description}</p>
-                                            </div>
+                                                <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between">
+                                                    {isOutOfStock ? (
+                                                        <span className="text-[10px] font-bold text-rose-400 uppercase">Out of Stock</span>
+                                                    ) : (
+                                                        <span className="text-[10px] text-stone-500 font-semibold">Ready to Sizzle</span>
+                                                    )}
 
-                                            <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between">
-                                                {isOutOfStock ? (
-                                                    <span className="text-[10px] font-bold text-rose-400 uppercase">Out of Stock</span>
-                                                ) : (
-                                                    <span className="text-[10px] text-stone-500 font-semibold">Ready to Sizzle</span>
-                                                )}
-
-                                                {cartEntry ? (
-                                                    <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl p-1">
+                                                    {cartEntry ? (
+                                                        <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl p-1">
+                                                            <button
+                                                                onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
+                                                                className="p-1 rounded-lg hover:bg-stone-800 text-stone-300"
+                                                            >
+                                                                <Minus className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <span className="text-xs font-bold px-2">{cartEntry.quantity}</span>
+                                                            <button
+                                                                onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
+                                                                disabled={cartEntry.quantity >= product.stock_quantity}
+                                                                className="p-1 rounded-lg hover:bg-stone-800 text-stone-300 disabled:opacity-40"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
                                                         <button
-                                                            onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
-                                                            className="p-1 rounded-lg hover:bg-stone-800 text-stone-300"
+                                                            onClick={() => addItem(product as CartProduct, 1)}
+                                                            disabled={isOutOfStock}
+                                                            className="px-3.5 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-xs transition-all disabled:opacity-40"
                                                         >
-                                                            <Minus className="w-3.5 h-3.5" />
+                                                            Add +
                                                         </button>
-                                                        <span className="text-xs font-bold px-2">{cartEntry.quantity}</span>
-                                                        <button
-                                                            onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
-                                                            disabled={cartEntry.quantity >= product.stock_quantity}
-                                                            className="p-1 rounded-lg hover:bg-stone-800 text-stone-300 disabled:opacity-40"
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => addItem(product as CartProduct, 1)}
-                                                        disabled={isOutOfStock}
-                                                        className="px-3.5 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-xs transition-all disabled:opacity-40"
-                                                    >
-                                                        Add +
-                                                    </button>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })
+                                )}
                             </div>
 
                             {/* Pagination Controls (3 Rows at a time) */}
@@ -308,7 +507,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </span>
                                 </div>
 
-                                {/* Item 5: Relocated & Bigger Pick-up vs Delivery Selector inside Your Order Cart */}
+                                {/* Pick-up vs Delivery Selector */}
                                 <div className="space-y-2">
                                     <label className="block text-xs font-bold uppercase tracking-wider text-orange-400">
                                         Select Fulfillment Method
@@ -339,9 +538,22 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             <span>Delivery</span>
                                         </button>
                                     </div>
+
+                                    {/* Item 4: Lalamove Delivery Notice */}
+                                    {orderType === 'delivery' && (
+                                        <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
+                                            <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                            <div className="space-y-1">
+                                                <p className="font-bold">Roadhouse Delivery Policy</p>
+                                                <p className="text-[11px] text-stone-300 leading-relaxed">
+                                                    Orders within <strong className="text-white">Bulihan</strong> qualify for <strong className="text-emerald-400">Free Direct Delivery</strong>. Delivery outside Bulihan is dispatched via <strong className="text-orange-400">Lalamove</strong> (delivery fee paid to rider upon receipt).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Cart Items List with Images */}
+                                {/* Cart Items List */}
                                 <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                                     {cart.length === 0 ? (
                                         <div className="py-8 text-center text-stone-500 text-xs">
@@ -444,24 +656,37 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     ) : (
                                         <>
                                             <div>
-                                                <label className="block text-xs font-semibold text-stone-300 mb-1">Bulihan Street Address / Landmark *</label>
+                                                <label className="block text-xs font-semibold text-stone-300 mb-1">Delivery Address *</label>
                                                 <textarea
                                                     required
                                                     rows={2}
                                                     value={deliveryAddress}
                                                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                                                    placeholder="House #, Street, Barangay Bulihan..."
+                                                    placeholder="House #, Street, Barangay (e.g. Barangay Bulihan, Cavite)..."
                                                     className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
                                                 />
                                             </div>
 
-                                            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <Truck className="w-4 h-4" />
-                                                    <span>Delivery Fee (Bulihan Area)</span>
-                                                </div>
-                                                <span className="font-black uppercase tracking-wider">FREE (₱0.00)</span>
-                                            </div>
+                                            {/* Item 3: Auto-detect Bulihan address */}
+                                            {deliveryAddress.trim() !== '' && (
+                                                isBulihanAddress ? (
+                                                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Truck className="w-4 h-4" />
+                                                            <span>Delivery Fee (Bulihan Area)</span>
+                                                        </div>
+                                                        <span className="font-black uppercase tracking-wider">FREE (₱0.00)</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-300 text-xs flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Truck className="w-4 h-4 text-orange-400" />
+                                                            <span>Outside Bulihan Area</span>
+                                                        </div>
+                                                        <span className="font-bold text-[11px]">Via Lalamove (Fee paid to rider)</span>
+                                                    </div>
+                                                )
+                                            )}
                                         </>
                                     )}
 
@@ -476,23 +701,45 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         />
                                     </div>
 
+                                    {/* Item 1, 2 & 4: Payment Method Selection */}
                                     <div>
                                         <label className="block text-xs font-semibold text-stone-300 mb-1">Payment Method</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {['GCash', 'Cash', 'Maya'].map((method) => (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {orderType === 'pickup' ? (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod('GCash')}
+                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                                                            paymentMethod === 'GCash'
+                                                                ? 'bg-orange-500/20 border-orange-500 text-white'
+                                                                : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
+                                                        }`}
+                                                    >
+                                                        GCash
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod('Cash')}
+                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                                                            paymentMethod === 'Cash'
+                                                                ? 'bg-orange-500/20 border-orange-500 text-white'
+                                                                : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
+                                                        }`}
+                                                    >
+                                                        Cash
+                                                    </button>
+                                                </>
+                                            ) : (
                                                 <button
-                                                    key={method}
                                                     type="button"
-                                                    onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                                                        paymentMethod === method
-                                                            ? 'bg-orange-500/20 border-orange-500 text-white'
-                                                            : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-                                                    }`}
+                                                    disabled
+                                                    className="col-span-2 py-3 rounded-xl text-xs font-bold border bg-orange-500/20 border-orange-500 text-white flex items-center justify-center gap-2 cursor-default"
                                                 >
-                                                    {method}
+                                                    <CheckCircle2 className="w-4 h-4 text-orange-400" />
+                                                    <span>Cash on Delivery</span>
                                                 </button>
-                                            ))}
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -504,8 +751,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <span className="font-bold text-white">₱{subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-stone-400">
-                                        <span>Fulfillment Fee ({orderType === 'pickup' ? 'Pick-Up' : 'Bulihan Delivery'})</span>
-                                        <span className="font-bold text-emerald-400">₱0.00</span>
+                                        <span>Fulfillment Fee ({orderType === 'pickup' ? 'Pick-Up' : isBulihanAddress ? 'Bulihan Delivery' : 'Lalamove Delivery'})</span>
+                                        <span className="font-bold text-emerald-400">
+                                            {orderType === 'pickup' || isBulihanAddress ? '₱0.00 (FREE)' : 'Paid to Rider'}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between text-base font-black text-white pt-2 border-t border-stone-800">
                                         <span>Total Amount</span>
