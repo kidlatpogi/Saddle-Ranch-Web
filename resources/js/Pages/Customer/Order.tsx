@@ -37,6 +37,64 @@ interface OrderProps {
 
 type CategoryType = 'All' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
 
+// Cavite Municipality & Barangay Data
+const CAVITE_LOCATIONS: Record<string, string[]> = {
+    'Silang': [
+        'Bulihan',
+        'Poblacion I',
+        'Poblacion II',
+        'San Vicente',
+        'Biga I',
+        'Biga II',
+        'Sabutan',
+        'Tubuan',
+        'Lucsuhin',
+        'Other Silang Barangay'
+    ],
+    'Dasmariñas City': [
+        'Sampaloc 1',
+        'Sampaloc 2',
+        'Salawag',
+        'Paliparan 1',
+        'Paliparan 2',
+        'Paliparan 3',
+        'Langgaan',
+        'San Agustin 1',
+        'San Agustin 2',
+        'Other Dasmariñas Barangay'
+    ],
+    'General Trias': [
+        'Manggahan',
+        'San Francisco',
+        'Navarro',
+        'Tejero',
+        'Other Gen. Trias Barangay'
+    ],
+    'Imus City': [
+        'Anabu I-A',
+        'Bucandala',
+        'Malagasang I-A',
+        'Poblacion',
+        'Other Imus Barangay'
+    ],
+    'Bacoor City': [
+        'Molino 1',
+        'Molino 2',
+        'Molino 3',
+        'Queens Row',
+        'Other Bacoor Barangay'
+    ],
+    'Tagaytay City': [
+        'Maharlika',
+        'Mendez Crossing',
+        'Sungay',
+        'Other Tagaytay Barangay'
+    ],
+    'Other Cavite Municipality': [
+        'Poblacion / Local Barangay'
+    ]
+};
+
 export default function CustomerOrder({ products = [] }: OrderProps) {
     const { flash } = usePage<PageProps>().props;
 
@@ -47,10 +105,16 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [pickupTime, setPickupTime] = useState('ASAP (15-20 mins)');
-    const [deliveryAddress, setDeliveryAddress] = useState('');
+
+    // Structured Philippine Delivery Address State
+    const [region] = useState('Region IV-A (CALABARZON)');
+    const [province] = useState('Cavite');
+    const [city, setCity] = useState('Silang');
+    const [barangay, setBarangay] = useState('Bulihan');
+    const [streetAddress, setStreetAddress] = useState('');
     const [deliveryNotes, setDeliveryNotes] = useState('');
 
-    // Item 1, 2 & 4: Payment method rules (GCash & Cash for Pick-up; Cash on Delivery for Delivery)
+    // Payment method rules (GCash & Cash for Pick-up; Cash on Delivery for Delivery)
     const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
 
     // Update payment method when orderType changes
@@ -62,15 +126,22 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         }
     }, [orderType]);
 
+    // Update barangay dropdown when city changes
+    useEffect(() => {
+        if (CAVITE_LOCATIONS[city]) {
+            setBarangay(CAVITE_LOCATIONS[city][0]);
+        }
+    }, [city]);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
-    // Item 5: Category Sort Filter State
+    // Category Sort Filter State
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('All');
 
-    // Item 3: Auto-detect Bulihan address
-    const isBulihanAddress = deliveryAddress.trim().toLowerCase().includes('bulihan');
+    // Auto-detect Bulihan address: FREE delivery applies when Silang + Bulihan is selected
+    const isBulihanAddress = city === 'Silang' && barangay === 'Bulihan';
 
     // Fallback menu list with 15 items including drinks & rice
     const fallbackProducts: Product[] = [
@@ -236,7 +307,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         ? allProducts
         : allProducts.filter((p) => getProductCategory(p) === selectedCategory);
 
-    // Item 4: Pagination State (3 rows = 6 items per page in 2-column grid)
+    // Pagination State (3 rows = 6 items per page in 2-column grid)
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
@@ -275,19 +346,21 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             return;
         }
 
-        if (orderType === 'delivery' && !deliveryAddress.trim()) {
-            setValidationError('Please provide your delivery address.');
+        if (orderType === 'delivery' && !streetAddress.trim()) {
+            setValidationError('Please provide your street address / landmark.');
             return;
         }
 
         setIsSubmitting(true);
+
+        const constructedDeliveryAddress = `${streetAddress.trim()}, Brgy. ${barangay}, ${city}, ${province}, ${region}`;
 
         const payload = {
             order_type: orderType,
             customer_name: customerName,
             customer_phone: customerPhone,
             pickup_time: orderType === 'pickup' ? pickupTime : null,
-            delivery_address: orderType === 'delivery' ? deliveryAddress : null,
+            delivery_address: orderType === 'delivery' ? constructedDeliveryAddress : null,
             delivery_notes: deliveryNotes,
             payment_method: paymentMethod,
             items: cart.map((item) => ({
@@ -355,7 +428,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </span>
                             </div>
 
-                            {/* Item 5: Category Filter Tabs */}
+                            {/* Category Filter Tabs */}
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                                 {(['All', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                     <button
@@ -451,7 +524,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 )}
                             </div>
 
-                            {/* Pagination Controls (3 Rows at a time) */}
+                            {/* Pagination Controls */}
                             {totalPages > 1 && (
                                 <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
                                     <button
@@ -539,14 +612,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </button>
                                     </div>
 
-                                    {/* Item 4: Lalamove Delivery Notice */}
+                                    {/* Lalamove Delivery Notice */}
                                     {orderType === 'delivery' && (
                                         <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
                                             <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                                             <div className="space-y-1">
                                                 <p className="font-bold">Roadhouse Delivery Policy</p>
                                                 <p className="text-[11px] text-stone-300 leading-relaxed">
-                                                    Orders within <strong className="text-white">Bulihan</strong> qualify for <strong className="text-emerald-400">Free Direct Delivery</strong>. Delivery outside Bulihan is dispatched via <strong className="text-orange-400">Lalamove</strong> (delivery fee paid to rider upon receipt).
+                                                    Orders within <strong className="text-white">Bulihan, Silang</strong> qualify for <strong className="text-emerald-400">Free Direct Delivery</strong>. Delivery outside Bulihan is dispatched via <strong className="text-orange-400">Lalamove</strong> (delivery fee paid to rider upon receipt).
                                                 </p>
                                             </div>
                                         </div>
@@ -612,7 +685,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 {/* Customer Form Fields */}
                                 <div className="space-y-4 pt-4 border-t border-stone-800">
                                     <h4 className="text-xs font-bold uppercase tracking-wider text-orange-400">
-                                        {orderType === 'pickup' ? 'Pick-Up Details' : 'Delivery Details'}
+                                        {orderType === 'pickup' ? 'Pick-Up Details' : 'Structured Delivery Address'}
                                     </h4>
 
                                     <div>
@@ -654,40 +727,91 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             </select>
                                         </div>
                                     ) : (
-                                        <>
+                                        /* High-Precision Structured Philippine Address Selector */
+                                        <div className="space-y-3 p-4 rounded-2xl bg-stone-950/80 border border-stone-800">
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold text-stone-400 mb-1">Region</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled
+                                                        value={region}
+                                                        className="w-full px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-400 font-medium"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold text-stone-400 mb-1">Province</label>
+                                                    <input
+                                                        type="text"
+                                                        disabled
+                                                        value={province}
+                                                        className="w-full px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-400 font-medium"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">City / Municipality *</label>
+                                                    <select
+                                                        value={city}
+                                                        onChange={(e) => setCity(e.target.value)}
+                                                        className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
+                                                    >
+                                                        {Object.keys(CAVITE_LOCATIONS).map((cityName) => (
+                                                            <option key={cityName} value={cityName}>
+                                                                {cityName}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">Barangay *</label>
+                                                    <select
+                                                        value={barangay}
+                                                        onChange={(e) => setBarangay(e.target.value)}
+                                                        className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
+                                                    >
+                                                        {(CAVITE_LOCATIONS[city] || []).map((brgy) => (
+                                                            <option key={brgy} value={brgy}>
+                                                                {brgy}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+
                                             <div>
-                                                <label className="block text-xs font-semibold text-stone-300 mb-1">Delivery Address *</label>
-                                                <textarea
+                                                <label className="block text-[11px] font-semibold text-stone-300 mb-1">Street Address / House No. / Landmark *</label>
+                                                <input
+                                                    type="text"
                                                     required
-                                                    rows={2}
-                                                    value={deliveryAddress}
-                                                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                                                    placeholder="House #, Street, Barangay (e.g. Barangay Bulihan, Cavite)..."
-                                                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
+                                                    value={streetAddress}
+                                                    onChange={(e) => setStreetAddress(e.target.value)}
+                                                    placeholder="House #, Street Name, Subdivision / Landmark"
+                                                    className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
                                                 />
                                             </div>
 
-                                            {/* Item 3: Auto-detect Bulihan address */}
-                                            {deliveryAddress.trim() !== '' && (
-                                                isBulihanAddress ? (
-                                                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <Truck className="w-4 h-4" />
-                                                            <span>Delivery Fee (Bulihan Area)</span>
-                                                        </div>
-                                                        <span className="font-black uppercase tracking-wider">FREE (₱0.00)</span>
+                                            {/* Automatic Delivery Fee Status Banner */}
+                                            {isBulihanAddress ? (
+                                                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Truck className="w-4 h-4" />
+                                                        <span>Delivery Fee (Bulihan, Silang)</span>
                                                     </div>
-                                                ) : (
-                                                    <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-300 text-xs flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <Truck className="w-4 h-4 text-orange-400" />
-                                                            <span>Outside Bulihan Area</span>
-                                                        </div>
-                                                        <span className="font-bold text-[11px]">Via Lalamove (Fee paid to rider)</span>
+                                                    <span className="font-black uppercase tracking-wider">FREE (₱0.00)</span>
+                                                </div>
+                                            ) : (
+                                                <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-300 text-xs flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Truck className="w-4 h-4 text-orange-400" />
+                                                        <span>Outside Bulihan ({city})</span>
                                                     </div>
-                                                )
+                                                    <span className="font-bold text-[11px]">Via Lalamove (Fee paid to rider)</span>
+                                                </div>
                                             )}
-                                        </>
+                                        </div>
                                     )}
 
                                     <div>
@@ -701,7 +825,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         />
                                     </div>
 
-                                    {/* Item 1, 2 & 4: Payment Method Selection */}
+                                    {/* Payment Method Selection */}
                                     <div>
                                         <label className="block text-xs font-semibold text-stone-300 mb-1">Payment Method</label>
                                         <div className="grid grid-cols-2 gap-2">
@@ -803,6 +927,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <div className="flex justify-between">
                                     <span className="text-stone-500">Fulfillment:</span>
                                     <span className="font-bold text-white uppercase">{completedOrder.order_type}</span>
+                                </div>
+                                <div className="flex justify-between flex-col gap-1 pt-1 border-t border-stone-800/50">
+                                    <span className="text-stone-500">Delivery Address:</span>
+                                    <span className="font-bold text-stone-200 text-[11px] leading-tight">{completedOrder.delivery_address || 'Pick-Up Counter'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-stone-500">Total Paid/Due:</span>
