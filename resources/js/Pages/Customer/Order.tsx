@@ -13,7 +13,8 @@ import {
     CreditCard, 
     Flame, 
     AlertCircle,
-    Utensils
+    Utensils,
+    ShoppingCart
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -51,6 +52,26 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
     const { cart, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount } = useCart();
+
+    const getProductImage = (p: Product) => {
+        if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
+        if (p.name.toLowerCase().includes('sisig')) {
+            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+        }
+        if (p.name.toLowerCase().includes('steak') || p.name.toLowerCase().includes('t-bone')) {
+            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
+        }
+        if (p.name.toLowerCase().includes('bulalo')) {
+            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC';
+        }
+        if (p.name.toLowerCase().includes('chicken')) {
+            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx';
+        }
+        if (p.name.toLowerCase().includes('rice') || p.name.toLowerCase().includes('pepper')) {
+            return 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ';
+        }
+        return 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl';
+    };
 
     useEffect(() => {
         if (flash?.order) {
@@ -170,7 +191,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Menu Selection (Left 7 Cols) */}
+                        {/* Menu Selection with Images (Left 7 Cols) */}
                         <div className="lg:col-span-7 space-y-6">
                             <div className="flex items-center justify-between pb-2 border-b border-stone-800">
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -180,32 +201,44 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <span className="text-xs text-stone-400">{products.length} Items Available</span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 {products.map((product) => {
                                     const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                     const isOutOfStock = product.stock_quantity <= 0;
                                     const cartEntry = cart.find((i) => i.product.id === product.id);
+                                    const imgUrl = getProductImage(product);
 
                                     return (
                                         <div
                                             key={product.id}
-                                            className={`p-5 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all ${
+                                            className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${
                                                 isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
                                             }`}
                                         >
                                             <div>
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="font-bold text-white text-base">{product.name}</h3>
-                                                    <span className="font-black text-amber-400 text-sm">₱{numPrice.toFixed(2)}</span>
+                                                {/* Product Image Header */}
+                                                <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
+                                                    <img
+                                                        src={imgUrl}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                    />
+                                                    <div className="absolute top-2.5 right-2.5">
+                                                        <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-0.5 rounded shadow">
+                                                            ₱{numPrice.toFixed(2)}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <p className="text-xs text-stone-400 line-clamp-2">{product.description}</p>
+
+                                                <h3 className="font-bold text-white text-base group-hover:text-orange-400 transition-colors">{product.name}</h3>
+                                                <p className="text-xs text-stone-400 mt-1 line-clamp-2">{product.description}</p>
                                             </div>
 
                                             <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between">
                                                 {isOutOfStock ? (
                                                     <span className="text-[10px] font-bold text-rose-400 uppercase">Out of Stock</span>
                                                 ) : (
-                                                    <span className="text-[10px] text-stone-400 font-semibold">{product.stock_quantity} left</span>
+                                                    <span className="text-[10px] text-stone-500 font-semibold">Ready to Sizzle</span>
                                                 )}
 
                                                 {cartEntry ? (
@@ -246,15 +279,18 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-stone-900 border border-stone-800 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-stone-800">
                                     <h3 className="text-lg font-bold text-white flex items-center justify-between">
-                                        <span>Your Order Cart</span>
+                                        <span className="flex items-center gap-2">
+                                            <ShoppingCart className="w-5 h-5 text-orange-400" />
+                                            <span>Your Order Cart</span>
+                                        </span>
                                         <span className="px-2.5 py-0.5 rounded-full bg-stone-800 text-orange-400 text-xs font-bold">
                                             {itemCount} Items
                                         </span>
                                     </h3>
                                 </div>
 
-                                {/* Cart Items List */}
-                                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                                {/* Cart Items List with Images */}
+                                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                                     {cart.length === 0 ? (
                                         <div className="py-8 text-center text-stone-500 text-xs">
                                             <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-40 text-stone-600" />
@@ -263,14 +299,18 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     ) : (
                                         cart.map((item) => {
                                             const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
+                                            const itemImg = getProductImage(item.product as Product);
                                             return (
-                                                <div key={item.product.id} className="p-3 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs">
-                                                    <div className="truncate max-w-[160px]">
-                                                        <div className="font-bold text-white truncate">{item.product.name}</div>
-                                                        <div className="text-[10px] text-stone-400">₱{numPrice.toFixed(2)} each</div>
+                                                <div key={item.product.id} className="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs gap-3">
+                                                    <div className="flex items-center gap-3 truncate">
+                                                        <img src={itemImg} alt={item.product.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                                                        <div className="truncate">
+                                                            <div className="font-bold text-white truncate">{item.product.name}</div>
+                                                            <div className="text-[10px] text-stone-400">₱{numPrice.toFixed(2)} each</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex items-center gap-1.5 border border-stone-800 rounded-lg p-0.5">
+                                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                                        <div className="flex items-center gap-1 border border-stone-800 rounded-lg p-0.5">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
@@ -278,7 +318,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                             >
                                                                 <Minus className="w-3 h-3" />
                                                             </button>
-                                                            <span className="font-bold px-1">{item.quantity}</span>
+                                                            <span className="font-bold px-1 text-xs">{item.quantity}</span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
@@ -288,7 +328,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                                 <Plus className="w-3 h-3" />
                                                             </button>
                                                         </div>
-                                                        <span className="font-bold text-amber-400">
+                                                        <span className="font-bold text-amber-400 text-xs">
                                                             ₱{(numPrice * item.quantity).toFixed(2)}
                                                         </span>
                                                         <button

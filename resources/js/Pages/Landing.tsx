@@ -141,7 +141,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
             <div className="font-body text-[#f0e0d1] bg-[#121213] min-h-screen antialiased overflow-x-hidden selection:bg-[#f59e0b] selection:text-[#121213]">
                 
-                {/* React Bits CardNav Component Integration */}
+                {/* React Bits CardNav Component Integration with Live Cart Count */}
                 <CardNav
                     logoText="Saddle Ranch"
                     logoAlt="Saddle Ranch Logo"
@@ -152,6 +152,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     buttonTextColor="#472a00"
                     buttonText="Order Now"
                     onButtonClick={() => setIsOrderModalOpen(true)}
+                    cartItemCount={itemCount}
                 />
 
                 {/* Hero Section with Zoomed Video Background (scale-110 zooms in 10% to push watermark offscreen) */}
@@ -247,7 +248,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider max-w-7xl mx-auto" />
 
-                {/* 2. FEATURED SIZZLING ITEMS SECTION (Removed "IN STOCK (40)", Grid Toggle for Full Menu) */}
+                {/* 2. FEATURED SIZZLING ITEMS SECTION (Removed IN STOCK badge, Show More/Less toggle, Cart link) */}
                 <section id="featured-menu" className="py-12 px-6 max-w-7xl mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-14">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
@@ -287,7 +288,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         </div>
                                     </div>
 
-                                    {/* Product Details (Removed IN STOCK (40) badge as requested) */}
+                                    {/* Product Details (Removed IN STOCK badge) */}
                                     <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
                                         <div>
                                             <h3 className="font-domine text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-2">
@@ -331,13 +332,13 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         })}
                     </div>
 
-                    {/* View More Menu Items Button - Expands Menu in Grid Manner */}
+                    {/* View More Button (Show More / Show Less) & Clean Cart Link */}
                     <div className="mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
                         <button
                             onClick={() => setShowAllMenu(!showAllMenu)}
                             className="inline-flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-sm uppercase tracking-wider shadow-lg"
                         >
-                            <span>{showAllMenu ? 'Show Featured Only' : `View Whole Menu (${allProductsList.length} Items)`}</span>
+                            <span>{showAllMenu ? 'Show Less' : 'Show More'}</span>
                             {showAllMenu ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
 
@@ -345,8 +346,8 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             href="/order"
                             className="inline-flex items-center gap-2 bg-[#f59e0b] text-[#472a00] font-bold px-8 py-3.5 rounded-lg btn-bevel hover:bg-[#ffc174] transition-all text-sm uppercase tracking-wider shadow-lg"
                         >
-                            <span>Go to Full Cart Checkout</span>
-                            <ArrowRight className="w-4 h-4" />
+                            <ShoppingCart className="w-4 h-4" />
+                            <span>Cart {itemCount > 0 ? `(${itemCount})` : ''}</span>
                         </Link>
                     </div>
                 </section>

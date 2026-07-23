@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, ShoppingCart } from 'lucide-react';
 
 type CardNavLink = {
   label: string;
@@ -28,6 +28,7 @@ export interface CardNavProps {
   buttonTextColor?: string;
   buttonText?: string;
   onButtonClick?: () => void;
+  cartItemCount?: number;
 }
 
 const CardNav: React.FC<CardNavProps> = ({
@@ -43,6 +44,7 @@ const CardNav: React.FC<CardNavProps> = ({
   buttonTextColor = '#472a00',
   buttonText = 'Order Now',
   onButtonClick,
+  cartItemCount = 0,
 }) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -207,14 +209,30 @@ const CardNav: React.FC<CardNavProps> = ({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={onButtonClick}
-            className="card-nav-cta-button hidden md:inline-flex border-0 rounded-lg px-5 items-center h-[42px] font-bold text-xs uppercase tracking-wider cursor-pointer btn-bevel transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-[#f59e0b]/20"
-            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
-          >
-            {buttonText}
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/order"
+              className="relative px-3 py-2 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
+              aria-label="View Cart"
+            >
+              <ShoppingCart className="w-4 h-4 text-[#f59e0b]" />
+              <span className="hidden sm:inline">Cart</span>
+              {cartItemCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full bg-[#f59e0b] text-[#121213] font-black text-[10px]">
+                  {cartItemCount}
+                </span>
+              )}
+            </a>
+
+            <button
+              type="button"
+              onClick={onButtonClick}
+              className="card-nav-cta-button hidden md:inline-flex border-0 rounded-lg px-5 items-center h-[42px] font-bold text-xs uppercase tracking-wider cursor-pointer btn-bevel transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-[#f59e0b]/20"
+              style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+            >
+              {buttonText}
+            </button>
+          </div>
         </div>
 
         <div
