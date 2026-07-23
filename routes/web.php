@@ -1,22 +1,17 @@
 <?php
 
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Public Customer Routes
-Route::get('/', function () {
-    return Inertia::render('Landing');
-})->name('landing');
-
-Route::get('/order', function () {
-    return Inertia::render('Customer/Order');
-})->name('order');
-
-Route::get('/dine-in', function () {
-    return Inertia::render('Customer/DineIn');
-})->name('dine-in');
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/order', [OrderController::class, 'order'])->name('order');
+Route::get('/dine-in', [OrderController::class, 'dineIn'])->name('dine-in');
+Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 
 // Protected Employee & Admin Routes
 Route::middleware(['auth', 'role:admin,employee'])->group(function () {
