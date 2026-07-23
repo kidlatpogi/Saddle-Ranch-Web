@@ -37,18 +37,34 @@ interface OrderProps {
 
 type CategoryType = 'All' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
 
-// Cavite Municipality & Barangay Data
+// Official Bulihan District Barangays in Silang, Cavite (All qualify for FREE Delivery)
+const BULIHAN_BARANGAYS = [
+    'Anahaw II',
+    'Anahaw I',
+    'Acacia',
+    'Banaba',
+    'Ipil I',
+    'Ipil II',
+    'Narra I',
+    'Narra II',
+    'Narra III',
+    'Yakal',
+    'Bulihan Proper',
+];
+
+// Cavite Municipality & Barangay Master Data
 const CAVITE_LOCATIONS: Record<string, string[]> = {
     'Silang': [
-        'Bulihan',
-        'Poblacion I',
-        'Poblacion II',
-        'San Vicente',
+        ...BULIHAN_BARANGAYS,
         'Biga I',
         'Biga II',
-        'Sabutan',
-        'Tubuan',
+        'Carmen',
         'Lucsuhin',
+        'Poblacion I',
+        'Poblacion II',
+        'Sabutan',
+        'San Vicente',
+        'Tubuan',
         'Other Silang Barangay'
     ],
     'Dasmariñas City': [
@@ -110,7 +126,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [region] = useState('Region IV-A (CALABARZON)');
     const [province] = useState('Cavite');
     const [city, setCity] = useState('Silang');
-    const [barangay, setBarangay] = useState('Bulihan');
+    const [barangay, setBarangay] = useState('Anahaw II');
     const [streetAddress, setStreetAddress] = useState('');
     const [deliveryNotes, setDeliveryNotes] = useState('');
 
@@ -140,8 +156,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     // Category Sort Filter State
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('All');
 
-    // Auto-detect Bulihan address: FREE delivery applies when Silang + Bulihan is selected
-    const isBulihanAddress = city === 'Silang' && barangay === 'Bulihan';
+    // Auto-detect Bulihan address: FREE delivery applies to all Bulihan district barangays in Silang
+    const isBulihanAddress = city === 'Silang' && BULIHAN_BARANGAYS.includes(barangay);
 
     // Fallback menu list with 15 items including drinks & rice
     const fallbackProducts: Product[] = [
@@ -619,7 +635,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             <div className="space-y-1">
                                                 <p className="font-bold">Roadhouse Delivery Policy</p>
                                                 <p className="text-[11px] text-stone-300 leading-relaxed">
-                                                    Orders within <strong className="text-white">Bulihan, Silang</strong> qualify for <strong className="text-emerald-400">Free Direct Delivery</strong>. Delivery outside Bulihan is dispatched via <strong className="text-orange-400">Lalamove</strong> (delivery fee paid to rider upon receipt).
+                                                    Orders within <strong className="text-white">Bulihan District, Silang</strong> (Anahaw, Acacia, Banaba, Ipil, Narra, Yakal) qualify for <strong className="text-emerald-400">Free Direct Delivery</strong>. Delivery outside Bulihan is dispatched via <strong className="text-orange-400">Lalamove</strong> (delivery fee paid to rider upon receipt).
                                                 </p>
                                             </div>
                                         </div>
@@ -727,7 +743,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             </select>
                                         </div>
                                     ) : (
-                                        /* High-Precision Structured Philippine Address Selector */
+                                        /* High-Precision Structured Philippine Address Selector with Official Bulihan Barangays */
                                         <div className="space-y-3 p-4 rounded-2xl bg-stone-950/80 border border-stone-800">
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
@@ -752,7 +768,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">City / Municipality *</label>
+                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">Municipality / City *</label>
                                                     <select
                                                         value={city}
                                                         onChange={(e) => setCity(e.target.value)}
@@ -766,29 +782,42 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">Barangay *</label>
+                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">Barangay / Zone *</label>
                                                     <select
                                                         value={barangay}
                                                         onChange={(e) => setBarangay(e.target.value)}
                                                         className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
                                                     >
-                                                        {(CAVITE_LOCATIONS[city] || []).map((brgy) => (
-                                                            <option key={brgy} value={brgy}>
-                                                                {brgy}
-                                                            </option>
-                                                        ))}
+                                                        {city === 'Silang' && (
+                                                            <optgroup label="✨ Bulihan District (FREE Delivery)">
+                                                                {BULIHAN_BARANGAYS.map((brgy) => (
+                                                                    <option key={brgy} value={brgy}>
+                                                                        {brgy} (Bulihan)
+                                                                    </option>
+                                                                ))}
+                                                            </optgroup>
+                                                        )}
+                                                        <optgroup label={city === 'Silang' ? "Other Silang Barangays" : "Barangays"}>
+                                                            {(CAVITE_LOCATIONS[city] || [])
+                                                                .filter((b) => city !== 'Silang' || !BULIHAN_BARANGAYS.includes(b))
+                                                                .map((brgy) => (
+                                                                    <option key={brgy} value={brgy}>
+                                                                        {brgy}
+                                                                    </option>
+                                                                ))}
+                                                        </optgroup>
                                                     </select>
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <label className="block text-[11px] font-semibold text-stone-300 mb-1">Street Address / House No. / Landmark *</label>
+                                                <label className="block text-[11px] font-semibold text-stone-300 mb-1">House No. / Street Name / Subdivision / Landmark *</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={streetAddress}
                                                     onChange={(e) => setStreetAddress(e.target.value)}
-                                                    placeholder="House #, Street Name, Subdivision / Landmark"
+                                                    placeholder="e.g. Block 12 Lot 5 Phase 2, Sunshine Village"
                                                     className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
                                                 />
                                             </div>
@@ -797,7 +826,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             {isBulihanAddress ? (
                                                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <Truck className="w-4 h-4" />
+                                                        <Truck className="w-4 h-4 text-emerald-400" />
                                                         <span>Delivery Fee (Bulihan, Silang)</span>
                                                     </div>
                                                     <span className="font-black uppercase tracking-wider">FREE (₱0.00)</span>
