@@ -251,7 +251,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 1. PROMOTIONAL BANNERS SECTION (Width set to 90% of screen to eliminate wide empty margins) */}
+                {/* 1. PROMOTIONAL BANNERS SECTION (Dynamic Asymmetric Bento Grid for Rich Visual Variety) */}
                 <section id="promos" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-10">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
@@ -262,27 +262,32 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* Deal Banner 1 */}
-                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
+                    {/* Asymmetric Bento Grid: Feature Banner + Square Cards + Full-Width Accent Card */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Card 1: Large Featured Hero Banner (Spans 2 columns & 2 rows on desktop) */}
+                        <div className="md:col-span-2 md:row-span-2 relative h-[360px] md:h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
-                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
+                                    className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-700 group-hover:scale-105"
                                     alt="Sisig promo"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
-                                    20% OFF
+                            <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/90 to-transparent">
+                                <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] mb-3 inline-block font-bold shadow">
+                                    WEEKEND SPECIAL • 20% OFF
                                 </span>
-                                <h3 className="font-domine text-lg font-bold text-[#f0e0d1]">Sisig Saturdays Deal</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Get 20% off on all sizzling pork sisig orders.</p>
+                                <h3 className="font-domine text-2xl sm:text-4xl font-bold text-[#ffc174] mb-2 drop-shadow-md">
+                                    Sisig Saturdays Deal
+                                </h3>
+                                <p className="font-sans text-sm sm:text-base text-[#d8c3ad] max-w-lg leading-relaxed">
+                                    Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.
+                                </p>
                             </div>
                         </div>
 
-                        {/* Deal Banner 2 */}
-                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
+                        {/* Card 2: Square Card - New Arrival */}
+                        <div className="relative h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -291,7 +296,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 />
                             </div>
                             <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
                                     NEW ARRIVAL
                                 </span>
                                 <h3 className="font-domine text-lg font-bold text-[#ffc174]">Cowboy Ribeye Special</h3>
@@ -299,39 +304,46 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             </div>
                         </div>
 
-                        {/* Deal Banner 3 */}
-                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
+                        {/* Card 3: Square Card - Free Unli-Rice & Soup (Requested Text Change) */}
+                        <div className="relative h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
-                                    alt="Unli Rice"
+                                    alt="Unli Rice and Soup"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ"
                                 />
                             </div>
                             <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[10px] text-emerald-400 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
-                                    UNLIMITED
+                                <span className="font-mono text-[10px] text-emerald-400 bg-[#31281f] px-2.5 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                                    UNLIMITED REFILLS
                                 </span>
-                                <h3 className="font-domine text-lg font-bold text-[#f0e0d1]">Free Unli-Rice & Gravy</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Free unlimited rice upgrade on all sizzling steaks.</p>
+                                <h3 className="font-domine text-lg font-bold text-[#f0e0d1]">Free Unli-Rice & Soup</h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Free unlimited garlic rice & hot bulalo soup refill on all sizzling meals.</p>
                             </div>
                         </div>
 
-                        {/* Deal Banner 4 */}
-                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
-                            <div className="absolute inset-0 vignette-overlay">
-                                <img
-                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
-                                    alt="Happy hour"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
-                                />
-                            </div>
-                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[10px] text-amber-300 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
-                                    4PM - 7PM DAILY
-                                </span>
-                                <h3 className="font-domine text-lg font-bold text-[#ffc174]">Pulutan Happy Hour</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Cold drinks & hot sizzling pulutan platters.</p>
+                        {/* Card 4: Wide Accent Horizontal Banner (Spans 3 Columns) */}
+                        <div className="md:col-span-3 relative h-48 rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
+                            <div className="absolute inset-0 flex items-center justify-between">
+                                <div className="w-full md:w-2/3 p-6 md:p-8 z-10 space-y-2">
+                                    <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] inline-block font-bold">
+                                        HAPPY HOUR • 4PM - 7PM DAILY
+                                    </span>
+                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174]">Pulutan Happy Hour Specials</h3>
+                                    <p className="font-sans text-xs text-[#d8c3ad] max-w-xl">
+                                        Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.
+                                    </p>
+                                    <button onClick={() => setIsOrderModalOpen(true)} className="text-[#f59e0b] font-mono text-xs font-bold flex items-center hover:text-[#ffc174] transition-colors pt-1">
+                                        ORDER PULUTAN NOW <ArrowRight className="w-4 h-4 ml-1.5" />
+                                    </button>
+                                </div>
+                                <div className="hidden md:block w-1/3 h-full vignette-overlay relative">
+                                    <img
+                                        className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500"
+                                        alt="Happy hour pulutan"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -339,7 +351,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 2. FEATURED SIZZLING ITEMS SECTION (Width set to 90% of screen to eliminate wide side margins) */}
+                {/* 2. FEATURED SIZZLING ITEMS SECTION */}
                 <section id="featured-menu" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-14">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
@@ -445,7 +457,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 3. SIZZLING MENU CATEGORIES (Width set to 90%) */}
+                {/* 3. SIZZLING MENU CATEGORIES */}
                 <section id="categories" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mb-2">
@@ -534,7 +546,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 4. ROADHOUSE LOCATIONS SECTION (Includes Images for Both Bulihan & Dasmarinas Branches) */}
+                {/* 4. ROADHOUSE LOCATIONS SECTION (Storefront Exterior Images instead of food) */}
                 <section id="locations" className="py-16 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
@@ -547,11 +559,11 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-6 hover-heat transition-all shadow-xl">
-                            <div className="h-56 w-full relative vignette-overlay">
+                            <div className="h-60 w-full relative vignette-overlay overflow-hidden">
                                 <img
-                                    className="w-full h-full object-cover opacity-85"
-                                    alt="Saddle Ranch Bulihan Branch Storefront"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC"
+                                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                                    alt="Saddle Ranch Bulihan Storefront Exterior"
+                                    src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
                                 />
                                 <div className="absolute top-3 left-3 z-10">
                                     <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
@@ -588,11 +600,11 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-6 hover-heat transition-all shadow-xl">
-                            <div className="h-56 w-full relative vignette-overlay">
+                            <div className="h-60 w-full relative vignette-overlay overflow-hidden">
                                 <img
-                                    className="w-full h-full object-cover opacity-85"
-                                    alt="Saddle Ranch Dasmarinas Branch Storefront"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
+                                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                                    alt="Saddle Ranch Dasmarinas Storefront Exterior"
+                                    src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=80"
                                 />
                                 <div className="absolute top-3 left-3 z-10">
                                     <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
@@ -651,7 +663,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </footer>
 
-                {/* Interactive Order Modal ("How would you like your order?") */}
+                {/* Interactive Order Modal */}
                 {isOrderModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121213]/90 backdrop-blur-md animate-in fade-in duration-200">
                         <div className="relative w-full max-w-lg rounded-xl bg-[#1A1A1B] border border-white/20 p-6 sm:p-8 shadow-2xl text-[#f0e0d1]">
