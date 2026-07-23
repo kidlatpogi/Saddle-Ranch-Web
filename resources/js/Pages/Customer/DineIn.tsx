@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { 
     QrCode, 
-    Flame, 
     ArrowLeft, 
     Plus, 
     Minus, 
@@ -14,8 +13,7 @@ import {
     ShoppingCart,
     X,
     Search,
-    ChevronRight,
-    Filter
+    ChevronRight
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -137,7 +135,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
     const allProducts = products && products.length > 0 ? products : fallbackProducts;
 
-    // Helper to categorize products
     const getProductCategory = (p: Product): CategoryType => {
         const name = p.name.toLowerCase();
         if (name.includes('tea') || name.includes('juice') || name.includes('extra garlic rice') || name.includes('beverage')) {
@@ -155,14 +152,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         return 'Rice Meals';
     };
 
-    // Filter products
     const filteredProducts = allProducts.filter((p) => {
         const matchesCategory = selectedCategory === 'Popular' || getProductCategory(p) === selectedCategory;
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
-
-    const recommendedAddOns = allProducts.filter((p) => p.name.includes('Rice') || p.name.includes('Tea') || p.name.includes('Juice'));
 
     const getProductImage = (p: Product) => {
         if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
@@ -221,88 +215,103 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Responsive Header: Desktop Banner vs Mobile App Bar */}
+                {/* Clean, Non-Overlapping Responsive Sticky Header */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Link href="/" className="p-2 rounded-full md:rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:bg-[#31281f] transition-colors">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Link>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h1 className="text-base sm:text-xl font-bold font-domine text-[#ffc174] leading-tight">Saddle Ranch Table Menu</h1>
-                                    <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
-                                        <QrCode className="w-3.5 h-3.5" />
-                                        Table #{tableNumber}
-                                    </span>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
+                        
+                        {/* Top Bar Row 1: Back + Title + Table Badge */}
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0">
+                                    <ArrowLeft className="w-4 h-4" />
+                                </Link>
+                                <div className="truncate">
+                                    <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
+                                        Saddle Ranch
+                                    </h1>
+                                    <p className="text-[10px] sm:text-xs text-[#d8c3ad] truncate">Bulihan Roadhouse</p>
                                 </div>
-                                <p className="text-xs text-[#d8c3ad] hidden sm:block">Piping hot sizzling plates served straight to your table</p>
+                            </div>
+
+                            {/* Table Number Pill */}
+                            <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                <QrCode className="w-3.5 h-3.5" />
+                                Table #{tableNumber}
+                            </span>
+                        </div>
+
+                        {/* Top Bar Row 2: Search Input & Mode Selector */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Search className="w-3.5 h-3.5 text-[#8c7a6b] absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search menu..."
+                                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                />
+                            </div>
+
+                            {/* Dine-In vs Takeout Pill */}
+                            <div className="flex items-center p-0.5 rounded-xl bg-[#121213] border border-[#534434] shrink-0">
+                                <button
+                                    onClick={() => setFulfillmentMode('dine_in')}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 btn-bevel ${
+                                        fulfillmentMode === 'dine_in' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <Utensils className="w-3 h-3" />
+                                    <span>Dine-In</span>
+                                </button>
+                                <button
+                                    onClick={() => setFulfillmentMode('express_takeout')}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 btn-bevel ${
+                                        fulfillmentMode === 'express_takeout' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <ShoppingBag className="w-3 h-3" />
+                                    <span>Takeout</span>
+                                </button>
                             </div>
                         </div>
 
-                        {/* Mode Selector */}
-                        <div className="flex items-center p-1 rounded-xl bg-[#121213] border border-[#534434]">
-                            <button
-                                onClick={() => setFulfillmentMode('dine_in')}
-                                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 btn-bevel ${
-                                    fulfillmentMode === 'dine_in'
-                                        ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
-                                        : 'text-[#d8c3ad] hover:text-white'
-                                }`}
-                            >
-                                <Utensils className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Dine-In Service</span>
-                                <span className="sm:hidden">Dine-In</span>
-                            </button>
-                            <button
-                                onClick={() => setFulfillmentMode('express_takeout')}
-                                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 btn-bevel ${
-                                    fulfillmentMode === 'express_takeout'
-                                        ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
-                                        : 'text-[#d8c3ad] hover:text-white'
-                                }`}
-                            >
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Takeout</span>
-                                <span className="sm:hidden">Takeout</span>
-                            </button>
+                        {/* Top Bar Row 3: Clean Horizontal Category Tabs (No Fire Emoji) */}
+                        <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
+                            {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors ${
+                                        selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
+                                    }`}
+                                >
+                                    <span>{cat}</span>
+                                    {selectedCategory === cat && (
+                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f59e0b] rounded-full animate-in fade-in duration-200" />
+                                    )}
+                                </button>
+                            ))}
                         </div>
-                    </div>
 
-                    {/* Category Carousel Bar */}
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto border-t border-[#262627] flex items-center gap-4 sm:gap-8 scrollbar-none py-2.5">
-                        {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors ${
-                                    selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
-                                }`}
-                            >
-                                <span>{cat === 'Popular' ? '🔥 Popular' : cat}</span>
-                                {selectedCategory === cat && (
-                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f59e0b] rounded-full animate-in fade-in duration-200" />
-                                )}
-                            </button>
-                        ))}
                     </div>
                 </header>
 
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
                     {validationError && (
-                        <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-3">
-                            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                        <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2.5">
+                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                             <span>{validationError}</span>
                         </div>
                     )}
 
-                    {/* Responsive Dual Layout */}
+                    {/* Dual Layout: 2-Column Mobile vs Full Desktop Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
-                        {/* LEFT COLUMN: Menu Products */}
+                        {/* LEFT: Product List */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* MOBILE VIEWPORT ONLY (< md): Grab/Foodpanda 2-Column Grid */}
+                            {/* MOBILE (< md): 1:1 Grab/Foodpanda 2-Column Grid */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
@@ -316,7 +325,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 key={product.id}
                                                 className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
                                             >
-                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2.5 bg-[#121213]">
+                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
@@ -359,7 +368,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* DESKTOP VIEWPORT ONLY (>= md): Full Desktop Cards Layout */}
+                            {/* DESKTOP (>= md): Full Grid Cards */}
                             <div className="hidden md:grid grid-cols-2 gap-6">
                                 {filteredProducts.map((product) => {
                                     const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
@@ -437,7 +446,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                         </div>
 
-                        {/* RIGHT COLUMN: DESKTOP ONLY Persistent Cart Drawer (hidden on mobile) */}
+                        {/* RIGHT: Desktop Cart Drawer */}
                         <div className="hidden lg:block lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
@@ -565,7 +574,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </main>
 
-                {/* MOBILE ONLY: GrabFood Floating Bottom Sticky Cart Bar */}
+                {/* MOBILE ONLY: Grab/Foodpanda Sticky Floating Bottom Cart Bar */}
                 {itemCount > 0 && (
                     <div className="block lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
                         <button
@@ -589,14 +598,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 )}
 
-                {/* MOBILE ONLY: Slide-Up Cart Bottom Sheet Drawer */}
+                {/* MOBILE ONLY: Slide-Up Basket Sheet Drawer with Fulfillment Mode Toggle */}
                 {isBasketSheetOpen && (
                     <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
                             
                             <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
                                 <div>
-                                    <h3 className="text-base font-black text-white font-domine">Cart</h3>
+                                    <h3 className="text-base font-black text-white font-domine">View your Order</h3>
                                     <p className="text-[10px] text-[#d8c3ad]">Table #{tableNumber} • Saddle Ranch</p>
                                 </div>
                                 <button
@@ -604,6 +613,28 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     className="w-8 h-8 rounded-full bg-[#261e15] text-[#d8c3ad] flex items-center justify-center"
                                 >
                                     <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Fulfillment Toggle in Mobile Basket Drawer */}
+                            <div className="p-1 rounded-2xl bg-[#121213] border border-[#534434]/40 grid grid-cols-2 gap-1 text-xs font-bold">
+                                <button
+                                    onClick={() => setFulfillmentMode('dine_in')}
+                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${
+                                        fulfillmentMode === 'dine_in' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <Utensils className="w-3.5 h-3.5" />
+                                    <span>Dine-In</span>
+                                </button>
+                                <button
+                                    onClick={() => setFulfillmentMode('express_takeout')}
+                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${
+                                        fulfillmentMode === 'express_takeout' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <ShoppingBag className="w-3.5 h-3.5" />
+                                    <span>Takeout</span>
                                 </button>
                             </div>
 
@@ -645,7 +676,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 })}
                             </div>
 
-                            {/* Guest Details & Checkout Form */}
+                            {/* Form */}
                             <form onSubmit={handleSubmit} className="space-y-4 pt-3 border-t border-[#262627]">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>

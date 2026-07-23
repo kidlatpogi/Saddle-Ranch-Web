@@ -10,13 +10,10 @@ import {
     CheckCircle2, 
     Clock, 
     MapPin, 
-    Flame, 
     AlertCircle,
     ShoppingCart,
     ChevronLeft,
     ChevronRight,
-    Info,
-    Filter,
     X,
     Search
 } from 'lucide-react';
@@ -39,7 +36,6 @@ interface OrderProps {
 
 type CategoryType = 'Popular' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
 
-// Official Bulihan District Barangays in Silang, Cavite
 const BULIHAN_BARANGAYS = [
     'Anahaw II',
     'Anahaw I',
@@ -54,7 +50,6 @@ const BULIHAN_BARANGAYS = [
     'Bulihan Proper',
 ];
 
-// Cavite Municipality & Barangay Master Data
 const CAVITE_LOCATIONS: Record<string, string[]> = {
     'Silang': [
         ...BULIHAN_BARANGAYS,
@@ -124,7 +119,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [customerPhone, setCustomerPhone] = useState('');
     const [pickupTime, setPickupTime] = useState('ASAP (15-20 mins)');
 
-    // Structured Philippine Delivery Address State
     const [region] = useState('Region IV-A (CALABARZON)');
     const [province] = useState('Cavite');
     const [city, setCity] = useState('Silang');
@@ -132,11 +126,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [streetAddress, setStreetAddress] = useState('');
     const [deliveryNotes, setDeliveryNotes] = useState('');
 
-    // Payment method rules (GCash & Cash for Pick-up; Cash on Delivery for Delivery)
     const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
+    const [searchQuery, setSearchQuery] = useState('');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
-    // Update payment method when orderType changes
     useEffect(() => {
         if (orderType === 'delivery') {
             setPaymentMethod('Cash on Delivery');
@@ -145,7 +138,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         }
     }, [orderType]);
 
-    // Update barangay dropdown when city changes
     useEffect(() => {
         if (CAVITE_LOCATIONS[city]) {
             setBarangay(CAVITE_LOCATIONS[city][0]);
@@ -156,13 +148,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
-    // Category Sort Filter State
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
 
-    // Auto-detect Bulihan address
-    const isBulihanAddress = city === 'Silang' && BULIHAN_BARANGAYS.includes(barangay);
-
-    // Fallback menu list
     const fallbackProducts: Product[] = [
         {
             id: 1,
@@ -240,7 +227,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
     const allProducts = products && products.length > 0 ? products : fallbackProducts;
 
-    // Helper to categorize products
     const getProductCategory = (p: Product): CategoryType => {
         const name = p.name.toLowerCase();
         if (name.includes('tea') || name.includes('juice') || name.includes('extra garlic rice') || name.includes('beverage')) {
@@ -258,12 +244,12 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         return 'Rice Meals';
     };
 
-    // Filter products
-    const filteredProducts = selectedCategory === 'Popular'
-        ? allProducts
-        : allProducts.filter((p) => getProductCategory(p) === selectedCategory);
+    const filteredProducts = allProducts.filter((p) => {
+        const matchesCategory = selectedCategory === 'Popular' || getProductCategory(p) === selectedCategory;
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
 
-    // Desktop Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
@@ -344,28 +330,94 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         <>
             <Head title="Online Ordering | Saddle Ranch" />
 
-            <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-orange-500 selection:text-white pb-28">
-                {/* Header */}
-                <header className="sticky top-0 z-40 bg-stone-900/90 backdrop-blur-md border-b border-stone-800">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Link href="/" className="p-2 rounded-xl bg-stone-800 text-stone-300 hover:text-white hover:bg-stone-700 transition-colors">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Link>
-                            <div>
-                                <h1 className="text-xl font-black text-white flex items-center gap-2 font-domine">
-                                    <span>Saddle Ranch Menu & Cart</span>
-                                </h1>
-                                <p className="text-xs text-stone-400">Order online for fast pickup or hot delivery</p>
+            <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
+                
+                {/* Clean, Non-Overlapping Header */}
+                <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
+                        
+                        {/* Top Bar Row 1: Back + Title + Order Badge */}
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0">
+                                    <ArrowLeft className="w-4 h-4" />
+                                </Link>
+                                <div className="truncate">
+                                    <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
+                                        Saddle Ranch
+                                    </h1>
+                                    <p className="text-[10px] sm:text-xs text-[#d8c3ad] truncate">Online Ordering</p>
+                                </div>
+                            </div>
+
+                            {/* Fulfillment Mode Pill */}
+                            <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                                <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
+                            </span>
+                        </div>
+
+                        {/* Top Bar Row 2: Search Input & Mode Selector */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Search className="w-3.5 h-3.5 text-[#8c7a6b] absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search menu items..."
+                                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                />
+                            </div>
+
+                            {/* Pick-Up vs Delivery Toggle */}
+                            <div className="flex items-center p-0.5 rounded-xl bg-[#121213] border border-[#534434] shrink-0">
+                                <button
+                                    onClick={() => setOrderType('pickup')}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 btn-bevel ${
+                                        orderType === 'pickup' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <ShoppingBag className="w-3 h-3" />
+                                    <span>Pick-Up</span>
+                                </button>
+                                <button
+                                    onClick={() => setOrderType('delivery')}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 btn-bevel ${
+                                        orderType === 'delivery' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <Truck className="w-3 h-3" />
+                                    <span>Delivery</span>
+                                </button>
                             </div>
                         </div>
+
+                        {/* Top Bar Row 3: Category Tabs (No Fire Emoji) */}
+                        <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
+                            {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors ${
+                                        selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
+                                    }`}
+                                >
+                                    <span>{cat}</span>
+                                    {selectedCategory === cat && (
+                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f59e0b] rounded-full animate-in fade-in duration-200" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
                     </div>
                 </header>
 
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
                     {validationError && (
-                        <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-3">
-                            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+                        <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2.5">
+                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                             <span>{validationError}</span>
                         </div>
                     )}
@@ -374,24 +426,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                         {/* Menu Selection Column */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* Category Filter Carousel */}
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-                                {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setSelectedCategory(cat)}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all btn-bevel ${
-                                            selectedCategory === cat
-                                                ? 'bg-orange-500 text-stone-950 font-black shadow-lg shadow-orange-500/20'
-                                                : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
-                                        }`}
-                                    >
-                                        {cat === 'Popular' ? '🔥 Popular' : cat}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* MOBILE VIEWPORT (< md): 2-Column Mobile Grid */}
+                            {/* MOBILE (< md): 1:1 Grab/Foodpanda 2-Column Mobile Grid */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
@@ -403,20 +438,20 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-stone-900 rounded-2xl border border-stone-800 p-3 flex flex-col justify-between relative group hover:border-orange-500/50 transition-all shadow-md"
+                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
                                             >
-                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2.5 bg-stone-950">
+                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
                                                     />
 
                                                     <div className="absolute bottom-1.5 right-1.5 z-10">
                                                         {cartEntry ? (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                className="w-7 h-7 rounded-full bg-stone-950 text-orange-400 font-black text-xs border border-orange-500 shadow-lg flex items-center justify-center btn-bevel"
+                                                                className="w-7 h-7 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center btn-bevel"
                                                             >
                                                                 {cartEntry.quantity}
                                                             </button>
@@ -424,7 +459,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 disabled={isOutOfStock}
-                                                                className="w-7 h-7 rounded-full bg-orange-500 text-white font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40"
+                                                                className="w-7 h-7 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40"
                                                             >
                                                                 +
                                                             </button>
@@ -433,10 +468,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <h3 className="font-domine font-bold text-xs text-white line-clamp-2 leading-snug">
+                                                    <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
                                                         {product.name}
                                                     </h3>
-                                                    <div className="font-mono text-xs font-black text-amber-400">
+                                                    <div className="font-mono text-xs font-black text-[#ffc174]">
                                                         ₱ {numPrice.toFixed(2)}
                                                     </div>
                                                 </div>
@@ -446,7 +481,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            {/* DESKTOP VIEWPORT (>= md): Full Desktop Grid */}
+                            {/* DESKTOP (>= md): Grid Cards */}
                             <div className="hidden md:block space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {paginatedProducts.map((product) => {
@@ -458,74 +493,78 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         return (
                                             <div
                                                 key={product.id}
-                                                className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${
-                                                    isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
-                                                }`}
+                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
                                             >
-                                                <div>
-                                                    <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
-                                                        <img
-                                                            src={imgUrl}
-                                                            alt={product.name}
-                                                            className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90"
-                                                        />
-                                                        <div className="absolute top-2.5 right-2.5">
-                                                            <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-0.5 rounded shadow">
-                                                                ₱{numPrice.toFixed(2)}
-                                                            </span>
-                                                        </div>
+                                                <div className="h-44 w-full relative vignette-overlay overflow-hidden">
+                                                    <img
+                                                        src={imgUrl}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                    />
+                                                    <div className="absolute top-3 right-3 z-10">
+                                                        <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow">
+                                                            ₱{numPrice.toFixed(2)}
+                                                        </span>
                                                     </div>
-
-                                                    <h3 className="font-bold text-white text-base group-hover:text-orange-400 transition-colors font-domine">{product.name}</h3>
-                                                    <p className="text-xs text-stone-400 mt-1 line-clamp-2">{product.description}</p>
                                                 </div>
 
-                                                <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between">
-                                                    {isOutOfStock ? (
-                                                        <span className="text-[10px] font-bold text-rose-400 uppercase">Out of Stock</span>
-                                                    ) : (
-                                                        <span className="text-[10px] text-stone-500 font-semibold">Ready to Sizzle</span>
-                                                    )}
+                                                <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
+                                                    <div>
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1">
+                                                            {product.name}
+                                                        </h3>
+                                                        <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">
+                                                            {product.description}
+                                                        </p>
+                                                    </div>
 
-                                                    {cartEntry ? (
-                                                        <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl p-1">
+                                                    <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
+                                                        {isOutOfStock ? (
+                                                            <span className="text-[10px] font-bold text-rose-400 uppercase">Sold Out</span>
+                                                        ) : (
+                                                            <span className="text-[10px] text-[#d8c3ad] font-semibold">Ready to Sizzle</span>
+                                                        )}
+
+                                                        {cartEntry ? (
+                                                            <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] rounded-xl p-1">
+                                                                <button
+                                                                    onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
+                                                                    className="p-1 rounded-lg hover:bg-[#261e15] text-[#d8c3ad]"
+                                                                >
+                                                                    <Minus className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <span className="font-mono font-bold text-xs px-2">{cartEntry.quantity}</span>
+                                                                <button
+                                                                    onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
+                                                                    disabled={cartEntry.quantity >= product.stock_quantity}
+                                                                    className="p-1 rounded-lg hover:bg-[#261e15] text-[#d8c3ad] disabled:opacity-40"
+                                                                >
+                                                                    <Plus className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
                                                             <button
-                                                                onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
-                                                                className="p-1 rounded-lg hover:bg-stone-800 text-stone-300"
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                disabled={isOutOfStock}
+                                                                className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md disabled:opacity-40"
                                                             >
-                                                                <Minus className="w-3.5 h-3.5" />
+                                                                Add +
                                                             </button>
-                                                            <span className="text-xs font-bold px-2">{cartEntry.quantity}</span>
-                                                            <button
-                                                                onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
-                                                                disabled={cartEntry.quantity >= product.stock_quantity}
-                                                                className="p-1 rounded-lg hover:bg-stone-800 text-stone-300 disabled:opacity-40"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => addItem(product as CartProduct, 1)}
-                                                            disabled={isOutOfStock}
-                                                            className="px-3.5 py-1.5 rounded-xl bg-orange-500 hover:bg-amber-500 text-white font-bold text-xs transition-all btn-bevel disabled:opacity-40 shadow-md"
-                                                        >
-                                                            Add +
-                                                        </button>
-                                                    )}
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Pagination Controls */}
+                                {/* Pagination */}
                                 {totalPages > 1 && (
-                                    <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
+                                    <div className="pt-4 border-t border-[#534434]/50 flex items-center justify-between">
                                         <button
                                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                             disabled={currentPage === 1}
-                                            className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel"
+                                            className="px-4 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel"
                                         >
                                             <ChevronLeft className="w-4 h-4" />
                                             <span>Previous</span>
@@ -540,8 +579,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         onClick={() => setCurrentPage(pageNum)}
                                                         className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel ${
                                                             currentPage === pageNum
-                                                                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                                                                : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
+                                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                                                : 'bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white'
                                                         }`}
                                                     >
                                                         {pageNum}
@@ -553,7 +592,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel"
+                                            className="px-4 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel"
                                         >
                                             <span>Next</span>
                                             <ChevronRight className="w-4 h-4" />
@@ -564,32 +603,32 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                         </div>
 
-                        {/* DESKTOP ONLY Right Side Cart Drawer Form */}
+                        {/* DESKTOP ONLY Cart Form */}
                         <div className="hidden lg:block lg:col-span-5 space-y-6">
-                            <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-stone-900 border border-stone-800 shadow-2xl space-y-6">
-                                <div className="pb-4 border-b border-stone-800 flex items-center justify-between">
+                            <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
+                                <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
                                     <h3 className="text-lg font-bold text-white flex items-center gap-2 font-domine">
-                                        <ShoppingCart className="w-5 h-5 text-orange-400" />
+                                        <ShoppingCart className="w-5 h-5 text-[#f59e0b]" />
                                         <span>Your Order Cart</span>
                                     </h3>
-                                    <span className="px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30">
+                                    <span className="px-3 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-xs font-bold border border-[#f59e0b]/30">
                                         {itemCount} Items
                                     </span>
                                 </div>
 
-                                {/* Pick-up vs Delivery Selector */}
+                                {/* Pick-up vs Delivery */}
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-orange-400">
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#ffc174]">
                                         Select Fulfillment Method
                                     </label>
-                                    <div className="grid grid-cols-2 gap-3 p-1.5 rounded-2xl bg-stone-950 border border-stone-800">
+                                    <div className="grid grid-cols-2 gap-3 p-1.5 rounded-2xl bg-[#121213] border border-[#534434]">
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('pickup')}
                                             className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${
                                                 orderType === 'pickup'
-                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
-                                                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
+                                                    ? 'bg-[#f59e0b] text-[#472a00] shadow-lg'
+                                                    : 'text-[#d8c3ad] hover:text-white'
                                             }`}
                                         >
                                             <ShoppingBag className="w-4 h-4" />
@@ -600,8 +639,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             onClick={() => setOrderType('delivery')}
                                             className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${
                                                 orderType === 'delivery'
-                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
-                                                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
+                                                    ? 'bg-[#f59e0b] text-[#472a00] shadow-lg'
+                                                    : 'text-[#d8c3ad] hover:text-white'
                                             }`}
                                         >
                                             <Truck className="w-4 h-4" />
@@ -610,41 +649,40 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </div>
                                 </div>
 
-                                {/* Form Fields */}
-                                <div className="space-y-4 pt-4 border-t border-stone-800">
+                                <div className="space-y-4 pt-4 border-t border-[#534434]/50">
                                     <div>
-                                        <label className="block text-xs font-semibold text-stone-300 mb-1">Customer Full Name *</label>
+                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Customer Full Name *</label>
                                         <input
                                             type="text"
                                             required
                                             value={customerName}
                                             onChange={(e) => setCustomerName(e.target.value)}
                                             placeholder="e.g. Juan Dela Cruz"
-                                            className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
+                                            className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-semibold text-stone-300 mb-1">Philippine Mobile Number *</label>
+                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Philippine Mobile Number *</label>
                                         <input
                                             type="tel"
                                             required
                                             value={customerPhone}
                                             onChange={(e) => setCustomerPhone(e.target.value)}
                                             placeholder="0917XXXXXXX"
-                                            className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
+                                            className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                         />
                                     </div>
 
                                     {orderType === 'delivery' && (
-                                        <div className="space-y-3 p-4 rounded-2xl bg-stone-950/80 border border-stone-800">
+                                        <div className="space-y-3 p-4 rounded-2xl bg-[#121213] border border-[#534434]">
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">Municipality / City *</label>
+                                                    <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Municipality / City *</label>
                                                     <select
                                                         value={city}
                                                         onChange={(e) => setCity(e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
+                                                        className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                                     >
                                                         {Object.keys(CAVITE_LOCATIONS).map((cityName) => (
                                                             <option key={cityName} value={cityName}>
@@ -654,11 +692,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[11px] font-semibold text-stone-300 mb-1">Barangay / Zone *</label>
+                                                    <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Barangay / Zone *</label>
                                                     <select
                                                         value={barangay}
                                                         onChange={(e) => setBarangay(e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
+                                                        className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                                     >
                                                         {city === 'Silang' && (
                                                             <optgroup label="Bulihan District (FREE Delivery)">
@@ -683,14 +721,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             </div>
 
                                             <div>
-                                                <label className="block text-[11px] font-semibold text-stone-300 mb-1">Street Address / House No. / Landmark *</label>
+                                                <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Street Address / House No. / Landmark *</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={streetAddress}
                                                     onChange={(e) => setStreetAddress(e.target.value)}
                                                     placeholder="House #, Street Name, Landmark"
-                                                    className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
+                                                    className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                                 />
                                             </div>
                                         </div>
@@ -698,13 +736,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                     <div className="pt-2 flex justify-between text-base font-black text-white">
                                         <span>Total Amount</span>
-                                        <span className="text-amber-400">₱{subtotal.toFixed(2)}</span>
+                                        <span className="text-[#ffc174] font-mono">₱{subtotal.toFixed(2)}</span>
                                     </div>
 
                                     <button
                                         type="submit"
                                         disabled={cart.length === 0 || isSubmitting}
-                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:opacity-40 text-white font-bold text-sm uppercase tracking-wider shadow-xl shadow-orange-600/30 transition-all btn-bevel"
+                                        className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel"
                                     >
                                         {isSubmitting ? 'Processing Order...' : `Place Order (₱${subtotal.toFixed(2)})`}
                                     </button>
@@ -714,20 +752,20 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     </div>
                 </main>
 
-                {/* MOBILE ONLY: Floating Sticky Cart Bar */}
+                {/* MOBILE ONLY: Sticky Floating Bottom Cart Bar */}
                 {itemCount > 0 && (
                     <div className="block lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
                         <button
                             onClick={() => setIsBasketSheetOpen(true)}
-                            className="w-full h-14 rounded-2xl bg-orange-500 text-stone-950 font-bold shadow-2xl shadow-orange-500/30 px-4 flex items-center justify-between hover:scale-[1.02] active:scale-98 transition-all btn-bevel"
+                            className="w-full h-14 rounded-2xl bg-[#f59e0b] text-[#472a00] font-bold shadow-2xl shadow-[#f59e0b]/30 px-4 flex items-center justify-between hover:scale-[1.02] active:scale-98 transition-all btn-bevel"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-stone-950 text-amber-400 text-xs font-black flex items-center justify-center border border-amber-400">
+                                <div className="w-8 h-8 rounded-full bg-[#121213] text-[#ffc174] text-xs font-black flex items-center justify-center border border-[#ffc174]">
                                     {itemCount}
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-sm font-black leading-tight">View your cart</div>
-                                    <div className="text-[10px] text-stone-900 font-bold">Saddle Ranch Online Order</div>
+                                    <div className="text-sm font-black leading-tight">View your Order</div>
+                                    <div className="text-[10px] text-[#472a00]/80 font-bold">Saddle Ranch Online Order</div>
                                 </div>
                             </div>
 
@@ -735,6 +773,205 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 ₱ {subtotal.toFixed(2)}
                             </div>
                         </button>
+                    </div>
+                )}
+
+                {/* MOBILE ONLY: Slide-Up Cart Sheet Drawer with Working Pick-up / Delivery Toggle */}
+                {isBasketSheetOpen && (
+                    <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
+                            
+                            <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
+                                <div>
+                                    <h3 className="text-base font-black text-white font-domine">View your Order</h3>
+                                    <p className="text-[10px] text-[#d8c3ad]">Saddle Ranch Online Order</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsBasketSheetOpen(false)}
+                                    className="w-8 h-8 rounded-full bg-[#261e15] text-[#d8c3ad] flex items-center justify-center"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Fulfillment Toggle in Mobile Basket Drawer (Pick-Up vs Delivery) */}
+                            <div className="p-1 rounded-2xl bg-[#121213] border border-[#534434]/40 grid grid-cols-2 gap-1 text-xs font-bold">
+                                <button
+                                    onClick={() => setOrderType('pickup')}
+                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${
+                                        orderType === 'pickup' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <ShoppingBag className="w-3.5 h-3.5" />
+                                    <span>Pick-Up</span>
+                                </button>
+                                <button
+                                    onClick={() => setOrderType('delivery')}
+                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${
+                                        orderType === 'delivery' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    }`}
+                                >
+                                    <Truck className="w-3.5 h-3.5" />
+                                    <span>Delivery</span>
+                                </button>
+                            </div>
+
+                            {/* Itemized Cart List */}
+                            <div className="space-y-3">
+                                {cart.map((item) => {
+                                    const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
+                                    const imgUrl = getProductImage(item.product as Product);
+                                    return (
+                                        <div key={item.product.id} className="p-3 rounded-2xl bg-[#121213] border border-[#262627] flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3 truncate">
+                                                <img src={imgUrl} alt={item.product.name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                                                <div className="truncate">
+                                                    <div className="font-bold text-sm text-white truncate">{item.product.name}</div>
+                                                    <div className="font-mono text-xs text-[#ffc174]">₱ {numPrice.toFixed(2)}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] rounded-full px-2 py-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                                    className="text-[#d8c3ad] hover:text-white p-0.5"
+                                                >
+                                                    {item.quantity === 1 ? <Trash2 className="w-3.5 h-3.5 text-rose-400" /> : <Minus className="w-3.5 h-3.5" />}
+                                                </button>
+                                                <span className="font-mono font-bold text-xs px-1 text-white">{item.quantity}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                                    disabled={item.quantity >= item.product.stock_quantity}
+                                                    className="text-[#d8c3ad] hover:text-white p-0.5 disabled:opacity-30"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Mobile Form */}
+                            <form onSubmit={handleSubmit} className="space-y-4 pt-3 border-t border-[#262627]">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Full Name *</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={customerName}
+                                            onChange={(e) => setCustomerName(e.target.value)}
+                                            placeholder="Your Name"
+                                            className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Mobile No. *</label>
+                                        <input
+                                            type="tel"
+                                            required
+                                            value={customerPhone}
+                                            onChange={(e) => setCustomerPhone(e.target.value)}
+                                            placeholder="0917XXXXXXX"
+                                            className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {orderType === 'delivery' && (
+                                    <div className="space-y-2 p-3 rounded-2xl bg-[#121213] border border-[#534434]">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">City / Municipality</label>
+                                                <select
+                                                    value={city}
+                                                    onChange={(e) => setCity(e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg bg-[#1A1A1B] border border-[#534434] text-xs text-white"
+                                                >
+                                                    {Object.keys(CAVITE_LOCATIONS).map((c) => (
+                                                        <option key={c} value={c}>{c}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Barangay</label>
+                                                <select
+                                                    value={barangay}
+                                                    onChange={(e) => setBarangay(e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg bg-[#1A1A1B] border border-[#534434] text-xs text-white"
+                                                >
+                                                    {(CAVITE_LOCATIONS[city] || []).map((b) => (
+                                                        <option key={b} value={b}>{b}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Street / House No. / Landmark *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={streetAddress}
+                                                onChange={(e) => setStreetAddress(e.target.value)}
+                                                placeholder="Street address..."
+                                                className="w-full px-2.5 py-1.5 rounded-lg bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="pt-2 flex items-center justify-between text-sm font-black">
+                                    <span className="text-[#d8c3ad]">Total Amount</span>
+                                    <span className="text-[#ffc174] font-mono text-lg">₱ {subtotal.toFixed(2)}</span>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="w-full py-3.5 rounded-2xl bg-[#f59e0b] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 hover:bg-[#ffc174] transition-all btn-bevel"
+                                >
+                                    {isSubmitting ? 'Processing Order...' : `Place Order • ₱ ${subtotal.toFixed(2)}`}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Order Confirmation Modal */}
+                {completedOrder && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl text-center space-y-5">
+                            <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center">
+                                <CheckCircle2 className="w-7 h-7" />
+                            </div>
+
+                            <div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Order Placed!</span>
+                                <h3 className="text-xl font-bold text-[#ffc174] mt-0.5">Order Received</h3>
+                                <p className="text-xs text-[#d8c3ad] mt-1">We are preparing your sizzling order.</p>
+                            </div>
+
+                            <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434]/60 text-xs text-left space-y-2 font-mono">
+                                <div className="flex justify-between">
+                                    <span className="text-[#8c7a6b]">Order Number:</span>
+                                    <span className="font-bold text-[#f59e0b]">{completedOrder.order_number}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-[#8c7a6b]">Total Due:</span>
+                                    <span className="font-bold text-[#ffc174]">₱ {parseFloat(completedOrder.total_amount).toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setCompletedOrder(null)}
+                                className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider hover:bg-[#ffc174] transition-all block btn-bevel"
+                            >
+                                Order More Items
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
