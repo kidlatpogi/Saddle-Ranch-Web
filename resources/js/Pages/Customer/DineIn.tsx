@@ -13,7 +13,8 @@ import {
     ShoppingCart,
     X,
     Search,
-    ChevronRight
+    Bell,
+    BellRing
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -51,13 +52,16 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
+    // Call Waiter state
+    const [waiterCalled, setWaiterCalled] = useState(false);
+    const [showWaiterToast, setShowWaiterToast] = useState(false);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
     const { cart, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount } = useCart();
 
-    // Fallback menu items
     const fallbackProducts: Product[] = [
         {
             id: 1,
@@ -170,6 +174,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         }
     }, [flash]);
 
+    const handleCallWaiter = () => {
+        setWaiterCalled(true);
+        setShowWaiterToast(true);
+        setTimeout(() => {
+            setShowWaiterToast(false);
+        }, 5000);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError('');
@@ -215,11 +227,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Clean, Non-Overlapping Responsive Sticky Header */}
+                {/* Header */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
                         
-                        {/* Top Bar Row 1: Back + Title + Table Badge */}
+                        {/* Top Bar Row 1: Back + Title + Call Waiter & Table Badge */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
                                 <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0">
@@ -233,50 +245,40 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* Table Number Pill */}
-                            <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                <QrCode className="w-3.5 h-3.5" />
-                                Table #{tableNumber}
-                            </span>
-                        </div>
-
-                        {/* Top Bar Row 2: Search Input & Mode Selector */}
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                                <Search className="w-3.5 h-3.5 text-[#8c7a6b] absolute left-3 top-1/2 -translate-y-1/2" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search menu..."
-                                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                />
-                            </div>
-
-                            {/* Dine-In vs Takeout Pill */}
-                            <div className="flex items-center p-0.5 rounded-xl bg-[#121213] border border-[#534434] shrink-0">
+                            {/* Call Waiter & Table Pill */}
+                            <div className="flex items-center gap-2 shrink-0">
                                 <button
-                                    onClick={() => setFulfillmentMode('dine_in')}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 btn-bevel ${
-                                        fulfillmentMode === 'dine_in' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                    onClick={handleCallWaiter}
+                                    className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel ${
+                                        waiterCalled
+                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
+                                            : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
                                     }`}
                                 >
-                                    <Utensils className="w-3 h-3" />
-                                    <span>Dine-In</span>
+                                    <BellRing className={`w-3.5 h-3.5 ${waiterCalled ? 'animate-bounce text-[#f59e0b]' : ''}`} />
+                                    <span>{waiterCalled ? 'Waiter Called' : 'Call Waiter'}</span>
                                 </button>
-                                <button
-                                    onClick={() => setFulfillmentMode('express_takeout')}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 btn-bevel ${
-                                        fulfillmentMode === 'express_takeout' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
-                                    }`}
-                                >
-                                    <ShoppingBag className="w-3 h-3" />
-                                    <span>Takeout</span>
-                                </button>
+
+                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                    <QrCode className="w-3.5 h-3.5" />
+                                    Table #{tableNumber}
+                                </span>
                             </div>
                         </div>
 
-                        {/* Top Bar Row 3: Clean Horizontal Category Tabs (No Fire Emoji) */}
+                        {/* Top Bar Row 2: Full-Width Search Input */}
+                        <div className="relative w-full">
+                            <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search menu items (sisig, steaks, drinks...)"
+                                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                            />
+                        </div>
+
+                        {/* Top Bar Row 3: Category Tabs (No Fire Emoji) */}
                         <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
@@ -297,6 +299,17 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </header>
 
+                {/* Call Waiter Toast Notification */}
+                {showWaiterToast && (
+                    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl bg-amber-500 text-[#472a00] font-bold shadow-2xl flex items-center gap-3 border border-[#ffc174] animate-in slide-in-from-top-4 duration-300">
+                        <Bell className="w-6 h-6 shrink-0 animate-bounce" />
+                        <div className="text-xs leading-snug">
+                            <div className="font-black text-sm uppercase">🔔 Waiter Notified!</div>
+                            <div>Roadhouse staff is on their way to Table #{tableNumber}.</div>
+                        </div>
+                    </div>
+                )}
+
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
                     {validationError && (
                         <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2.5">
@@ -305,7 +318,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
                     )}
 
-                    {/* Dual Layout: 2-Column Mobile vs Full Desktop Grid */}
+                    {/* Dual Layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
                         {/* LEFT: Product List */}
@@ -332,7 +345,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
                                                     />
 
-                                                    {/* Saddle Ranch Beveled Floating + Button */}
                                                     <div className="absolute bottom-1.5 right-1.5 z-10">
                                                         {cartEntry ? (
                                                             <button
@@ -368,7 +380,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* DESKTOP (>= md): Full Grid Cards */}
+                            {/* DESKTOP (>= md): Grid Cards */}
                             <div className="hidden md:grid grid-cols-2 gap-6">
                                 {filteredProducts.map((product) => {
                                     const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
@@ -586,7 +598,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     {itemCount}
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-sm font-black leading-tight">View your cart</div>
+                                    <div className="text-sm font-black leading-tight">View your Order</div>
                                     <div className="text-[10px] text-[#472a00]/80 font-bold">Table #{tableNumber} • Saddle Ranch</div>
                                 </div>
                             </div>
@@ -598,7 +610,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 )}
 
-                {/* MOBILE ONLY: Slide-Up Basket Sheet Drawer with Fulfillment Mode Toggle */}
+                {/* MOBILE ONLY: Slide-Up Basket Sheet Drawer with Working Dine-In / Takeout Toggle */}
                 {isBasketSheetOpen && (
                     <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
