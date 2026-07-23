@@ -158,6 +158,24 @@ const CardNav: React.FC<CardNavProps> = ({
     }
   };
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const targetId = href.replace('#', '');
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+      // Remove hash from browser URL bar cleanly
+      window.history.replaceState(null, '', window.location.pathname);
+
+      // Close menu if open
+      if (isExpanded) {
+        toggleMenu();
+      }
+    }
+  };
+
   const setCardRef = (i: number) => (el: HTMLDivElement | null) => {
     if (el) cardsRef.current[i] = el;
   };
@@ -212,7 +230,7 @@ const CardNav: React.FC<CardNavProps> = ({
           <div className="flex items-center gap-2">
             <a
               href="/order"
-              className="relative px-3 py-2 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
+              className="relative h-[42px] px-4 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-2 text-xs font-bold"
               aria-label="View Cart"
             >
               <ShoppingCart className="w-4 h-4 text-[#f59e0b]" />
@@ -257,6 +275,7 @@ const CardNav: React.FC<CardNavProps> = ({
                     key={`${lnk.label}-${i}`}
                     className="nav-card-link inline-flex items-center gap-[6px] no-underline cursor-pointer transition-opacity duration-300 hover:opacity-80 text-[14px] md:text-[15px] font-sans font-medium text-[#f0e0d1]"
                     href={lnk.href}
+                    onClick={(e) => handleLinkClick(e, lnk.href)}
                     aria-label={lnk.ariaLabel}
                   >
                     <ArrowUpRight className="nav-card-link-icon shrink-0 w-4 h-4 text-[#f59e0b]" aria-hidden="true" />

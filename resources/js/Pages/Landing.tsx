@@ -236,22 +236,22 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/50 to-[#121213]/40" />
                     </div>
 
-                    {/* Rotating Circular Stamp Seal Badge ("SINCE 2008") in Upper Right Corner (1:1 with aditya-gupta.com.np badge) */}
+                    {/* Rotating Circular Stamp Seal Badge ("SINCE 2008") in Upper Right Corner (Item 1: Complete 360° Text Visibility) */}
                     <div className="absolute top-28 right-8 lg:right-16 z-20 hidden md:flex items-center justify-center">
-                        <div className="relative w-36 h-36 flex items-center justify-center group cursor-pointer">
+                        <div className="relative w-40 h-40 flex items-center justify-center group cursor-pointer">
                             {/* Outer Scalloped Dashed Border Ring */}
                             <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#f59e0b]/50 bg-[#1c150e]/85 backdrop-blur-md shadow-2xl shadow-[#f59e0b]/25 group-hover:border-[#f59e0b] group-hover:scale-105 transition-all duration-300" />
                             
                             {/* Rotating Curved Text Path */}
-                            <svg className="w-32 h-32 animate-[spin_14s_linear_infinite]" viewBox="0 0 100 100">
+                            <svg className="w-36 h-36 animate-[spin_16s_linear_infinite]" viewBox="0 0 140 140">
                                 <path
                                     id="stampCirclePath"
-                                    d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                                    d="M 70, 70 m -46, 0 a 46,46 0 1,1 92,0 a 46,46 0 1,1 -92,0"
                                     fill="none"
                                 />
-                                <text fill="#ffc174" fontSize="9" fontWeight="bold" letterSpacing="2.2">
+                                <text fill="#ffc174" fontSize="10" fontWeight="bold" letterSpacing="1.8">
                                     <textPath href="#stampCirclePath" startOffset="0%">
-                                        ★ SINCE 2008 ★ ROADHOUSE EXCELLENCE
+                                        ★ SINCE 2008 ★ ROADHOUSE EXCELLENCE ★
                                     </textPath>
                                 </text>
                             </svg>
@@ -259,7 +259,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             {/* Center Emblem */}
                             <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
                                 <Flame className="w-5 h-5 text-[#f59e0b] group-hover:scale-125 transition-transform duration-300" />
-                                <span className="font-domine font-black text-sm text-[#ffc174] tracking-tight leading-none mt-0.5">2008</span>
+                                <span className="font-domine font-black text-base text-[#ffc174] tracking-tight leading-none mt-0.5">2008</span>
                                 <span className="font-mono text-[8px] font-bold text-[#d8c3ad] uppercase tracking-widest">RANCH</span>
                             </div>
                         </div>

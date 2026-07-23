@@ -10,11 +10,11 @@ import {
     CheckCircle2, 
     Clock, 
     MapPin, 
-    CreditCard, 
     Flame, 
     AlertCircle,
-    Utensils,
-    ShoppingCart
+    ShoppingCart,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -50,6 +50,12 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
+
+    // Item 4: Pagination State (Show 3 rows = 6 items per page in 2-column grid)
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6; // 3 rows of 2 columns
+    const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
+    const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const { cart, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount } = useCart();
 
@@ -146,38 +152,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             <div>
                                 <h1 className="text-xl font-black text-white flex items-center gap-2">
                                     <span>Saddle Ranch Menu & Cart</span>
-                                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-bold uppercase border border-orange-500/30">
-                                        {orderType === 'pickup' ? 'Takeout Pick-Up' : 'Bulihan Delivery'}
-                                    </span>
                                 </h1>
                                 <p className="text-xs text-stone-400">Order online for fast pickup or hot delivery in Bulihan</p>
                             </div>
-                        </div>
-
-                        {/* Toggle Fulfillment Mode */}
-                        <div className="flex items-center p-1 rounded-2xl bg-stone-950 border border-stone-800">
-                            <button
-                                onClick={() => setOrderType('pickup')}
-                                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                                    orderType === 'pickup'
-                                        ? 'bg-orange-500 text-white shadow-md'
-                                        : 'text-stone-400 hover:text-stone-200'
-                                }`}
-                            >
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                                <span>Pick-Up</span>
-                            </button>
-                            <button
-                                onClick={() => setOrderType('delivery')}
-                                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                                    orderType === 'delivery'
-                                        ? 'bg-orange-500 text-white shadow-md'
-                                        : 'text-stone-400 hover:text-stone-200'
-                                }`}
-                            >
-                                <Truck className="w-3.5 h-3.5" />
-                                <span>Delivery</span>
-                            </button>
                         </div>
                     </div>
                 </header>
@@ -191,18 +168,21 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Menu Selection with Images (Left 7 Cols) */}
+                        {/* Menu Selection (Left 7 Cols) - Paginated 3 rows (6 items) at a time */}
                         <div className="lg:col-span-7 space-y-6">
                             <div className="flex items-center justify-between pb-2 border-b border-stone-800">
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                     <Flame className="w-5 h-5 text-orange-500" />
                                     <span>Select Sizzling Plates</span>
                                 </h2>
-                                <span className="text-xs text-stone-400">{products.length} Items Available</span>
+                                <span className="text-xs text-stone-400">
+                                    Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, products.length)} of {products.length} Items
+                                </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                {products.map((product) => {
+                            {/* 3 Rows x 2 Columns Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-h-[540px]">
+                                {paginatedProducts.map((product) => {
                                     const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                     const isOutOfStock = product.stock_quantity <= 0;
                                     const cartEntry = cart.find((i) => i.product.id === product.id);
@@ -216,7 +196,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             }`}
                                         >
                                             <div>
-                                                {/* Product Image Header */}
                                                 <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
                                                     <img
                                                         src={imgUrl}
@@ -272,21 +251,94 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     );
                                 })}
                             </div>
+
+                            {/* Pagination Controls (3 Rows at a time) */}
+                            {totalPages > 1 && (
+                                <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
+                                    <button
+                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                        <span>Previous</span>
+                                    </button>
+
+                                    <div className="flex items-center gap-2">
+                                        {Array.from({ length: totalPages }).map((_, idx) => {
+                                            const pageNum = idx + 1;
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all ${
+                                                        currentPage === pageNum
+                                                            ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
+                                                            : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <button
+                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5"
+                                    >
+                                        <span>Next</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Cart Drawer & Checkout Form (Right 5 Cols) */}
                         <div className="lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-stone-900 border border-stone-800 shadow-2xl space-y-6">
-                                <div className="pb-4 border-b border-stone-800">
-                                    <h3 className="text-lg font-bold text-white flex items-center justify-between">
-                                        <span className="flex items-center gap-2">
-                                            <ShoppingCart className="w-5 h-5 text-orange-400" />
-                                            <span>Your Order Cart</span>
-                                        </span>
-                                        <span className="px-2.5 py-0.5 rounded-full bg-stone-800 text-orange-400 text-xs font-bold">
-                                            {itemCount} Items
-                                        </span>
+                                <div className="pb-4 border-b border-stone-800 flex items-center justify-between">
+                                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                        <ShoppingCart className="w-5 h-5 text-orange-400" />
+                                        <span>Your Order Cart</span>
                                     </h3>
+                                    <span className="px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30">
+                                        {itemCount} Items
+                                    </span>
+                                </div>
+
+                                {/* Item 5: Relocated & Bigger Pick-up vs Delivery Selector inside Your Order Cart */}
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-orange-400">
+                                        Select Fulfillment Method
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3 p-1.5 rounded-2xl bg-stone-950 border border-stone-800">
+                                        <button
+                                            type="button"
+                                            onClick={() => setOrderType('pickup')}
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                                                orderType === 'pickup'
+                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
+                                                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
+                                            }`}
+                                        >
+                                            <ShoppingBag className="w-4 h-4" />
+                                            <span>Pick-Up</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setOrderType('delivery')}
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                                                orderType === 'delivery'
+                                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
+                                                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
+                                            }`}
+                                        >
+                                            <Truck className="w-4 h-4" />
+                                            <span>Delivery</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Cart Items List with Images */}
