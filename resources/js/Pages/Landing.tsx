@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 
@@ -33,6 +33,16 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
     const [showAllMenu, setShowAllMenu] = useState(false);
     const { addItem, itemCount } = useCart();
     const [addedProductId, setAddedProductId] = useState<number | null>(null);
+    const [scrollY, setScrollY] = useState(0);
+
+    // Parallax Scroll Effect
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrollY(window.scrollY);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleAddToCart = (product: Product) => {
         if (product.stock_quantity <= 0) return;
@@ -209,26 +219,30 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     cartItemCount={itemCount}
                 />
 
-                {/* Hero Section with Zoomed Video Background */}
-                <header className="relative min-h-[85vh] flex items-center justify-center pt-28 pb-16 overflow-hidden">
-                    <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
+                {/* 1. Hero Section (100vh / h-screen with Parallax Video & Ranch Horse Branding Tag "SINCE 2008") */}
+                <header className="relative w-full h-screen overflow-hidden flex items-center justify-center pt-20 pb-16">
+                    <div className="relative w-full h-full overflow-hidden">
                         <video
                             autoPlay
                             loop
                             muted
                             playsInline
-                            className="absolute inset-0 w-full h-full object-cover scale-110"
+                            className="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-75 ease-out"
+                            style={{ transform: `scale(1.1) translateY(${scrollY * 0.25}px)` }}
                         >
                             <source src="/landing-video.mp4" type="video/mp4" />
                         </video>
                         {/* Dark Vignette Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/60 to-[#121213]/40" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/50 to-[#121213]/40" />
                     </div>
 
-                    <div className="relative z-10 text-center px-6 max-w-4xl mx-auto space-y-6">
-                        <span className="inline-flex items-center gap-2 font-mono text-xs text-[#f59e0b] bg-[#31281f]/90 px-3.5 py-1.5 rounded border border-[#534434] uppercase tracking-widest font-bold shadow-lg">
-                            <Flame className="w-4 h-4 text-[#f59e0b]" /> Authentic Sizzling Roadhouse
-                        </span>
+                    <div className="absolute z-10 text-center px-6 max-w-4xl mx-auto space-y-6">
+                        {/* Ranch Horse Branding Tag "SINCE 2008" */}
+                        <div className="inline-flex items-center gap-2 font-mono text-xs text-[#f59e0b] bg-[#26190e]/85 px-5 py-2.5 rounded-lg border-2 border-[#8c5923] uppercase tracking-widest font-black shadow-2xl backdrop-blur-md border-dashed animate-pulse">
+                            <span className="text-[#ffc174] font-serif text-sm tracking-widest font-black uppercase flex items-center gap-2">
+                                <span className="text-[#f59e0b] text-base">🔥</span> SINCE 2008 <span className="text-amber-400 font-mono text-[10px] bg-[#422910] px-2 py-0.5 rounded border border-[#6b421a] font-bold">RANCH BRANDED</span>
+                            </span>
+                        </div>
 
                         <h1 className="font-domine text-4xl sm:text-6xl md:text-7xl text-[#ffc174] font-bold tracking-tight drop-shadow-2xl leading-tight">
                             The Wild West of Sizzling Steaks
@@ -251,8 +265,12 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 1. PROMOTIONAL BANNERS SECTION (Dynamic Asymmetric Bento Grid for Rich Visual Variety) */}
-                <section id="promos" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
+                {/* 2. PROMOTIONS & DEALS SECTION (With Parallax Scroll Feeling) */}
+                <section
+                    id="promos"
+                    className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto transition-transform duration-300"
+                    style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.03)}px)` }}
+                >
                     <div className="text-center mb-10">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
                             Exclusive Roadhouse Specials
@@ -262,9 +280,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </h2>
                     </div>
 
-                    {/* Asymmetric Bento Grid: Feature Banner + Square Cards + Full-Width Accent Card */}
+                    {/* Asymmetric Bento Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Card 1: Large Featured Hero Banner (Spans 2 columns & 2 rows on desktop) */}
+                        {/* Card 1: Large Featured Hero Banner */}
                         <div className="md:col-span-2 md:row-span-2 relative h-[360px] md:h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
@@ -304,7 +322,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             </div>
                         </div>
 
-                        {/* Card 3: Square Card - Free Unli-Rice & Soup (Requested Text Change) */}
+                        {/* Card 3: Square Card - Free Unli-Rice & Soup */}
                         <div className="relative h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
@@ -322,7 +340,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             </div>
                         </div>
 
-                        {/* Card 4: Wide Accent Horizontal Banner (Spans 3 Columns) */}
+                        {/* Card 4: Wide Accent Horizontal Banner */}
                         <div className="md:col-span-3 relative h-48 rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
                             <div className="absolute inset-0 flex items-center justify-between">
                                 <div className="w-full md:w-2/3 p-6 md:p-8 z-10 space-y-2">
@@ -351,7 +369,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 2. FEATURED SIZZLING ITEMS SECTION */}
+                {/* 3. FEATURED SIZZLING ITEMS SECTION */}
                 <section id="featured-menu" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-14">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
@@ -365,7 +383,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </p>
                     </div>
 
-                    {/* Menu Items Grid (Shows 6 initially, expands to 12 when Show More clicked) */}
+                    {/* Menu Items Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
                         {displayedProducts.map((product) => {
                             const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
@@ -391,7 +409,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         </div>
                                     </div>
 
-                                    {/* Product Details (No stock badge) */}
+                                    {/* Product Details */}
                                     <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
                                         <div>
                                             <h3 className="font-domine text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-2">
@@ -435,7 +453,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         })}
                     </div>
 
-                    {/* View More Button (Show More / Show Less Toggle) */}
+                    {/* View More Button */}
                     <div className="mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
                         <button
                             onClick={() => setShowAllMenu(!showAllMenu)}
@@ -457,7 +475,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 3. SIZZLING MENU CATEGORIES */}
+                {/* 4. SIZZLING MENU CATEGORIES (Updated to: Sizzling Rice Meals, Authentic Filipino Cuisine, Barkada Platters) */}
                 <section id="categories" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mb-2">
@@ -467,57 +485,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Category Card 1: Sisig */}
-                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-48 relative vignette-overlay">
-                                <img
-                                    className="w-full h-full object-cover opacity-80"
-                                    alt="Sisig category"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t"
-                                />
-                            </div>
-                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Sisig
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad]">
-                                        The undisputed king of the sizzling plate. Pork, chicken, or bangus chopped fine and seasoned bold.
-                                    </p>
-                                </div>
-                                <div className="flex gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SPICY</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">CLASSIC</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Category Card 2: Steaks */}
-                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-48 relative vignette-overlay">
-                                <img
-                                    className="w-full h-full object-cover opacity-80"
-                                    alt="Steaks category"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY"
-                                />
-                            </div>
-                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Steaks
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad]">
-                                        Prime cuts seared hard on cast iron. Served crackling hot with our signature roadhouse gravies.
-                                    </p>
-                                </div>
-                                <div className="flex gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">RIBEYE</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">T-BONE</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Category Card 3: Sizzling Rice Meals */}
+                        {/* Category 1: Sizzling Rice Meals */}
                         <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
                             <div className="h-48 relative vignette-overlay">
                                 <img
@@ -532,12 +500,62 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         Sizzling Rice Meals
                                     </h3>
                                     <p className="font-sans text-xs text-[#d8c3ad]">
-                                        Complete hearty platters. Savory viands atop a bed of garlic rice that crisps up on the hot iron.
+                                        Complete hearty platters with garlic rice, topped with tender meats and savory gravies on hot cast iron.
                                     </p>
                                 </div>
                                 <div className="flex gap-2 font-mono text-[10px] font-bold">
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">BEEF PEPPER</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">CHICKEN</span>
+                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">PORK CHOP</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Category 2: Authentic Filipino Cuisine */}
+                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
+                            <div className="h-48 relative vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-80"
+                                    alt="Authentic Filipino Cuisine category"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t"
+                                />
+                            </div>
+                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                <div>
+                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
+                                        Authentic Filipino Cuisine
+                                    </h3>
+                                    <p className="font-sans text-xs text-[#d8c3ad]">
+                                        Time-honored Filipino heritage recipes cooked sizzling hot with bold local seasonings and native flair.
+                                    </p>
+                                </div>
+                                <div className="flex gap-2 font-mono text-[10px] font-bold">
+                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SISIG</span>
+                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">LECHON KAWALI</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Category 3: Barkada Platters */}
+                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
+                            <div className="h-48 relative vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-80"
+                                    alt="Barkada Platters category"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY"
+                                />
+                            </div>
+                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                <div>
+                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
+                                        Barkada Platters
+                                    </h3>
+                                    <p className="font-sans text-xs text-[#d8c3ad]">
+                                        Generous sharing platters made for group feasts, family gatherings, and roadhouse celebrations.
+                                    </p>
+                                </div>
+                                <div className="flex gap-2 font-mono text-[10px] font-bold">
+                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SHARING</span>
+                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">FEAST</span>
                                 </div>
                             </div>
                         </div>
@@ -546,7 +564,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 4. ROADHOUSE LOCATIONS SECTION (Storefront Exterior Images instead of food) */}
+                {/* 5. ROADHOUSE LOCATIONS SECTION */}
                 <section id="locations" className="py-16 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
@@ -663,29 +681,31 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </footer>
 
-                {/* Interactive Order Modal */}
+                {/* 6. Interactive Order Modal ("How would you like your order?")
+                    Translucent backdrop (bg-black/50 backdrop-blur-sm) so background page/video is visible!
+                    Removed "Fast & Hot Fulfillment". Changed text to "Free Delivery in Bulihan Area". */}
                 {isOrderModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121213]/90 backdrop-blur-md animate-in fade-in duration-200">
-                        <div className="relative w-full max-w-lg rounded-xl bg-[#1A1A1B] border border-white/20 p-6 sm:p-8 shadow-2xl text-[#f0e0d1]">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="relative w-full max-w-lg rounded-2xl bg-[#1A1A1B]/95 border border-[#ffc174]/30 p-6 sm:p-8 shadow-2xl text-[#f0e0d1] backdrop-blur-md">
                             <button
                                 onClick={() => setIsOrderModalOpen(false)}
-                                className="absolute top-6 right-6 p-2 rounded-full text-[#d8c3ad] hover:text-white hover:bg-stone-800 transition-colors"
+                                className="absolute top-5 right-5 p-2 rounded-full text-[#d8c3ad] hover:text-white hover:bg-stone-800 transition-colors"
+                                aria-label="Close modal"
                             >
                                 <X className="w-5 h-5" />
                             </button>
 
                             <div className="text-center mb-6">
-                                <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#f59e0b]">Fast & Hot Fulfillment</span>
-                                <h3 className="font-domine text-2xl font-bold text-[#f0e0d1] mt-1">How would you like your order?</h3>
+                                <h3 className="font-domine text-2xl font-bold text-[#ffc174]">How would you like your order?</h3>
                                 <p className="font-sans text-xs text-[#d8c3ad] mt-1">Select your preferred dining or delivery option below.</p>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                                 <button
                                     onClick={() => setSelectedMode('pickup')}
-                                    className={`p-5 rounded-lg border text-left transition-all flex flex-col justify-between ${
+                                    className={`p-5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                                         selectedMode === 'pickup'
-                                            ? 'bg-[#f59e0b]/10 border-[#f59e0b] text-white shadow-lg shadow-[#f59e0b]/10'
+                                            ? 'bg-[#f59e0b]/15 border-[#f59e0b] text-white shadow-lg shadow-[#f59e0b]/10'
                                             : 'bg-[#121213] border-[#534434] text-[#d8c3ad] hover:border-stone-700'
                                     }`}
                                 >
@@ -699,9 +719,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                                 <button
                                     onClick={() => setSelectedMode('delivery')}
-                                    className={`p-5 rounded-lg border text-left transition-all flex flex-col justify-between ${
+                                    className={`p-5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                                         selectedMode === 'delivery'
-                                            ? 'bg-[#f59e0b]/10 border-[#f59e0b] text-white shadow-lg shadow-[#f59e0b]/10'
+                                            ? 'bg-[#f59e0b]/15 border-[#f59e0b] text-white shadow-lg shadow-[#f59e0b]/10'
                                             : 'bg-[#121213] border-[#534434] text-[#d8c3ad] hover:border-stone-700'
                                     }`}
                                 >
@@ -710,14 +730,14 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         <div className="font-bold text-base text-white">Home Delivery</div>
                                         <p className="text-xs mt-1 text-[#d8c3ad]">Delivered piping hot right to your doorstep.</p>
                                     </div>
-                                    <div className="mt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-400">FREE in Bulihan / Dasma</div>
+                                    <div className="mt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-400">Free Delivery in Bulihan Area</div>
                                 </button>
                             </div>
 
                             <div className="flex flex-col gap-3">
                                 <Link
                                     href={`/order?mode=${selectedMode}`}
-                                    className="w-full py-3.5 rounded-lg bg-[#f59e0b] text-[#472a00] font-bold text-center block shadow-xl shadow-[#f59e0b]/20 hover:bg-[#ffc174] transition-all text-sm uppercase tracking-wider btn-bevel"
+                                    className="w-full py-3.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-bold text-center block shadow-xl shadow-[#f59e0b]/20 hover:bg-[#ffc174] transition-all text-sm uppercase tracking-wider btn-bevel"
                                 >
                                     Continue to Menu ({selectedMode === 'pickup' ? 'Takeout' : 'Delivery'})
                                 </Link>
