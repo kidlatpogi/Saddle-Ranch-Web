@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 
@@ -74,7 +74,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
         },
     ];
 
-    // High-fidelity fallback products with images if DB products not loaded
+    // 12 High-fidelity fallback products with images
     const fallbackProducts: Product[] = [
         {
             id: 1,
@@ -130,6 +130,60 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             stock_quantity: 25,
             is_active: true,
         },
+        {
+            id: 7,
+            name: 'Sizzling Pork Chop Supreme',
+            description: 'Thick-cut marinating pork chops seared on hot cast iron with savory house gravy.',
+            price: 210.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
+            stock_quantity: 30,
+            is_active: true,
+        },
+        {
+            id: 8,
+            name: 'Sizzling Bangus Sisig',
+            description: 'Deboned milkfish flaked and crisp-fried with onions, calamansi, and chili on a sizzling plate.',
+            price: 190.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
+            stock_quantity: 45,
+            is_active: true,
+        },
+        {
+            id: 9,
+            name: 'Sizzling Ribeye Steak Deluxe',
+            description: 'Premium bone-in cowboy ribeye steak with signature herb butter and roasted garlic cloves.',
+            price: 490.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAqtvjGjUsuBGyzBHVhntcLtTHQL442EMNheO8rq-4bOP-zq35cYw-DswcOn6dpMuPv5ukX12iSEzREwKgb6iPoUk64ETmBeEcSAd_ACcZoIibAIU9yR4PAPlj2o5GbDfdalWoY2tkEYUIrX_067eJx75-iVNUhMQQwzXdK3OmEDSQSGelDLgr5zgcY5sN7zsIqaaHUGQXrLpgju8NF3deoQjQPo--R-W6fwR50zfB_tGo3dBdO2gM7hr6EUUVxLgCF5gCn94DbGA_N',
+            stock_quantity: 20,
+            is_active: true,
+        },
+        {
+            id: 10,
+            name: 'Sizzling Lechon Kawali',
+            description: 'Super crispy deep-fried pork belly served sizzling with lechon sauce and chili peppers.',
+            price: 240.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
+            stock_quantity: 28,
+            is_active: true,
+        },
+        {
+            id: 11,
+            name: 'Sizzling Squid Flower',
+            description: 'Tender ocean squid scored into flowers and seared in sweet-spicy garlic glaze.',
+            price: 230.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+            stock_quantity: 22,
+            is_active: true,
+        },
+        {
+            id: 12,
+            name: 'Sizzling Garlic Butter Shrimp',
+            description: 'Plump jumbo tiger prawns tossed in melted butter, roasted garlic, and scallions on cast iron.',
+            price: 275.00,
+            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
+            stock_quantity: 25,
+            is_active: true,
+        },
     ];
 
     const allProductsList = products && products.length > 0 ? products : fallbackProducts;
@@ -141,7 +195,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
             <div className="font-body text-[#f0e0d1] bg-[#121213] min-h-screen antialiased overflow-x-hidden selection:bg-[#f59e0b] selection:text-[#121213]">
                 
-                {/* React Bits CardNav Component Integration with Live Cart Count */}
+                {/* React Bits CardNav Component Integration */}
                 <CardNav
                     logoText="Saddle Ranch"
                     logoAlt="Saddle Ranch Logo"
@@ -155,7 +209,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     cartItemCount={itemCount}
                 />
 
-                {/* Hero Section with Zoomed Video Background (scale-110 zooms in 10% to push watermark offscreen) */}
+                {/* Hero Section with Zoomed Video Background */}
                 <header className="relative min-h-[85vh] flex items-center justify-center pt-28 pb-16 overflow-hidden">
                     <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
                         <video
@@ -195,61 +249,98 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </header>
 
-                <div className="sizzle-divider max-w-7xl mx-auto" />
+                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 1. PROMOTIONAL BANNERS SECTION (Hierarchy Fix: Promotional Banners go FIRST right after Hero) */}
-                <section id="promos" className="py-12 px-6 max-w-7xl mx-auto">
-                    <div className="text-center mb-8">
-                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block">
-                            Special Roadhouse Deals
+                {/* 1. PROMOTIONAL BANNERS SECTION (Width set to 90% of screen to eliminate wide empty margins) */}
+                <section id="promos" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
+                    <div className="text-center mb-10">
+                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
+                            Exclusive Roadhouse Specials
                         </span>
-                        <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mt-2">
-                            Promotions & Specials
+                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold">
+                            Promotions & Deals
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Bento Slide 1 */}
-                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Deal Banner 1 */}
+                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
-                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity duration-500"
+                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
                                     alt="Sisig promo"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 p-6 w-full bg-gradient-to-t from-[#1A1A1B] to-transparent">
-                                <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-2 py-1 rounded border border-[#534434] mb-2 inline-block font-semibold">
-                                    PROMO
+                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                                    20% OFF
                                 </span>
-                                <h3 className="font-domine text-xl font-bold text-[#f0e0d1]">Sisig Saturdays: 20% Off</h3>
+                                <h3 className="font-domine text-lg font-bold text-[#f0e0d1]">Sisig Saturdays Deal</h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Get 20% off on all sizzling pork sisig orders.</p>
                             </div>
                         </div>
 
-                        {/* Bento Slide 2 (Col Span 2) */}
-                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] md:col-span-2">
+                        {/* Deal Banner 2 */}
+                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
-                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity duration-500"
+                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
                                     alt="Ribeye Steak"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqtvjGjUsuBGyzBHVhntcLtTHQL442EMNheO8rq-4bOP-zq35cYw-DswcOn6dpMuPv5ukX12iSEzREwKgb6iPoUk64ETmBeEcSAd_ACcZoIibAIU9yR4PAPlj2o5GbDfdalWoY2tkEYUIrX_067eJx75-iVNUhMQQwzXdK3OmEDSQSGelDLgr5zgcY5sN7zsIqaaHUGQXrLpgju8NF3deoQjQPo--R-W6fwR50zfB_tGo3dBdO2gM7hr6EUUVxLgCF5gCn94DbGA_N"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 p-6 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-2 py-1 rounded border border-[#534434] mb-2 inline-block font-semibold">
+                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
                                     NEW ARRIVAL
                                 </span>
-                                <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-1">New Cowboy Ribeye Steak</h3>
-                                <p className="font-sans text-sm text-[#d8c3ad] hidden md:block">Bone-in, rugged flavor, seared to perfection.</p>
+                                <h3 className="font-domine text-lg font-bold text-[#ffc174]">Cowboy Ribeye Special</h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Bone-in, seared on smoking cast iron.</p>
+                            </div>
+                        </div>
+
+                        {/* Deal Banner 3 */}
+                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
+                            <div className="absolute inset-0 vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
+                                    alt="Unli Rice"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ"
+                                />
+                            </div>
+                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                <span className="font-mono text-[10px] text-emerald-400 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                                    UNLIMITED
+                                </span>
+                                <h3 className="font-domine text-lg font-bold text-[#f0e0d1]">Free Unli-Rice & Gravy</h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Free unlimited rice upgrade on all sizzling steaks.</p>
+                            </div>
+                        </div>
+
+                        {/* Deal Banner 4 */}
+                        <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/50 shadow-xl">
+                            <div className="absolute inset-0 vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
+                                    alt="Happy hour"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
+                                />
+                            </div>
+                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                <span className="font-mono text-[10px] text-amber-300 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                                    4PM - 7PM DAILY
+                                </span>
+                                <h3 className="font-domine text-lg font-bold text-[#ffc174]">Pulutan Happy Hour</h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Cold drinks & hot sizzling pulutan platters.</p>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <div className="sizzle-divider max-w-7xl mx-auto" />
+                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 2. FEATURED SIZZLING ITEMS SECTION (Removed IN STOCK badge, Show More/Less toggle, Cart link) */}
-                <section id="featured-menu" className="py-12 px-6 max-w-7xl mx-auto">
+                {/* 2. FEATURED SIZZLING ITEMS SECTION (Width set to 90% of screen to eliminate wide side margins) */}
+                <section id="featured-menu" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-14">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
                             Chef's Sizzling Favorites
@@ -262,8 +353,8 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </p>
                     </div>
 
-                    {/* Menu Items Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Menu Items Grid (Shows 6 initially, expands to 12 when Show More clicked) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
                         {displayedProducts.map((product) => {
                             const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                             const isOutOfStock = product.stock_quantity <= 0;
@@ -275,7 +366,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all duration-300 shadow-xl group"
                                 >
                                     {/* Product Image Showcase */}
-                                    <div className="h-52 w-full relative vignette-overlay overflow-hidden">
+                                    <div className="h-56 w-full relative vignette-overlay overflow-hidden">
                                         <img
                                             src={product.image_path || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t'}
                                             alt={product.name}
@@ -288,7 +379,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         </div>
                                     </div>
 
-                                    {/* Product Details (Removed IN STOCK badge) */}
+                                    {/* Product Details (No stock badge) */}
                                     <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
                                         <div>
                                             <h3 className="font-domine text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-2">
@@ -303,7 +394,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                             <button
                                                 onClick={() => handleAddToCart(product)}
                                                 disabled={isOutOfStock}
-                                                className={`w-full py-2.5 rounded font-bold text-xs uppercase tracking-wider btn-bevel transition-all flex items-center justify-center gap-2 ${
+                                                className={`w-full py-3 rounded font-bold text-xs uppercase tracking-wider btn-bevel transition-all flex items-center justify-center gap-2 ${
                                                     isOutOfStock
                                                         ? 'bg-stone-800 text-stone-500 cursor-not-allowed border border-stone-800'
                                                         : isAdded
@@ -332,13 +423,13 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         })}
                     </div>
 
-                    {/* View More Button (Show More / Show Less) & Clean Cart Link */}
+                    {/* View More Button (Show More / Show Less Toggle) */}
                     <div className="mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
                         <button
                             onClick={() => setShowAllMenu(!showAllMenu)}
                             className="inline-flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-sm uppercase tracking-wider shadow-lg"
                         >
-                            <span>{showAllMenu ? 'Show Less' : 'Show More'}</span>
+                            <span>{showAllMenu ? 'Show Less' : `Show More (${allProductsList.length} Total Items)`}</span>
                             {showAllMenu ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
 
@@ -352,10 +443,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider max-w-7xl mx-auto" />
+                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 3. SIZZLING MENU CATEGORIES */}
-                <section id="categories" className="py-12 px-6 max-w-7xl mx-auto">
+                {/* 3. SIZZLING MENU CATEGORIES (Width set to 90%) */}
+                <section id="categories" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mb-2">
                             Explore Our Sizzling Categories
@@ -366,7 +457,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Category Card 1: Sisig */}
                         <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-44 relative vignette-overlay">
+                            <div className="h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="Sisig category"
@@ -391,7 +482,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Category Card 2: Steaks */}
                         <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-44 relative vignette-overlay">
+                            <div className="h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="Steaks category"
@@ -416,7 +507,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Category Card 3: Sizzling Rice Meals */}
                         <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-44 relative vignette-overlay">
+                            <div className="h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="Sizzling Rice Meals category"
@@ -441,84 +532,106 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider max-w-7xl mx-auto" />
+                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 4. ROADHOUSE LOCATIONS SECTION */}
-                <section id="locations" className="py-16 px-6 max-w-7xl mx-auto">
+                {/* 4. ROADHOUSE LOCATIONS SECTION (Includes Images for Both Bulihan & Dasmarinas Branches) */}
+                <section id="locations" className="py-16 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
                             Visit Our Roadhouses
                         </span>
-                        <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold">Our Locations</h2>
-                        <p className="font-sans text-sm text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
+                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold">Our Locations</h2>
+                        <p className="font-sans text-base text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden p-6 sm:p-8 flex flex-col justify-between space-y-6 hover-heat transition-all">
-                            <div>
-                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] inline-block font-bold mb-3">
-                                    ORIGINAL BRANCH
-                                </span>
-                                <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Bulihan</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed mb-4">
-                                    Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
-                                </p>
-                                <div className="space-y-2 font-sans text-xs text-[#f0e0d1]">
-                                    <div className="flex items-center gap-3">
-                                        <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                        <span>123 Roadhouse Lane, Barangay Bulihan, Cavite</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                        <span>Monday - Sunday: 11:00 AM - 11:00 PM</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                        <span>+63 917 123 4567</span>
-                                    </div>
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-6 hover-heat transition-all shadow-xl">
+                            <div className="h-56 w-full relative vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-85"
+                                    alt="Saddle Ranch Bulihan Branch Storefront"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC"
+                                />
+                                <div className="absolute top-3 left-3 z-10">
+                                    <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
+                                        ORIGINAL FLAGSHIP BRANCH
+                                    </span>
                                 </div>
                             </div>
-                            <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel">
-                                Order from Bulihan
-                            </button>
+                            <div className="p-6 sm:p-8 flex-grow flex flex-col justify-between space-y-6">
+                                <div>
+                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Bulihan</h3>
+                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed mb-4">
+                                        Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
+                                    </p>
+                                    <div className="space-y-2 font-sans text-xs text-[#f0e0d1]">
+                                        <div className="flex items-center gap-3">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                            <span>123 Roadhouse Lane, Barangay Bulihan, Cavite</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                            <span>Monday - Sunday: 11:00 AM - 11:00 PM</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                            <span>+63 917 123 4567</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg">
+                                    Order from Bulihan Branch
+                                </button>
+                            </div>
                         </div>
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden p-6 sm:p-8 flex flex-col justify-between space-y-6 hover-heat transition-all">
-                            <div>
-                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] inline-block font-bold mb-3">
-                                    NEW BRANCH
-                                </span>
-                                <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Dasmariñas</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed mb-4">
-                                    Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
-                                </p>
-                                <div className="space-y-2 font-sans text-xs text-[#f0e0d1]">
-                                    <div className="flex items-center gap-3">
-                                        <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                        <span>Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                        <span>Monday - Sunday: 10:00 AM - 10:00 PM</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                        <span>+63 918 987 6543</span>
-                                    </div>
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-6 hover-heat transition-all shadow-xl">
+                            <div className="h-56 w-full relative vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-85"
+                                    alt="Saddle Ranch Dasmarinas Branch Storefront"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
+                                />
+                                <div className="absolute top-3 left-3 z-10">
+                                    <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
+                                        NEW BRANCH LOCATION
+                                    </span>
                                 </div>
                             </div>
-                            <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel">
-                                Order from Dasmariñas
-                            </button>
+                            <div className="p-6 sm:p-8 flex-grow flex flex-col justify-between space-y-6">
+                                <div>
+                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Dasmariñas</h3>
+                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed mb-4">
+                                        Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
+                                    </p>
+                                    <div className="space-y-2 font-sans text-xs text-[#f0e0d1]">
+                                        <div className="flex items-center gap-3">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                            <span>Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                            <span>Monday - Sunday: 10:00 AM - 10:00 PM</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                            <span>+63 918 987 6543</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg">
+                                    Order from Dasmariñas Branch
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Footer */}
                 <footer className="bg-[#140d06] font-sans text-sm w-full border-t border-[#534434]">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 py-12 max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 py-12 w-[90%] max-w-[1440px] mx-auto">
                         <div className="flex flex-col space-y-3">
                             <div className="font-domine text-xl font-bold text-[#ffc174]">Saddle Ranch</div>
                             <p className="text-[#d8c3ad] text-xs">Bulihan & Dasmariñas Branches, Cavite</p>
@@ -538,7 +651,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </footer>
 
-                {/* Interactive Order Modal */}
+                {/* Interactive Order Modal ("How would you like your order?") */}
                 {isOrderModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121213]/90 backdrop-blur-md animate-in fade-in duration-200">
                         <div className="relative w-full max-w-lg rounded-xl bg-[#1A1A1B] border border-white/20 p-6 sm:p-8 shadow-2xl text-[#f0e0d1]">
