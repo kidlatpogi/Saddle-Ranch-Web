@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
+import CardNav, { CardNavItem } from '@/Components/CardNav';
 
 interface Banner {
     id: number;
@@ -29,6 +30,7 @@ interface LandingProps {
 export default function Landing({ banners = [], products = [] }: LandingProps) {
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [selectedMode, setSelectedMode] = useState<'pickup' | 'delivery'>('pickup');
+    const [showAllMenu, setShowAllMenu] = useState(false);
     const { addItem, itemCount } = useCart();
     const [addedProductId, setAddedProductId] = useState<number | null>(null);
 
@@ -39,7 +41,40 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
         setTimeout(() => setAddedProductId(null), 1500);
     };
 
-    // Default 6 high-fidelity products with images if DB products not passed
+    // CardNav Items Configuration
+    const cardNavItems: CardNavItem[] = [
+        {
+            label: 'Sizzling Menu',
+            bgColor: '#261e15',
+            textColor: '#f0e0d1',
+            links: [
+                { label: 'Featured Items', href: '#featured-menu', ariaLabel: 'Featured Sizzling Items' },
+                { label: 'Menu Categories', href: '#categories', ariaLabel: 'Sizzling Categories' },
+                { label: 'Order Online', href: '/order', ariaLabel: 'Order Online' },
+            ],
+        },
+        {
+            label: 'Our Roadhouses',
+            bgColor: '#31281f',
+            textColor: '#f0e0d1',
+            links: [
+                { label: 'Bulihan Branch', href: '#locations', ariaLabel: 'Saddle Ranch Bulihan' },
+                { label: 'Dasmariñas Branch', href: '#locations', ariaLabel: 'Saddle Ranch Dasmariñas' },
+                { label: 'Table QR Service', href: '/dine-in?table=05', ariaLabel: 'Dine-In Table QR' },
+            ],
+        },
+        {
+            label: 'Promos & Access',
+            bgColor: '#1c150e',
+            textColor: '#f0e0d1',
+            links: [
+                { label: 'Roadhouse Promos', href: '#promos', ariaLabel: 'Special Roadhouse Promos' },
+                { label: 'Staff Portal', href: '/login', ariaLabel: 'Staff Login Portal' },
+            ],
+        },
+    ];
+
+    // High-fidelity fallback products with images if DB products not loaded
     const fallbackProducts: Product[] = [
         {
             id: 1,
@@ -97,56 +132,30 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
         },
     ];
 
-    const displayProducts = (products && products.length >= 6 ? products : fallbackProducts).slice(0, 6);
+    const allProductsList = products && products.length > 0 ? products : fallbackProducts;
+    const displayedProducts = showAllMenu ? allProductsList : allProductsList.slice(0, 6);
 
     return (
         <>
             <Head title="Saddle Ranch | The Wild West of Sizzling Steaks" />
 
             <div className="font-body text-[#f0e0d1] bg-[#121213] min-h-screen antialiased overflow-x-hidden selection:bg-[#f59e0b] selection:text-[#121213]">
-                {/* Navigation Bar */}
-                <nav className="bg-[#19120a]/95 backdrop-blur-sm fixed top-0 w-full z-50 border-b border-[#534434]">
-                    <div className="flex justify-between items-center px-6 h-20 max-w-7xl mx-auto">
-                        <Link href="/" className="font-domine text-2xl md:text-3xl font-bold text-[#ffc174] tracking-tighter hover:opacity-90 transition-opacity">
-                            Saddle Ranch
-                        </Link>
-
-                        {/* Navigation Links: Menu & Locations ONLY */}
-                        <div className="hidden md:flex items-center space-x-8 font-sans text-sm font-medium">
-                            <a className="text-[#d8c3ad] hover:text-[#f59e0b] transition-colors" href="#featured-menu">
-                                Menu
-                            </a>
-                            <a className="text-[#d8c3ad] hover:text-[#f59e0b] transition-colors" href="#locations">
-                                Locations
-                            </a>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <Link
-                                href="/order"
-                                className="relative p-2.5 rounded bg-[#1A1A1B] border border-white/10 hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-2"
-                            >
-                                <ShoppingCart className="w-4 h-4 text-[#f59e0b]" />
-                                <span className="text-xs font-bold hidden sm:inline">Cart</span>
-                                {itemCount > 0 && (
-                                    <span className="px-2 py-0.5 rounded-full bg-[#f59e0b] text-[#121213] font-bold text-[10px]">
-                                        {itemCount}
-                                    </span>
-                                )}
-                            </Link>
-
-                            <button
-                                onClick={() => setIsOrderModalOpen(true)}
-                                className="bg-[#f59e0b] text-[#472a00] font-bold px-6 py-2.5 rounded btn-bevel hover-heat transition-all duration-300 active:scale-95 text-sm uppercase tracking-wider"
-                            >
-                                Order Now
-                            </button>
-                        </div>
-                    </div>
-                </nav>
+                
+                {/* React Bits CardNav Component Integration */}
+                <CardNav
+                    logoText="Saddle Ranch"
+                    logoAlt="Saddle Ranch Logo"
+                    items={cardNavItems}
+                    baseColor="#19120a"
+                    menuColor="#ffc174"
+                    buttonBgColor="#f59e0b"
+                    buttonTextColor="#472a00"
+                    buttonText="Order Now"
+                    onButtonClick={() => setIsOrderModalOpen(true)}
+                />
 
                 {/* Hero Section with Zoomed Video Background (scale-110 zooms in 10% to push watermark offscreen) */}
-                <header className="relative min-h-[85vh] flex items-center justify-center pt-20 overflow-hidden">
+                <header className="relative min-h-[85vh] flex items-center justify-center pt-28 pb-16 overflow-hidden">
                     <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
                         <video
                             autoPlay
@@ -162,8 +171,8 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     <div className="relative z-10 text-center px-6 max-w-4xl mx-auto space-y-6">
-                        <span className="inline-flex items-center gap-2 font-mono text-xs text-[#f59e0b] bg-[#31281f]/90 px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold">
-                            <Flame className="w-3.5 h-3.5 text-[#f59e0b]" /> Authentic Sizzling Roadhouse
+                        <span className="inline-flex items-center gap-2 font-mono text-xs text-[#f59e0b] bg-[#31281f]/90 px-3.5 py-1.5 rounded border border-[#534434] uppercase tracking-widest font-bold shadow-lg">
+                            <Flame className="w-4 h-4 text-[#f59e0b]" /> Authentic Sizzling Roadhouse
                         </span>
 
                         <h1 className="font-domine text-4xl sm:text-6xl md:text-7xl text-[#ffc174] font-bold tracking-tight drop-shadow-2xl leading-tight">
@@ -174,10 +183,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             Authentic Filipino Sizzlers meet Roadhouse Spirit. Hear the sizzle.
                         </p>
 
-                        <div className="pt-4 flex items-center justify-center">
+                        <div className="pt-4 flex items-center justify-center gap-4">
                             <button
                                 onClick={() => setIsOrderModalOpen(true)}
-                                className="bg-[#f59e0b] text-[#472a00] font-bold px-10 py-4 rounded-lg btn-bevel hover-heat transition-all duration-300 text-lg uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/30"
+                                className="bg-[#f59e0b] text-[#472a00] font-bold px-10 py-4 rounded-lg btn-bevel hover-heat transition-all duration-300 text-lg uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/30 active:scale-95"
                             >
                                 Order Online Now
                             </button>
@@ -187,109 +196,17 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider max-w-7xl mx-auto" />
 
-                {/* FEATURED SIZZLING ITEMS SECTION (Prominent Featured Showcase with Images & 6 Items) */}
-                <section id="featured-menu" className="py-16 px-6 max-w-7xl mx-auto">
-                    <div className="text-center max-w-3xl mx-auto mb-14">
-                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
-                            Chef's Sizzling Favorites
+                {/* 1. PROMOTIONAL BANNERS SECTION (Hierarchy Fix: Promotional Banners go FIRST right after Hero) */}
+                <section id="promos" className="py-12 px-6 max-w-7xl mx-auto">
+                    <div className="text-center mb-8">
+                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block">
+                            Special Roadhouse Deals
                         </span>
-                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold tracking-tight mb-3">
-                            Featured Sizzling Items
+                        <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mt-2">
+                            Promotions & Specials
                         </h2>
-                        <p className="font-sans text-base sm:text-lg text-[#d8c3ad]">
-                            Piping hot cast-iron platters seared right off our charcoal fire.
-                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {displayProducts.map((product) => {
-                            const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                            const isOutOfStock = product.stock_quantity <= 0;
-                            const isAdded = addedProductId === product.id;
-
-                            return (
-                                <div
-                                    key={product.id}
-                                    className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all duration-300 shadow-xl group"
-                                >
-                                    {/* Product Image Showcase */}
-                                    <div className="h-52 w-full relative vignette-overlay overflow-hidden">
-                                        <img
-                                            src={product.image_path || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t'}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                                        />
-                                        <div className="absolute top-3 right-3 z-10">
-                                            <span className="font-mono text-sm font-black text-[#121213] bg-[#ffc174] px-3 py-1 rounded shadow-md">
-                                                ₱{numPrice.toFixed(2)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Product Details */}
-                                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                                        <div>
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h3 className="font-domine text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
-                                                    {product.name}
-                                                </h3>
-                                            </div>
-                                            <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-3">
-                                                {product.description}
-                                            </p>
-                                        </div>
-
-                                        <div className="pt-2 border-t border-[#534434]/50 flex items-center justify-between">
-                                            <span className="font-mono text-[10px] text-[#f59e0b] font-bold uppercase">
-                                                {isOutOfStock ? 'OUT OF STOCK' : `IN STOCK (${product.stock_quantity})`}
-                                            </span>
-
-                                            <button
-                                                onClick={() => handleAddToCart(product)}
-                                                disabled={isOutOfStock}
-                                                className={`px-4 py-2.5 rounded font-bold text-xs uppercase tracking-wider btn-bevel transition-all flex items-center gap-2 ${
-                                                    isOutOfStock
-                                                        ? 'bg-stone-800 text-stone-500 cursor-not-allowed'
-                                                        : isAdded
-                                                        ? 'bg-emerald-600 text-white'
-                                                        : 'bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174]'
-                                                }`}
-                                            >
-                                                {isAdded ? (
-                                                    <>
-                                                        <CheckCircle2 className="w-4 h-4" />
-                                                        <span>Added!</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span>Add to Order</span>
-                                                        <ArrowRight className="w-3.5 h-3.5" />
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* View More Menu Items Button */}
-                    <div className="mt-12 text-center">
-                        <Link
-                            href="/order"
-                            className="inline-flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-sm uppercase tracking-wider"
-                        >
-                            <span>View More Menu Items</span>
-                            <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                </section>
-
-                <div className="sizzle-divider max-w-7xl mx-auto" />
-
-                {/* Promotional Bento Section */}
-                <section className="py-12 px-6 max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Bento Slide 1 */}
                         <div className="relative h-64 rounded-xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B]">
@@ -330,7 +247,113 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider max-w-7xl mx-auto" />
 
-                {/* SIZZLING MENU CATEGORIES (Simplified Title from "Choose Your Mount") */}
+                {/* 2. FEATURED SIZZLING ITEMS SECTION (Removed "IN STOCK (40)", Grid Toggle for Full Menu) */}
+                <section id="featured-menu" className="py-12 px-6 max-w-7xl mx-auto">
+                    <div className="text-center max-w-3xl mx-auto mb-14">
+                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
+                            Chef's Sizzling Favorites
+                        </span>
+                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold tracking-tight mb-3">
+                            Featured Sizzling Items
+                        </h2>
+                        <p className="font-sans text-base sm:text-lg text-[#d8c3ad]">
+                            Piping hot cast-iron platters seared right off our charcoal fire.
+                        </p>
+                    </div>
+
+                    {/* Menu Items Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {displayedProducts.map((product) => {
+                            const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+                            const isOutOfStock = product.stock_quantity <= 0;
+                            const isAdded = addedProductId === product.id;
+
+                            return (
+                                <div
+                                    key={product.id}
+                                    className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all duration-300 shadow-xl group"
+                                >
+                                    {/* Product Image Showcase */}
+                                    <div className="h-52 w-full relative vignette-overlay overflow-hidden">
+                                        <img
+                                            src={product.image_path || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t'}
+                                            alt={product.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                        />
+                                        <div className="absolute top-3 right-3 z-10">
+                                            <span className="font-mono text-sm font-black text-[#121213] bg-[#ffc174] px-3 py-1 rounded shadow-md">
+                                                ₱{numPrice.toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Product Details (Removed IN STOCK (40) badge as requested) */}
+                                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                        <div>
+                                            <h3 className="font-domine text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-2">
+                                                {product.name}
+                                            </h3>
+                                            <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-3">
+                                                {product.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-end">
+                                            <button
+                                                onClick={() => handleAddToCart(product)}
+                                                disabled={isOutOfStock}
+                                                className={`w-full py-2.5 rounded font-bold text-xs uppercase tracking-wider btn-bevel transition-all flex items-center justify-center gap-2 ${
+                                                    isOutOfStock
+                                                        ? 'bg-stone-800 text-stone-500 cursor-not-allowed border border-stone-800'
+                                                        : isAdded
+                                                        ? 'bg-emerald-600 text-white'
+                                                        : 'bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174]'
+                                                }`}
+                                            >
+                                                {isAdded ? (
+                                                    <>
+                                                        <CheckCircle2 className="w-4 h-4" />
+                                                        <span>Added to Order!</span>
+                                                    </>
+                                                ) : isOutOfStock ? (
+                                                    <span>Currently Unavailable</span>
+                                                ) : (
+                                                    <>
+                                                        <span>Add to Order</span>
+                                                        <ArrowRight className="w-3.5 h-3.5" />
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* View More Menu Items Button - Expands Menu in Grid Manner */}
+                    <div className="mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button
+                            onClick={() => setShowAllMenu(!showAllMenu)}
+                            className="inline-flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-sm uppercase tracking-wider shadow-lg"
+                        >
+                            <span>{showAllMenu ? 'Show Featured Only' : `View Whole Menu (${allProductsList.length} Items)`}</span>
+                            {showAllMenu ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+
+                        <Link
+                            href="/order"
+                            className="inline-flex items-center gap-2 bg-[#f59e0b] text-[#472a00] font-bold px-8 py-3.5 rounded-lg btn-bevel hover:bg-[#ffc174] transition-all text-sm uppercase tracking-wider shadow-lg"
+                        >
+                            <span>Go to Full Cart Checkout</span>
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+                </section>
+
+                <div className="sizzle-divider max-w-7xl mx-auto" />
+
+                {/* 3. SIZZLING MENU CATEGORIES */}
                 <section id="categories" className="py-12 px-6 max-w-7xl mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mb-2">
@@ -419,7 +442,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider max-w-7xl mx-auto" />
 
-                {/* LOCATIONS SECTION (Includes Saddle Ranch Bulihan & Saddle Ranch Dasmariñas) */}
+                {/* 4. ROADHOUSE LOCATIONS SECTION */}
                 <section id="locations" className="py-16 px-6 max-w-7xl mx-auto">
                     <div className="text-center mb-12">
                         <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
