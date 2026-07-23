@@ -13,9 +13,22 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Work Sans', ...defaultTheme.fontFamily.sans],
+                domine: ['Domine', 'serif'],
+                body: ['Work Sans', 'sans-serif'],
+                mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
+                'surface-dim': '#19120a',
+                'surface-container-high': '#31281f',
+                'surface-container': '#261e15',
+                'surface-container-low': '#221a12',
+                'surface-container-lowest': '#140d06',
+                'on-surface': '#f0e0d1',
+                'on-surface-variant': '#d8c3ad',
+                'outline-variant': '#534434',
+                'primary-container': '#f59e0b',
+                'on-primary': '#472a00',
                 border: 'var(--border)',
                 input: 'var(--input)',
                 ring: 'var(--ring)',
