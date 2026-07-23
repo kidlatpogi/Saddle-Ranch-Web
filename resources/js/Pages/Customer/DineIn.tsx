@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, usePage, router } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { 
     QrCode, 
-    ArrowLeft, 
     Plus, 
     Minus, 
     Trash2, 
@@ -13,7 +12,6 @@ import {
     ShoppingCart,
     X,
     Search,
-    Bell,
     BellRing
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
@@ -52,7 +50,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
-    // Call Waiter state
     const [waiterCalled, setWaiterCalled] = useState(false);
     const [showWaiterToast, setShowWaiterToast] = useState(false);
 
@@ -227,22 +224,17 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Header */}
+                {/* Header (Back button removed for QR Dine In) */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
                         
-                        {/* Top Bar Row 1: Back + Title + Call Waiter & Table Badge */}
+                        {/* Top Bar Row 1: Title + Call Waiter & Table Badge */}
                         <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0">
-                                    <ArrowLeft className="w-4 h-4" />
-                                </Link>
-                                <div className="truncate">
-                                    <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
-                                        Saddle Ranch
-                                    </h1>
-                                    <p className="text-[10px] sm:text-xs text-[#d8c3ad] truncate">Bulihan Roadhouse</p>
-                                </div>
+                            <div className="truncate">
+                                <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
+                                    Saddle Ranch
+                                </h1>
+                                <p className="text-[10px] sm:text-xs text-[#d8c3ad] truncate">Bulihan Roadhouse</p>
                             </div>
 
                             {/* Call Waiter & Table Pill */}
@@ -278,7 +270,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             />
                         </div>
 
-                        {/* Top Bar Row 3: Category Tabs (No Fire Emoji) */}
+                        {/* Top Bar Row 3: Category Tabs */}
                         <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
@@ -299,12 +291,12 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </header>
 
-                {/* Call Waiter Toast Notification */}
+                {/* Call Waiter Toast */}
                 {showWaiterToast && (
                     <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl bg-amber-500 text-[#472a00] font-bold shadow-2xl flex items-center gap-3 border border-[#ffc174] animate-in slide-in-from-top-4 duration-300">
-                        <Bell className="w-6 h-6 shrink-0 animate-bounce" />
+                        <BellRing className="w-6 h-6 shrink-0 animate-bounce" />
                         <div className="text-xs leading-snug">
-                            <div className="font-black text-sm uppercase">🔔 Waiter Notified!</div>
+                            <div className="font-black text-sm uppercase">Waiter Notified!</div>
                             <div>Roadhouse staff is on their way to Table #{tableNumber}.</div>
                         </div>
                     </div>
@@ -318,13 +310,12 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
                     )}
 
-                    {/* Dual Layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
-                        {/* LEFT: Product List */}
+                        {/* LEFT: Products */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* MOBILE (< md): 1:1 Grab/Foodpanda 2-Column Grid */}
+                            {/* MOBILE (< md): 2-Column Mobile Grid */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
@@ -358,7 +349,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 disabled={isOutOfStock}
                                                                 className="w-7 h-7 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40"
-                                                                aria-label={`Add ${product.name} to cart`}
                                                             >
                                                                 +
                                                             </button>
@@ -586,7 +576,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </main>
 
-                {/* MOBILE ONLY: Grab/Foodpanda Sticky Floating Bottom Cart Bar */}
+                {/* MOBILE ONLY: Sticky Floating Bottom Cart Bar */}
                 {itemCount > 0 && (
                     <div className="block lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
                         <button
@@ -610,7 +600,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 )}
 
-                {/* MOBILE ONLY: Slide-Up Basket Sheet Drawer with Working Dine-In / Takeout Toggle */}
+                {/* MOBILE ONLY: Slide-Up Cart Sheet Drawer */}
                 {isBasketSheetOpen && (
                     <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">

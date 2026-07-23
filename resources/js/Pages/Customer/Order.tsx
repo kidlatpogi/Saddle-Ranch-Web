@@ -15,7 +15,8 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
-    Search
+    Search,
+    Info
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -129,6 +130,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
     const [searchQuery, setSearchQuery] = useState('');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
+
+    // Auto-detect Bulihan address
+    const isBulihanAddress = city === 'Silang' && BULIHAN_BARANGAYS.includes(barangay);
 
     useEffect(() => {
         if (orderType === 'delivery') {
@@ -332,14 +336,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Header */}
+                {/* Header (Back button kept for Online Ordering) */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
                         
-                        {/* Top Bar Row 1: Back + Title + Order Mode Badge */}
+                        {/* Top Bar Row 1: Back Button + Title + Order Mode Badge */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
-                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0">
+                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors">
                                     <ArrowLeft className="w-4 h-4" />
                                 </Link>
                                 <div className="truncate">
@@ -369,7 +373,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             />
                         </div>
 
-                        {/* Top Bar Row 3: Category Tabs (No Fire Emoji) */}
+                        {/* Top Bar Row 3: Category Tabs */}
                         <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
@@ -579,7 +583,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                         </div>
 
-                        {/* DESKTOP ONLY Cart Form */}
+                        {/* DESKTOP ONLY Cart Form with Full Cart Itemized Breakdown */}
                         <div className="hidden lg:block lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
@@ -592,8 +596,63 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </span>
                                 </div>
 
+                                {/* Itemized Cart Breakdown */}
+                                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                                    {cart.length === 0 ? (
+                                        <div className="py-8 text-center text-[#8c7a6b] text-xs">
+                                            <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#8c7a6b]" />
+                                            Your order cart is empty. Add sizzling items from the menu.
+                                        </div>
+                                    ) : (
+                                        cart.map((item) => {
+                                            const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
+                                            const imgUrl = getProductImage(item.product as Product);
+                                            return (
+                                                <div key={item.product.id} className="p-3 rounded-2xl bg-[#121213] border border-[#534434]/40 flex items-center justify-between text-xs gap-3">
+                                                    <div className="flex items-center gap-3 truncate">
+                                                        <img src={imgUrl} alt={item.product.name} className="w-12 h-12 rounded-xl object-cover" />
+                                                        <div className="truncate">
+                                                            <div className="font-bold text-white truncate">{item.product.name}</div>
+                                                            <div className="text-[10px] text-[#d8c3ad]">₱{numPrice.toFixed(2)} each</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <div className="flex items-center gap-1 border border-[#534434] rounded-lg p-0.5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                                                className="p-1 text-[#d8c3ad] hover:text-white"
+                                                            >
+                                                                <Minus className="w-3 h-3" />
+                                                            </button>
+                                                            <span className="font-mono font-bold px-1">{item.quantity}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                                                disabled={item.quantity >= item.product.stock_quantity}
+                                                                className="p-1 text-[#d8c3ad] hover:text-white disabled:opacity-30"
+                                                            >
+                                                                <Plus className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <span className="font-mono font-bold text-[#ffc174]">₱{(numPrice * item.quantity).toFixed(2)}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeItem(item.product.id)}
+                                                            className="text-stone-500 hover:text-rose-400"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+
                                 {/* Pick-up vs Delivery Selector */}
-                                <div className="space-y-2">
+                                <div className="space-y-2 pt-2 border-t border-[#534434]/40">
                                     <label className="block text-xs font-bold uppercase tracking-wider text-[#ffc174]">
                                         Select Fulfillment Method
                                     </label>
@@ -625,7 +684,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 pt-4 border-t border-[#534434]/50">
+                                <div className="space-y-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Customer Full Name *</label>
                                         <input
@@ -652,6 +711,19 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                     {orderType === 'delivery' && (
                                         <div className="space-y-3 p-4 rounded-2xl bg-[#121213] border border-[#534434]">
+                                            {/* Lalamove & FREE Bulihan Delivery Notice */}
+                                            {isBulihanAddress ? (
+                                                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                                    <span>✨ FREE Delivery Fee (Bulihan Area, Silang)</span>
+                                                </div>
+                                            ) : (
+                                                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-2">
+                                                    <Info className="w-4 h-4 text-amber-400 shrink-0" />
+                                                    <span>🚚 <strong>Delivery via Lalamove</strong>: Deliveries outside Bulihan are dispatched via Lalamove (customer pays actual rider delivery fee upon arrival).</span>
+                                                </div>
+                                            )}
+
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
                                                     <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Municipality / City *</label>
@@ -752,7 +824,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     </div>
                 )}
 
-                {/* MOBILE ONLY: Slide-Up Cart Sheet Drawer with Working Pick-up / Delivery Toggle */}
+                {/* MOBILE ONLY: Slide-Up Cart Sheet Drawer */}
                 {isBasketSheetOpen && (
                     <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
@@ -770,7 +842,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </button>
                             </div>
 
-                            {/* Fulfillment Toggle in Mobile Basket Drawer (Pick-Up vs Delivery) */}
+                            {/* Fulfillment Toggle in Mobile Basket Drawer */}
                             <div className="p-1 rounded-2xl bg-[#121213] border border-[#534434]/40 grid grid-cols-2 gap-1 text-xs font-bold">
                                 <button
                                     onClick={() => setOrderType('pickup')}
@@ -859,6 +931,18 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                 {orderType === 'delivery' && (
                                     <div className="space-y-2 p-3 rounded-2xl bg-[#121213] border border-[#534434]">
+                                        {isBulihanAddress ? (
+                                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5">
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                <span>✨ FREE Delivery Fee (Bulihan Area)</span>
+                                            </div>
+                                        ) : (
+                                            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold flex items-center gap-1.5">
+                                                <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                                <span>🚚 <strong>Delivery via Lalamove</strong>: Outside Bulihan area delivered via Lalamove (pay rider on arrival).</span>
+                                            </div>
+                                        )}
+
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">City / Municipality</label>
