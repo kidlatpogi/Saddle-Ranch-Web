@@ -219,9 +219,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     cartItemCount={itemCount}
                 />
 
-                {/* 1. Hero Section (100vh / h-screen with Parallax Video & Ranch Horse Branding Tag "SINCE 2008") */}
-                <header className="relative w-full h-screen overflow-hidden flex items-center justify-center pt-20 pb-16">
-                    <div className="relative w-full h-full overflow-hidden">
+                {/* 1. Hero Section (Strictly 100vh / h-screen with zero pt gap & Parallax Video) */}
+                <header className="relative w-full h-screen overflow-hidden flex items-center justify-center">
+                    <div className="absolute inset-0 w-full h-full overflow-hidden">
                         <video
                             autoPlay
                             loop
@@ -237,11 +237,17 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     <div className="absolute z-10 text-center px-6 max-w-4xl mx-auto space-y-6">
-                        {/* Ranch Horse Branding Tag "SINCE 2008" */}
-                        <div className="inline-flex items-center gap-2 font-mono text-xs text-[#f59e0b] bg-[#26190e]/85 px-5 py-2.5 rounded-lg border-2 border-[#8c5923] uppercase tracking-widest font-black shadow-2xl backdrop-blur-md border-dashed animate-pulse">
-                            <span className="text-[#ffc174] font-serif text-sm tracking-widest font-black uppercase flex items-center gap-2">
-                                <span className="text-[#f59e0b] text-base">🔥</span> SINCE 2008 <span className="text-amber-400 font-mono text-[10px] bg-[#422910] px-2 py-0.5 rounded border border-[#6b421a] font-bold">RANCH BRANDED</span>
-                            </span>
+                        {/* Cowboy Stat Pill Badge ("18+ Years Sizzling • Est. 2008") in the style of aditya-gupta.com.np */}
+                        <div className="inline-flex items-center gap-3 bg-[#19120a]/85 border border-[#f59e0b]/40 backdrop-blur-md px-5 py-2.5 rounded-full shadow-2xl shadow-[#f59e0b]/20 group hover:border-[#f59e0b] transition-all cursor-pointer">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f59e0b] to-[#d97706] text-[#121213] flex items-center justify-center font-black text-sm shadow-md group-hover:rotate-12 transition-transform">
+                                ★
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                                <span className="font-domine font-black text-lg sm:text-xl text-[#ffc174]">18+ Years</span>
+                                <span className="font-mono text-xs text-[#d8c3ad] font-semibold border-l border-[#534434] pl-2 uppercase tracking-widest">
+                                    Est. 2008 Roadhouse
+                                </span>
+                            </div>
                         </div>
 
                         <h1 className="font-domine text-4xl sm:text-6xl md:text-7xl text-[#ffc174] font-bold tracking-tight drop-shadow-2xl leading-tight">
@@ -265,7 +271,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 2. PROMOTIONS & DEALS SECTION (With Parallax Scroll Feeling) */}
+                {/* 2. PROMOTIONS & DEALS SECTION */}
                 <section
                     id="promos"
                     className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto transition-transform duration-300"
@@ -475,7 +481,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
-                {/* 4. SIZZLING MENU CATEGORIES (Updated to: Sizzling Rice Meals, Authentic Filipino Cuisine, Barkada Platters) */}
+                {/* 4. SIZZLING MENU CATEGORIES */}
                 <section id="categories" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mb-2">
@@ -681,9 +687,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </footer>
 
-                {/* 6. Interactive Order Modal ("How would you like your order?")
-                    Translucent backdrop (bg-black/50 backdrop-blur-sm) so background page/video is visible!
-                    Removed "Fast & Hot Fulfillment". Changed text to "Free Delivery in Bulihan Area". */}
+                {/* Interactive Order Modal */}
                 {isOrderModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="relative w-full max-w-lg rounded-2xl bg-[#1A1A1B]/95 border border-[#ffc174]/30 p-6 sm:p-8 shadow-2xl text-[#f0e0d1] backdrop-blur-md">
