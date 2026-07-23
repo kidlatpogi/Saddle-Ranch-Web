@@ -15,8 +15,7 @@ import {
     X,
     Search,
     ChevronRight,
-    Info,
-    ChevronLeft
+    Filter
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -53,7 +52,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
-    const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1); // 1: Cart, 2: Checkout details
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
@@ -84,7 +82,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         {
             id: 3,
             name: 'Sizzling Bulalo Steak',
-            description: 'Rich beef shank served with simmering marrow gravy.',
+            description: 'Rich beef shank served with simmering bone marrow gravy.',
             price: 450.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
             stock_quantity: 15,
@@ -164,7 +162,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         return matchesCategory && matchesSearch;
     });
 
-    // Add-on recommendations for cart drawer
     const recommendedAddOns = allProducts.filter((p) => p.name.includes('Rice') || p.name.includes('Tea') || p.name.includes('Juice'));
 
     const getProductImage = (p: Product) => {
@@ -224,40 +221,56 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* 1. Jollibee / Foodpanda Style Header */}
-                <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40">
-                    <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
-                        <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] flex items-center justify-center text-[#ffc174]">
-                            <ArrowLeft className="w-4 h-4" />
-                        </Link>
-                        
-                        <div className="text-center">
-                            <h1 className="text-sm font-black text-white leading-tight">Saddle Ranch - Bulihan</h1>
-                            <div className="flex items-center justify-center gap-1 text-[10px] text-[#f59e0b] font-bold">
-                                <QrCode className="w-3 h-3" />
-                                <span>Table #{tableNumber} Seated Guest</span>
+                {/* Responsive Header: Desktop Banner vs Mobile App Bar */}
+                <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Link href="/" className="p-2 rounded-full md:rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:bg-[#31281f] transition-colors">
+                                <ArrowLeft className="w-5 h-5" />
+                            </Link>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h1 className="text-base sm:text-xl font-bold font-domine text-[#ffc174] leading-tight">Saddle Ranch Table Menu</h1>
+                                    <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                                        <QrCode className="w-3.5 h-3.5" />
+                                        Table #{tableNumber}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-[#d8c3ad] hidden sm:block">Piping hot sizzling plates served straight to your table</p>
                             </div>
                         </div>
 
-                        <div className="w-8" /> {/* Spacer */}
-                    </div>
-
-                    {/* Search Bar */}
-                    <div className="max-w-md mx-auto px-4 pb-2.5">
-                        <div className="relative">
-                            <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search menu items..."
-                                className="w-full pl-10 pr-4 py-2 rounded-full bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                            />
+                        {/* Mode Selector */}
+                        <div className="flex items-center p-1 rounded-xl bg-[#121213] border border-[#534434]">
+                            <button
+                                onClick={() => setFulfillmentMode('dine_in')}
+                                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 btn-bevel ${
+                                    fulfillmentMode === 'dine_in'
+                                        ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                        : 'text-[#d8c3ad] hover:text-white'
+                                }`}
+                            >
+                                <Utensils className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Dine-In Service</span>
+                                <span className="sm:hidden">Dine-In</span>
+                            </button>
+                            <button
+                                onClick={() => setFulfillmentMode('express_takeout')}
+                                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 btn-bevel ${
+                                    fulfillmentMode === 'express_takeout'
+                                        ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                        : 'text-[#d8c3ad] hover:text-white'
+                                }`}
+                            >
+                                <ShoppingBag className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Takeout</span>
+                                <span className="sm:hidden">Takeout</span>
+                            </button>
                         </div>
                     </div>
 
-                    {/* Sticky Category Tabs Carousel (Jollibee / Foodpanda 1:1) */}
-                    <div className="max-w-md mx-auto px-4 overflow-x-auto border-t border-[#262627] flex items-center gap-6 scrollbar-none py-2.5">
+                    {/* Category Carousel Bar */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto border-t border-[#262627] flex items-center gap-4 sm:gap-8 scrollbar-none py-2.5">
                         {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                             <button
                                 key={cat}
@@ -266,7 +279,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
                                 }`}
                             >
-                                <span>{cat === 'Popular' ? 'Popular' : cat}</span>
+                                <span>{cat === 'Popular' ? '🔥 Popular' : cat}</span>
                                 {selectedCategory === cat && (
                                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f59e0b] rounded-full animate-in fade-in duration-200" />
                                 )}
@@ -275,91 +288,288 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </header>
 
-                <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
-                    {/* Section Header */}
-                    <div className="flex items-center gap-2 pt-1">
-                        <Flame className="w-5 h-5 text-[#f59e0b]" />
-                        <div>
-                            <h2 className="font-domine font-black text-base text-[#ffc174]">
-                                {selectedCategory === 'Popular' ? '🔥 Popular Items' : selectedCategory}
-                            </h2>
-                            <p className="text-[11px] text-[#d8c3ad]">Most ordered sizzling plates right now.</p>
-                        </div>
-                    </div>
-
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
                     {validationError && (
-                        <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-3">
+                            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
                             <span>{validationError}</span>
                         </div>
                     )}
 
-                    {/* 2-Column Product Grid (Jollibee/Foodpanda Mobile Grid Layout 1:1) */}
-                    <div className="grid grid-cols-2 gap-3.5">
-                        {filteredProducts.map((product) => {
-                            const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                            const isOutOfStock = product.stock_quantity <= 0;
-                            const cartEntry = cart.find((i) => i.product.id === product.id);
-                            const imgUrl = getProductImage(product);
+                    {/* Responsive Dual Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        {/* LEFT COLUMN: Menu Products */}
+                        <div className="lg:col-span-7 space-y-6">
+                            
+                            {/* MOBILE VIEWPORT ONLY (< md): Grab/Foodpanda 2-Column Grid */}
+                            <div className="block md:hidden">
+                                <div className="grid grid-cols-2 gap-3.5">
+                                    {filteredProducts.map((product) => {
+                                        const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const cartEntry = cart.find((i) => i.product.id === product.id);
+                                        const imgUrl = getProductImage(product);
 
-                            return (
-                                <div
-                                    key={product.id}
-                                    className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
-                                >
-                                    {/* Product Image Showcase */}
-                                    <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2.5 bg-[#121213]">
-                                        <img
-                                            src={imgUrl}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                        return (
+                                            <div
+                                                key={product.id}
+                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
+                                            >
+                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2.5 bg-[#121213]">
+                                                    <img
+                                                        src={imgUrl}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                                                    />
 
-                                        {/* Floating Circle + Add Button or Counter Badge anchored at bottom-right of photo */}
-                                        <div className="absolute bottom-1.5 right-1.5 z-10">
-                                            {cartEntry ? (
-                                                <button
-                                                    onClick={() => addItem(product as CartProduct, 1)}
-                                                    className="w-7 h-7 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center"
-                                                >
-                                                    {cartEntry.quantity}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => addItem(product as CartProduct, 1)}
-                                                    disabled={isOutOfStock}
-                                                    className="w-7 h-7 rounded-full bg-white text-[#121213] hover:bg-[#f59e0b] hover:text-[#472a00] font-black text-sm shadow-lg flex items-center justify-center transition-colors disabled:opacity-40"
-                                                    aria-label={`Add ${product.name} to cart`}
-                                                >
-                                                    +
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                                                    {/* Saddle Ranch Beveled Floating + Button */}
+                                                    <div className="absolute bottom-1.5 right-1.5 z-10">
+                                                        {cartEntry ? (
+                                                            <button
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                className="w-7 h-7 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center btn-bevel"
+                                                            >
+                                                                {cartEntry.quantity}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                disabled={isOutOfStock}
+                                                                className="w-7 h-7 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40"
+                                                                aria-label={`Add ${product.name} to cart`}
+                                                            >
+                                                                +
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-                                    {/* Product Meta */}
-                                    <div className="space-y-1">
-                                        <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
-                                            {product.name}
-                                        </h3>
-                                        <div className="font-mono text-xs font-black text-[#ffc174]">
-                                            ₱ {numPrice.toFixed(2)}
-                                        </div>
-                                    </div>
+                                                <div className="space-y-1">
+                                                    <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
+                                                        {product.name}
+                                                    </h3>
+                                                    <div className="font-mono text-xs font-black text-[#ffc174]">
+                                                        ₱ {numPrice.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                            );
-                        })}
+                            </div>
+
+                            {/* DESKTOP VIEWPORT ONLY (>= md): Full Desktop Cards Layout */}
+                            <div className="hidden md:grid grid-cols-2 gap-6">
+                                {filteredProducts.map((product) => {
+                                    const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+                                    const isOutOfStock = product.stock_quantity <= 0;
+                                    const cartEntry = cart.find((i) => i.product.id === product.id);
+                                    const imgUrl = getProductImage(product);
+
+                                    return (
+                                        <div
+                                            key={product.id}
+                                            className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
+                                        >
+                                            <div className="h-44 w-full relative vignette-overlay overflow-hidden">
+                                                <img
+                                                    src={imgUrl}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                />
+                                                <div className="absolute top-3 right-3 z-10">
+                                                    <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow">
+                                                        ₱{numPrice.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
+                                                <div>
+                                                    <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1">
+                                                        {product.name}
+                                                    </h3>
+                                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">
+                                                        {product.description}
+                                                    </p>
+                                                </div>
+
+                                                <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
+                                                    {isOutOfStock ? (
+                                                        <span className="text-[10px] font-bold text-rose-400 uppercase">Sold Out</span>
+                                                    ) : (
+                                                        <span className="text-[10px] text-[#d8c3ad] font-semibold">Ready to Sizzle</span>
+                                                    )}
+
+                                                    {cartEntry ? (
+                                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] rounded-xl p-1">
+                                                            <button
+                                                                onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
+                                                                className="p-1 rounded-lg hover:bg-[#261e15] text-[#d8c3ad]"
+                                                            >
+                                                                <Minus className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <span className="font-mono font-bold text-xs px-2">{cartEntry.quantity}</span>
+                                                            <button
+                                                                onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
+                                                                disabled={cartEntry.quantity >= product.stock_quantity}
+                                                                className="p-1 rounded-lg hover:bg-[#261e15] text-[#d8c3ad] disabled:opacity-40"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => addItem(product as CartProduct, 1)}
+                                                            disabled={isOutOfStock}
+                                                            className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md disabled:opacity-40"
+                                                        >
+                                                            Add to Table +
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                        </div>
+
+                        {/* RIGHT COLUMN: DESKTOP ONLY Persistent Cart Drawer (hidden on mobile) */}
+                        <div className="hidden lg:block lg:col-span-5 space-y-6">
+                            <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
+                                <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
+                                    <h3 className="text-lg font-bold text-white flex items-center gap-2 font-domine">
+                                        <ShoppingCart className="w-5 h-5 text-[#f59e0b]" />
+                                        <span>Table #{tableNumber} Basket</span>
+                                    </h3>
+                                    <span className="px-3 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-xs font-bold border border-[#f59e0b]/30">
+                                        {itemCount} Items
+                                    </span>
+                                </div>
+
+                                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                                    {cart.length === 0 ? (
+                                        <div className="py-8 text-center text-[#8c7a6b] text-xs">
+                                            <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#8c7a6b]" />
+                                            Your table basket is empty. Add items from the menu.
+                                        </div>
+                                    ) : (
+                                        cart.map((item) => {
+                                            const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
+                                            const imgUrl = getProductImage(item.product as Product);
+                                            return (
+                                                <div key={item.product.id} className="p-3 rounded-2xl bg-[#121213] border border-[#534434]/40 flex items-center justify-between text-xs gap-3">
+                                                    <div className="flex items-center gap-3 truncate">
+                                                        <img src={imgUrl} alt={item.product.name} className="w-12 h-12 rounded-xl object-cover" />
+                                                        <div className="truncate">
+                                                            <div className="font-bold text-white truncate">{item.product.name}</div>
+                                                            <div className="text-[10px] text-[#d8c3ad]">₱{numPrice.toFixed(2)} each</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <div className="flex items-center gap-1 border border-[#534434] rounded-lg p-0.5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                                                className="p-1 text-[#d8c3ad] hover:text-white"
+                                                            >
+                                                                <Minus className="w-3 h-3" />
+                                                            </button>
+                                                            <span className="font-mono font-bold px-1">{item.quantity}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                                                disabled={item.quantity >= item.product.stock_quantity}
+                                                                className="p-1 text-[#d8c3ad] hover:text-white disabled:opacity-30"
+                                                            >
+                                                                <Plus className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <span className="font-mono font-bold text-[#ffc174]">₱{(numPrice * item.quantity).toFixed(2)}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeItem(item.product.id)}
+                                                            className="text-stone-500 hover:text-rose-400"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-[#534434]/50">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Seated Guest Name (Optional)</label>
+                                        <input
+                                            type="text"
+                                            value={customerName}
+                                            onChange={(e) => setCustomerName(e.target.value)}
+                                            placeholder="e.g. Table 5 Guest"
+                                            className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Special Notes / Kitchen Request</label>
+                                        <input
+                                            type="text"
+                                            value={specialNotes}
+                                            onChange={(e) => setSpecialNotes(e.target.value)}
+                                            placeholder="e.g. Extra sizzling sauce, no onions..."
+                                            className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {['Cash', 'GCash'].map((method) => (
+                                                <button
+                                                    key={method}
+                                                    type="button"
+                                                    onClick={() => setPaymentMethod(method)}
+                                                    className={`py-2.5 rounded-xl text-xs font-bold border transition-all btn-bevel ${
+                                                        paymentMethod === method
+                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                    }`}
+                                                >
+                                                    {method}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 flex items-center justify-between text-base font-black">
+                                        <span>Total Amount</span>
+                                        <span className="text-[#ffc174] font-mono text-xl">₱{subtotal.toFixed(2)}</span>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={cart.length === 0 || isSubmitting}
+                                        className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel disabled:opacity-40"
+                                    >
+                                        {isSubmitting ? 'Sending to Kitchen...' : `Place Order (₱${subtotal.toFixed(2)})`}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </main>
 
-                {/* 3. Jollibee / Foodpanda Signature Floating Bottom Sticky Cart Bar (1:1 with Image 2) */}
+                {/* MOBILE ONLY: GrabFood Floating Bottom Sticky Cart Bar */}
                 {itemCount > 0 && (
-                    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
+                    <div className="block lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
                         <button
-                            onClick={() => {
-                                setCheckoutStep(1);
-                                setIsBasketSheetOpen(true);
-                            }}
+                            onClick={() => setIsBasketSheetOpen(true)}
                             className="w-full h-14 rounded-2xl bg-[#f59e0b] text-[#472a00] font-bold shadow-2xl shadow-[#f59e0b]/30 px-4 flex items-center justify-between hover:scale-[1.02] active:scale-98 transition-all btn-bevel"
                         >
                             <div className="flex items-center gap-3">
@@ -379,64 +589,25 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 )}
 
-                {/* 4. Jollibee / Foodpanda Slide-Up Cart & Checkout Bottom Sheet (1:1 with Image 3) */}
+                {/* MOBILE ONLY: Slide-Up Cart Bottom Sheet Drawer */}
                 {isBasketSheetOpen && (
-                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl sm:rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
+                    <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
                             
-                            {/* Drawer Header & Step Bar */}
-                            <div>
-                                <div className="flex items-center justify-between pb-3">
-                                    <button
-                                        onClick={() => setIsBasketSheetOpen(false)}
-                                        className="w-8 h-8 rounded-full bg-[#261e15] text-[#d8c3ad] flex items-center justify-center"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                    <div className="text-center">
-                                        <h3 className="text-base font-black text-white">Cart</h3>
-                                        <p className="text-[10px] text-[#d8c3ad]">Table #{tableNumber} • Saddle Ranch</p>
-                                    </div>
-                                    <div className="w-8" />
+                            <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
+                                <div>
+                                    <h3 className="text-base font-black text-white font-domine">Cart</h3>
+                                    <p className="text-[10px] text-[#d8c3ad]">Table #{tableNumber} • Saddle Ranch</p>
                                 </div>
-
-                                {/* Step Progress Indicator (1 Menu -> 2 Cart -> 3 Checkout) */}
-                                <div className="flex items-center justify-center gap-4 py-2 border-t border-b border-[#262627] text-[11px] font-bold text-[#8c7a6b]">
-                                    <span className="flex items-center gap-1 text-[#ffc174]">
-                                        <span className="w-4 h-4 rounded-full bg-[#f59e0b] text-[#472a00] text-[9px] font-black flex items-center justify-center">1</span>
-                                        <span>Cart</span>
-                                    </span>
-                                    <span>→</span>
-                                    <span className={checkoutStep === 2 ? "text-[#ffc174] font-black flex items-center gap-1" : "flex items-center gap-1"}>
-                                        <span className="w-4 h-4 rounded-full bg-[#31281f] text-[#d8c3ad] text-[9px] font-black flex items-center justify-center">2</span>
-                                        <span>Checkout</span>
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Dine-In vs Takeout Pill Toggle */}
-                            <div className="p-1 rounded-2xl bg-[#121213] border border-[#534434]/40 grid grid-cols-2 gap-1 text-xs font-bold">
                                 <button
-                                    onClick={() => setFulfillmentMode('dine_in')}
-                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
-                                        fulfillmentMode === 'dine_in' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
-                                    }`}
+                                    onClick={() => setIsBasketSheetOpen(false)}
+                                    className="w-8 h-8 rounded-full bg-[#261e15] text-[#d8c3ad] flex items-center justify-center"
                                 >
-                                    <Utensils className="w-3.5 h-3.5" />
-                                    <span>Dine-In</span>
-                                </button>
-                                <button
-                                    onClick={() => setFulfillmentMode('express_takeout')}
-                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all ${
-                                        fulfillmentMode === 'express_takeout' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
-                                    }`}
-                                >
-                                    <ShoppingBag className="w-3.5 h-3.5" />
-                                    <span>Takeout</span>
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
 
-                            {/* Itemized Cart List with Pill Steppers */}
+                            {/* Itemized Cart List */}
                             <div className="space-y-3">
                                 {cart.map((item) => {
                                     const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
@@ -451,7 +622,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 </div>
                                             </div>
 
-                                            {/* Quantity Stepper Pill */}
                                             <div className="flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] rounded-full px-2 py-1 shrink-0">
                                                 <button
                                                     type="button"
@@ -473,38 +643,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         </div>
                                     );
                                 })}
-                            </div>
-
-                            {/* Add More Items Button */}
-                            <button
-                                onClick={() => setIsBasketSheetOpen(false)}
-                                className="w-full py-2.5 rounded-xl border border-dashed border-[#534434] text-xs font-bold text-[#ffc174] hover:bg-[#261e15] transition-colors flex items-center justify-center gap-1.5"
-                            >
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>Add more items</span>
-                            </button>
-
-                            {/* "Popular with your order" (Add-Ons Carousel matching Image 3) */}
-                            <div className="space-y-2 pt-2 border-t border-[#262627]">
-                                <div className="text-xs font-bold text-white">Popular with your order</div>
-                                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-                                    {recommendedAddOns.map((addOn) => {
-                                        const addOnPrice = typeof addOn.price === 'string' ? parseFloat(addOn.price) : addOn.price;
-                                        return (
-                                            <div key={addOn.id} className="w-28 shrink-0 p-2 rounded-xl bg-[#121213] border border-[#262627] flex flex-col justify-between relative">
-                                                <img src={getProductImage(addOn)} alt={addOn.name} className="w-full h-16 object-cover rounded-lg mb-1.5" />
-                                                <div className="font-bold text-[10px] text-white line-clamp-1">{addOn.name}</div>
-                                                <div className="font-mono text-[10px] text-[#ffc174]">₱ {addOnPrice.toFixed(2)}</div>
-                                                <button
-                                                    onClick={() => addItem(addOn as CartProduct, 1)}
-                                                    className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-white text-[#121213] font-bold text-xs flex items-center justify-center shadow"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
                             </div>
 
                             {/* Guest Details & Checkout Form */}
@@ -545,7 +683,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
 
                                 <div className="pt-2 flex items-center justify-between text-sm font-black">
-                                    <span className="text-[#d8c3ad]">Total (incl. tax & service)</span>
+                                    <span className="text-[#d8c3ad]">Total Amount</span>
                                     <span className="text-[#ffc174] font-mono text-lg">₱ {subtotal.toFixed(2)}</span>
                                 </div>
 

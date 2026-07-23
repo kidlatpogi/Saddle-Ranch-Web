@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import {
-    ShoppingBag,
-    Truck,
-    ArrowLeft,
-    Plus,
-    Minus,
-    Trash2,
-    CheckCircle2,
-    Clock,
-    MapPin,
-    Flame,
+import { 
+    ShoppingBag, 
+    Truck, 
+    ArrowLeft, 
+    Plus, 
+    Minus, 
+    Trash2, 
+    CheckCircle2, 
+    Clock, 
+    MapPin, 
+    Flame, 
     AlertCircle,
     ShoppingCart,
     ChevronLeft,
     ChevronRight,
     Info,
-    Filter
+    Filter,
+    X,
+    Search
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -35,9 +37,9 @@ interface OrderProps {
     products?: Product[];
 }
 
-type CategoryType = 'All' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
+type CategoryType = 'Popular' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
 
-// Official Bulihan District Barangays in Silang, Cavite (All qualify for FREE Delivery)
+// Official Bulihan District Barangays in Silang, Cavite
 const BULIHAN_BARANGAYS = [
     'Anahaw II',
     'Anahaw I',
@@ -132,6 +134,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
     // Payment method rules (GCash & Cash for Pick-up; Cash on Delivery for Delivery)
     const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
+    const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
     // Update payment method when orderType changes
     useEffect(() => {
@@ -154,17 +157,17 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
     // Category Sort Filter State
-    const [selectedCategory, setSelectedCategory] = useState<CategoryType>('All');
+    const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
 
-    // Auto-detect Bulihan address: FREE delivery applies to all Bulihan district barangays in Silang
+    // Auto-detect Bulihan address
     const isBulihanAddress = city === 'Silang' && BULIHAN_BARANGAYS.includes(barangay);
 
-    // Fallback menu list with 15 items including drinks & rice
+    // Fallback menu list
     const fallbackProducts: Product[] = [
         {
             id: 1,
             name: 'Sizzling Pork Sisig',
-            description: 'Crispy pork belly seasoned with local spices, served on a sizzling cast-iron skillet with fresh egg.',
+            description: 'Crispy pork belly seasoned with local spices, served on a sizzling cast-iron skillet.',
             price: 180.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
             stock_quantity: 50,
@@ -173,7 +176,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         {
             id: 2,
             name: 'Sizzling Pork T-Bone Steak',
-            description: 'Tender T-Bone steak seared hard on cast iron, topped with rich roadhouse gravy and buttered vegetables.',
+            description: 'Tender T-Bone steak seared hard on cast iron, topped with rich roadhouse gravy.',
             price: 280.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
             stock_quantity: 30,
@@ -182,7 +185,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         {
             id: 3,
             name: 'Sizzling Bulalo Steak',
-            description: 'Rich beef shank served with simmering bone marrow gravy on a smoking sizzling plate.',
+            description: 'Rich beef shank served with simmering bone marrow gravy.',
             price: 450.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
             stock_quantity: 15,
@@ -191,7 +194,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         {
             id: 4,
             name: 'Sizzling Chicken Inasal Platter',
-            description: 'Chargrilled Bacolod-style chicken served sizzling hot with annatto garlic butter oil and rice.',
+            description: 'Chargrilled Bacolod-style chicken served sizzling hot with garlic rice.',
             price: 220.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
             stock_quantity: 40,
@@ -200,7 +203,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         {
             id: 5,
             name: 'Sizzling Beef Pepper Rice',
-            description: 'Thinly sliced tender beef with ground black pepper, sweet corn, and garlic rice on hot iron.',
+            description: 'Thinly sliced tender beef with ground black pepper and garlic rice.',
             price: 195.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
             stock_quantity: 35,
@@ -209,63 +212,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         {
             id: 6,
             name: 'Sizzling Gambas Al Ajillo',
-            description: 'Succulent shrimp sautéed in garlic oil, chili flakes, and butter on a smoking cast-iron platter.',
+            description: 'Succulent shrimp sautéed in garlic oil and chili flakes.',
             price: 260.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            stock_quantity: 25,
-            is_active: true,
-        },
-        {
-            id: 7,
-            name: 'Sizzling Pork Chop Supreme',
-            description: 'Thick-cut marinating pork chops seared on hot cast iron with savory house gravy.',
-            price: 210.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
-            stock_quantity: 30,
-            is_active: true,
-        },
-        {
-            id: 8,
-            name: 'Sizzling Bangus Sisig',
-            description: 'Deboned milkfish flaked and crisp-fried with onions, calamansi, and chili on a sizzling plate.',
-            price: 190.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
-            stock_quantity: 45,
-            is_active: true,
-        },
-        {
-            id: 9,
-            name: 'Sizzling Ribeye Steak Deluxe',
-            description: 'Premium bone-in cowboy ribeye steak with signature herb butter and roasted garlic cloves.',
-            price: 490.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAqtvjGjUsuBGyzBHVhntcLtTHQL442EMNheO8rq-4bOP-zq35cYw-DswcOn6dpMuPv5ukX12iSEzREwKgb6iPoUk64ETmBeEcSAd_ACcZoIibAIU9yR4PAPlj2o5GbDfdalWoY2tkEYUIrX_067eJx75-iVNUhMQQwzXdK3OmEDSQSGelDLgr5zgcY5sN7zsIqaaHUGQXrLpgju8NF3deoQjQPo--R-W6fwR50zfB_tGo3dBdO2gM7hr6EUUVxLgCF5gCn94DbGA_N',
-            stock_quantity: 20,
-            is_active: true,
-        },
-        {
-            id: 10,
-            name: 'Sizzling Lechon Kawali',
-            description: 'Super crispy deep-fried pork belly served sizzling with lechon sauce and chili peppers.',
-            price: 240.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
-            stock_quantity: 28,
-            is_active: true,
-        },
-        {
-            id: 11,
-            name: 'Sizzling Squid Flower',
-            description: 'Tender ocean squid scored into flowers and seared in sweet-spicy garlic glaze.',
-            price: 230.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            stock_quantity: 22,
-            is_active: true,
-        },
-        {
-            id: 12,
-            name: 'Sizzling Garlic Butter Shrimp',
-            description: 'Plump jumbo tiger prawns tossed in melted butter, roasted garlic, and scallions on cast iron.',
-            price: 275.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
             stock_quantity: 25,
             is_active: true,
         },
@@ -284,15 +233,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             description: 'Chilled house-brewed red iced tea pitcher (1 Litro).',
             price: 95.00,
             image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            stock_quantity: 60,
-            is_active: true,
-        },
-        {
-            id: 15,
-            name: 'Fresh Dalandan Juice (1 Litro)',
-            description: 'Freshly squeezed citrus dalandan juice pitcher (1 Litro).',
-            price: 110.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
             stock_quantity: 60,
             is_active: true,
         },
@@ -318,18 +258,17 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         return 'Rice Meals';
     };
 
-    // Filter products based on selected category tab
-    const filteredProducts = selectedCategory === 'All'
+    // Filter products
+    const filteredProducts = selectedCategory === 'Popular'
         ? allProducts
         : allProducts.filter((p) => getProductCategory(p) === selectedCategory);
 
-    // Pagination State (3 rows = 6 items per page in 2-column grid)
+    // Desktop Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
     const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-    // Reset pagination to page 1 whenever category changes
     useEffect(() => {
         setCurrentPage(1);
     }, [selectedCategory]);
@@ -405,7 +344,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         <>
             <Head title="Online Ordering | Saddle Ranch" />
 
-            <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-orange-500 selection:text-white">
+            <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-orange-500 selection:text-white pb-28">
                 {/* Header */}
                 <header className="sticky top-0 z-40 bg-stone-900/90 backdrop-blur-md border-b border-stone-800">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -414,7 +353,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
                             <div>
-                                <h1 className="text-xl font-black text-white flex items-center gap-2">
+                                <h1 className="text-xl font-black text-white flex items-center gap-2 font-domine">
                                     <span>Saddle Ranch Menu & Cart</span>
                                 </h1>
                                 <p className="text-xs text-stone-400">Order online for fast pickup or hot delivery</p>
@@ -432,43 +371,30 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Menu Selection (Left 7 Cols) - Paginated 3 rows (6 items) with Category Filters */}
+                        {/* Menu Selection Column */}
                         <div className="lg:col-span-7 space-y-6">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-stone-800">
-                                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Flame className="w-5 h-5 text-orange-500" />
-                                    <span>Select Sizzling Plates</span>
-                                </h2>
-                                <span className="text-xs text-stone-400">
-                                    Showing {filteredProducts.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} Items
-                                </span>
-                            </div>
-
-                            {/* Category Filter Tabs */}
+                            
+                            {/* Category Filter Carousel */}
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-                                {(['All', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
+                                {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
-                                        className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === cat
-                                                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
-                                                : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
-                                            }`}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all btn-bevel ${
+                                            selectedCategory === cat
+                                                ? 'bg-orange-500 text-stone-950 font-black shadow-lg shadow-orange-500/20'
+                                                : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
+                                        }`}
                                     >
-                                        {cat === 'All' ? 'All Items' : cat === 'Rice Meals' ? 'Sizzling Rice Meals' : cat}
+                                        {cat === 'Popular' ? '🔥 Popular' : cat}
                                     </button>
                                 ))}
                             </div>
 
-                            {/* 3 Rows x 2 Columns Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-h-[540px]">
-                                {paginatedProducts.length === 0 ? (
-                                    <div className="col-span-2 flex flex-col items-center justify-center py-16 text-stone-500 text-xs">
-                                        <Filter className="w-8 h-8 mb-2 opacity-40 text-stone-600" />
-                                        No items available in this category.
-                                    </div>
-                                ) : (
-                                    paginatedProducts.map((product) => {
+                            {/* MOBILE VIEWPORT (< md): 2-Column Mobile Grid */}
+                            <div className="block md:hidden">
+                                <div className="grid grid-cols-2 gap-3.5">
+                                    {filteredProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                         const isOutOfStock = product.stock_quantity <= 0;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
@@ -477,8 +403,64 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         return (
                                             <div
                                                 key={product.id}
-                                                className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
-                                                    }`}
+                                                className="bg-stone-900 rounded-2xl border border-stone-800 p-3 flex flex-col justify-between relative group hover:border-orange-500/50 transition-all shadow-md"
+                                            >
+                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2.5 bg-stone-950">
+                                                    <img
+                                                        src={imgUrl}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                    />
+
+                                                    <div className="absolute bottom-1.5 right-1.5 z-10">
+                                                        {cartEntry ? (
+                                                            <button
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                className="w-7 h-7 rounded-full bg-stone-950 text-orange-400 font-black text-xs border border-orange-500 shadow-lg flex items-center justify-center btn-bevel"
+                                                            >
+                                                                {cartEntry.quantity}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                disabled={isOutOfStock}
+                                                                className="w-7 h-7 rounded-full bg-orange-500 text-white font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <h3 className="font-domine font-bold text-xs text-white line-clamp-2 leading-snug">
+                                                        {product.name}
+                                                    </h3>
+                                                    <div className="font-mono text-xs font-black text-amber-400">
+                                                        ₱ {numPrice.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* DESKTOP VIEWPORT (>= md): Full Desktop Grid */}
+                            <div className="hidden md:block space-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    {paginatedProducts.map((product) => {
+                                        const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const cartEntry = cart.find((i) => i.product.id === product.id);
+                                        const imgUrl = getProductImage(product);
+
+                                        return (
+                                            <div
+                                                key={product.id}
+                                                className={`p-4 rounded-2xl bg-stone-900 border flex flex-col justify-between transition-all group shadow-lg ${
+                                                    isOutOfStock ? 'border-stone-800/40 opacity-70' : 'border-stone-800 hover:border-orange-500/50'
+                                                }`}
                                             >
                                                 <div>
                                                     <div className="h-36 w-full relative overflow-hidden rounded-xl mb-3 bg-stone-950">
@@ -494,7 +476,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         </div>
                                                     </div>
 
-                                                    <h3 className="font-bold text-white text-base group-hover:text-orange-400 transition-colors">{product.name}</h3>
+                                                    <h3 className="font-bold text-white text-base group-hover:text-orange-400 transition-colors font-domine">{product.name}</h3>
                                                     <p className="text-xs text-stone-400 mt-1 line-clamp-2">{product.description}</p>
                                                 </div>
 
@@ -526,7 +508,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         <button
                                                             onClick={() => addItem(product as CartProduct, 1)}
                                                             disabled={isOutOfStock}
-                                                            className="px-3.5 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-xs transition-all disabled:opacity-40"
+                                                            className="px-3.5 py-1.5 rounded-xl bg-orange-500 hover:bg-amber-500 text-white font-bold text-xs transition-all btn-bevel disabled:opacity-40 shadow-md"
                                                         >
                                                             Add +
                                                         </button>
@@ -534,57 +516,59 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 </div>
                                             </div>
                                         );
-                                    })
+                                    })}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                {totalPages > 1 && (
+                                    <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
+                                        <button
+                                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            <span>Previous</span>
+                                        </button>
+
+                                        <div className="flex items-center gap-2">
+                                            {Array.from({ length: totalPages }).map((_, idx) => {
+                                                const pageNum = idx + 1;
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel ${
+                                                            currentPage === pageNum
+                                                                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
+                                                                : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <button
+                                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel"
+                                        >
+                                            <span>Next</span>
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* Pagination Controls */}
-                            {totalPages > 1 && (
-                                <div className="pt-4 border-t border-stone-800 flex items-center justify-between">
-                                    <button
-                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                        className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                        <span>Previous</span>
-                                    </button>
-
-                                    <div className="flex items-center gap-2">
-                                        {Array.from({ length: totalPages }).map((_, idx) => {
-                                            const pageNum = idx + 1;
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    onClick={() => setCurrentPage(pageNum)}
-                                                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all ${currentPage === pageNum
-                                                            ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                                                            : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-white'
-                                                        }`}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    <button
-                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-orange-500 text-stone-300 hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5"
-                                    >
-                                        <span>Next</span>
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
                         </div>
 
-                        {/* Cart Drawer & Checkout Form (Right 5 Cols) */}
-                        <div className="lg:col-span-5 space-y-6">
+                        {/* DESKTOP ONLY Right Side Cart Drawer Form */}
+                        <div className="hidden lg:block lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-stone-900 border border-stone-800 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-stone-800 flex items-center justify-between">
-                                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <h3 className="text-lg font-bold text-white flex items-center gap-2 font-domine">
                                         <ShoppingCart className="w-5 h-5 text-orange-400" />
                                         <span>Your Order Cart</span>
                                     </h3>
@@ -602,10 +586,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('pickup')}
-                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${orderType === 'pickup'
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${
+                                                orderType === 'pickup'
                                                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
                                                     : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
-                                                }`}
+                                            }`}
                                         >
                                             <ShoppingBag className="w-4 h-4" />
                                             <span>Pick-Up</span>
@@ -613,92 +598,20 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('delivery')}
-                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${orderType === 'delivery'
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${
+                                                orderType === 'delivery'
                                                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
                                                     : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
-                                                }`}
+                                            }`}
                                         >
                                             <Truck className="w-4 h-4" />
                                             <span>Delivery</span>
                                         </button>
                                     </div>
-
-                                    {/* Lalamove Delivery Notice */}
-                                    {orderType === 'delivery' && (
-                                        <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
-                                            <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                                            <div className="space-y-1">
-                                                <p className="font-bold">Roadhouse Delivery Policy</p>
-                                                <p className="text-[11px] text-stone-300 leading-relaxed">
-                                                    Orders within <strong className="text-white">Bulihan District, Silang</strong> (Anahaw, Acacia, Banaba, Ipil, Narra, Yakal) qualify for <strong className="text-emerald-400">Free Direct Delivery</strong>. Delivery outside Bulihan is dispatched via <strong className="text-orange-400">Lalamove</strong> (delivery fee paid to rider upon receipt).
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
-                                {/* Cart Items List */}
-                                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                                    {cart.length === 0 ? (
-                                        <div className="py-8 text-center text-stone-500 text-xs">
-                                            <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-40 text-stone-600" />
-                                            Your cart is currently empty. Add items from the menu.
-                                        </div>
-                                    ) : (
-                                        cart.map((item) => {
-                                            const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
-                                            const itemImg = getProductImage(item.product as Product);
-                                            return (
-                                                <div key={item.product.id} className="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs gap-3">
-                                                    <div className="flex items-center gap-3 truncate">
-                                                        <img src={itemImg} alt={item.product.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                                                        <div className="truncate">
-                                                            <div className="font-bold text-white truncate">{item.product.name}</div>
-                                                            <div className="text-[10px] text-stone-400">₱{numPrice.toFixed(2)} each</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 flex-shrink-0">
-                                                        <div className="flex items-center gap-1 border border-stone-800 rounded-lg p-0.5">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                                                className="p-1 hover:bg-stone-800 text-stone-400 hover:text-white"
-                                                            >
-                                                                <Minus className="w-3 h-3" />
-                                                            </button>
-                                                            <span className="font-bold px-1 text-xs">{item.quantity}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                                                disabled={item.quantity >= item.product.stock_quantity}
-                                                                className="p-1 hover:bg-stone-800 text-stone-400 hover:text-white disabled:opacity-30"
-                                                            >
-                                                                <Plus className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                        <span className="font-bold text-amber-400 text-xs">
-                                                            ₱{(numPrice * item.quantity).toFixed(2)}
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeItem(item.product.id)}
-                                                            className="text-stone-500 hover:text-rose-400"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    )}
-                                </div>
-
-                                {/* Customer Form Fields */}
+                                {/* Form Fields */}
                                 <div className="space-y-4 pt-4 border-t border-stone-800">
-                                    <h4 className="text-xs font-bold uppercase tracking-wider text-orange-400">
-                                        {orderType === 'pickup' ? 'Pick-Up Details' : 'Structured Delivery Address'}
-                                    </h4>
-
                                     <div>
                                         <label className="block text-xs font-semibold text-stone-300 mb-1">Customer Full Name *</label>
                                         <input
@@ -723,44 +636,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         />
                                     </div>
 
-                                    {orderType === 'pickup' ? (
-                                        <div>
-                                            <label className="block text-xs font-semibold text-stone-300 mb-1">Requested Pick-Up Time</label>
-                                            <select
-                                                value={pickupTime}
-                                                onChange={(e) => setPickupTime(e.target.value)}
-                                                className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-white focus:border-orange-500 focus:outline-none"
-                                            >
-                                                <option value="ASAP (15-20 mins)">ASAP (15-20 mins)</option>
-                                                <option value="30 Minutes from now">30 Minutes from now</option>
-                                                <option value="1 Hour from now">1 Hour from now</option>
-                                                <option value="Special requested time">Custom requested time</option>
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        /* High-Precision Structured Philippine Address Selector with Official Bulihan Barangays */
+                                    {orderType === 'delivery' && (
                                         <div className="space-y-3 p-4 rounded-2xl bg-stone-950/80 border border-stone-800">
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-stone-400 mb-1">Region</label>
-                                                    <input
-                                                        type="text"
-                                                        disabled
-                                                        value={region}
-                                                        className="w-full px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-400 font-medium"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-stone-400 mb-1">Province</label>
-                                                    <input
-                                                        type="text"
-                                                        disabled
-                                                        value={province}
-                                                        className="w-full px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-400 font-medium"
-                                                    />
-                                                </div>
-                                            </div>
-
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
                                                     <label className="block text-[11px] font-semibold text-stone-300 mb-1">Municipality / City *</label>
@@ -806,174 +683,58 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             </div>
 
                                             <div>
-                                                <label className="block text-[11px] font-semibold text-stone-300 mb-1">House No. / Street Name / Subdivision / Landmark *</label>
+                                                <label className="block text-[11px] font-semibold text-stone-300 mb-1">Street Address / House No. / Landmark *</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={streetAddress}
                                                     onChange={(e) => setStreetAddress(e.target.value)}
-                                                    placeholder="e.g. Block 12 Lot 5 Phase 2, Sunshine Village"
+                                                    placeholder="House #, Street Name, Landmark"
                                                     className="w-full px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
                                                 />
                                             </div>
-
-                                            {/* Automatic Delivery Fee Status Banner */}
-                                            {isBulihanAddress ? (
-                                                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Truck className="w-4 h-4 text-emerald-400" />
-                                                        <span>Delivery Fee (Bulihan, Silang)</span>
-                                                    </div>
-                                                    <span className="font-black uppercase tracking-wider">FREE (₱0.00)</span>
-                                                </div>
-                                            ) : (
-                                                <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-300 text-xs flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Truck className="w-4 h-4 text-orange-400" />
-                                                        <span>Outside Bulihan ({city})</span>
-                                                    </div>
-                                                    <span className="font-bold text-[11px]">Via Lalamove (Fee paid to rider)</span>
-                                                </div>
-                                            )}
                                         </div>
                                     )}
 
-                                    <div>
-                                        <label className="block text-xs font-semibold text-stone-300 mb-1">Special Notes (Optional)</label>
-                                        <input
-                                            type="text"
-                                            value={deliveryNotes}
-                                            onChange={(e) => setDeliveryNotes(e.target.value)}
-                                            placeholder="e.g. Extra hot plate, cutlery needed..."
-                                            className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-white placeholder-stone-600 focus:border-orange-500 focus:outline-none"
-                                        />
-                                    </div>
-
-                                    {/* Payment Method Selection */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-stone-300 mb-1">Payment Method</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {orderType === 'pickup' ? (
-                                                <>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setPaymentMethod('GCash')}
-                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${paymentMethod === 'GCash'
-                                                                ? 'bg-orange-500/20 border-orange-500 text-white'
-                                                                : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-                                                            }`}
-                                                    >
-                                                        GCash
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setPaymentMethod('Cash')}
-                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${paymentMethod === 'Cash'
-                                                                ? 'bg-orange-500/20 border-orange-500 text-white'
-                                                                : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-                                                            }`}
-                                                    >
-                                                        Cash
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    disabled
-                                                    className="col-span-2 py-3 rounded-xl text-xs font-bold border bg-orange-500/20 border-orange-500 text-white flex items-center justify-center gap-2 cursor-default"
-                                                >
-                                                    <CheckCircle2 className="w-4 h-4 text-orange-400" />
-                                                    <span>Cash on Delivery</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Order Summary Breakdown */}
-                                <div className="pt-4 border-t border-stone-800 space-y-2 text-xs">
-                                    <div className="flex justify-between text-stone-400">
-                                        <span>Subtotal</span>
-                                        <span className="font-bold text-white">₱{subtotal.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-stone-400">
-                                        <span>Fulfillment Fee ({orderType === 'pickup' ? 'Pick-Up' : isBulihanAddress ? 'Bulihan Delivery' : 'Lalamove Delivery'})</span>
-                                        <span className="font-bold text-emerald-400">
-                                            {orderType === 'pickup' || isBulihanAddress ? '₱0.00 (FREE)' : 'Paid to Rider'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-base font-black text-white pt-2 border-t border-stone-800">
+                                    <div className="pt-2 flex justify-between text-base font-black text-white">
                                         <span>Total Amount</span>
                                         <span className="text-amber-400">₱{subtotal.toFixed(2)}</span>
                                     </div>
-                                </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={cart.length === 0 || isSubmitting}
-                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:opacity-40 text-white font-bold text-sm shadow-xl shadow-orange-600/30 transition-all flex items-center justify-center gap-2"
-                                >
-                                    {isSubmitting ? (
-                                        <span>Processing Order...</span>
-                                    ) : (
-                                        <>
-                                            <ShoppingBag className="w-4 h-4" />
-                                            <span>Place Order (₱{subtotal.toFixed(2)})</span>
-                                        </>
-                                    )}
-                                </button>
+                                    <button
+                                        type="submit"
+                                        disabled={cart.length === 0 || isSubmitting}
+                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:opacity-40 text-white font-bold text-sm uppercase tracking-wider shadow-xl shadow-orange-600/30 transition-all btn-bevel"
+                                    >
+                                        {isSubmitting ? 'Processing Order...' : `Place Order (₱${subtotal.toFixed(2)})`}
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 </main>
 
-                {/* Order Confirmation Modal */}
-                {completedOrder && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/90 backdrop-blur-md animate-in fade-in duration-200">
-                        <div className="w-full max-w-md rounded-3xl bg-stone-900 border border-stone-800 p-8 shadow-2xl text-center space-y-6">
-                            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center">
-                                <CheckCircle2 className="w-8 h-8" />
-                            </div>
-
-                            <div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Order Confirmed!</span>
-                                <h3 className="text-2xl font-black text-white mt-1">Thank you for your order</h3>
-                                <p className="text-xs text-stone-400 mt-1">Our kitchen has received your sizzling order.</p>
-                            </div>
-
-                            <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 text-xs text-left space-y-2 font-mono">
-                                <div className="flex justify-between">
-                                    <span className="text-stone-500">Order Number:</span>
-                                    <span className="font-bold text-orange-400">{completedOrder.order_number}</span>
+                {/* MOBILE ONLY: Floating Sticky Cart Bar */}
+                {itemCount > 0 && (
+                    <div className="block lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
+                        <button
+                            onClick={() => setIsBasketSheetOpen(true)}
+                            className="w-full h-14 rounded-2xl bg-orange-500 text-stone-950 font-bold shadow-2xl shadow-orange-500/30 px-4 flex items-center justify-between hover:scale-[1.02] active:scale-98 transition-all btn-bevel"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-stone-950 text-amber-400 text-xs font-black flex items-center justify-center border border-amber-400">
+                                    {itemCount}
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-stone-500">Fulfillment:</span>
-                                    <span className="font-bold text-white uppercase">{completedOrder.order_type}</span>
-                                </div>
-                                <div className="flex justify-between flex-col gap-1 pt-1 border-t border-stone-800/50">
-                                    <span className="text-stone-500">Delivery Address:</span>
-                                    <span className="font-bold text-stone-200 text-[11px] leading-tight">{completedOrder.delivery_address || 'Pick-Up Counter'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-stone-500">Total Paid/Due:</span>
-                                    <span className="font-bold text-amber-400">₱{parseFloat(completedOrder.total_amount).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-stone-500">Payment Method:</span>
-                                    <span className="font-bold text-white">{completedOrder.payment_method}</span>
+                                <div className="text-left">
+                                    <div className="text-sm font-black leading-tight">View your cart</div>
+                                    <div className="text-[10px] text-stone-900 font-bold">Saddle Ranch Online Order</div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <Link
-                                    href="/"
-                                    onClick={() => setCompletedOrder(null)}
-                                    className="w-full py-3.5 rounded-xl bg-orange-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-orange-600 transition-all block"
-                                >
-                                    Back to Saddle Ranch Home
-                                </Link>
+                            <div className="font-mono text-base font-black">
+                                ₱ {subtotal.toFixed(2)}
                             </div>
-                        </div>
+                        </button>
                     </div>
                 )}
             </div>
