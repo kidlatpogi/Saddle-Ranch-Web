@@ -131,7 +131,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
-    // Auto-detect Bulihan address
+    // Cart Items Pagination State (> 5 items)
+    const [cartPage, setCartPage] = useState(1);
+    const cartItemsPerPage = 5;
+
     const isBulihanAddress = city === 'Silang' && BULIHAN_BARANGAYS.includes(barangay);
 
     useEffect(() => {
@@ -265,6 +268,16 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
     const { cart, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount } = useCart();
 
+    // Paginated Cart items for > 5 items
+    const totalCartPages = Math.max(1, Math.ceil(cart.length / cartItemsPerPage));
+    const paginatedCartItems = cart.slice((cartPage - 1) * cartItemsPerPage, cartPage * cartItemsPerPage);
+
+    useEffect(() => {
+        if (cartPage > totalCartPages) {
+            setCartPage(totalCartPages);
+        }
+    }, [cart.length, totalCartPages]);
+
     const getProductImage = (p: Product) => {
         if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
         return fallbackProducts[0].image_path;
@@ -336,11 +349,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Header (Back button kept for Online Ordering) */}
+                {/* Header */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
                         
-                        {/* Top Bar Row 1: Back Button + Title + Order Mode Badge */}
+                        {/* Top Bar Row 1 */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
                                 <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors">
@@ -354,14 +367,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            {/* Order Type Badge */}
                             <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
                                 {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
                                 <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
                             </span>
                         </div>
 
-                        {/* Top Bar Row 2: Full-Width Search Input */}
+                        {/* Top Bar Row 2 */}
                         <div className="relative w-full">
                             <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
@@ -373,7 +385,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             />
                         </div>
 
-                        {/* Top Bar Row 3: Category Tabs */}
+                        {/* Top Bar Row 3 */}
                         <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
@@ -403,10 +415,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Menu Selection Column */}
+                        {/* Menu Column */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* MOBILE (< md): 1:1 Grab/Foodpanda 2-Column Mobile Grid */}
+                            {/* MOBILE (< md) */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
@@ -461,7 +473,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            {/* DESKTOP (>= md): Grid Cards */}
+                            {/* DESKTOP (>= md) */}
                             <div className="hidden md:block space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {paginatedProducts.map((product) => {
@@ -538,7 +550,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     })}
                                 </div>
 
-                                {/* Pagination */}
+                                {/* Menu Pagination */}
                                 {totalPages > 1 && (
                                     <div className="pt-4 border-t border-[#534434]/50 flex items-center justify-between">
                                         <button
@@ -583,7 +595,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                         </div>
 
-                        {/* DESKTOP ONLY Cart Form with Full Cart Itemized Breakdown */}
+                        {/* DESKTOP ONLY Cart Form with Cart Items Pagination when > 5 items */}
                         <div className="hidden lg:block lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
@@ -596,7 +608,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </span>
                                 </div>
 
-                                {/* Itemized Cart Breakdown (Unrestricted View - Fully viewable all orders) */}
+                                {/* Cart Item List (Paginated if > 5 items) */}
                                 <div className="space-y-3">
                                     {cart.length === 0 ? (
                                         <div className="py-8 text-center text-[#8c7a6b] text-xs">
@@ -604,7 +616,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             Your order cart is empty. Add sizzling items from the menu.
                                         </div>
                                     ) : (
-                                        cart.map((item) => {
+                                        (cart.length > 5 ? paginatedCartItems : cart).map((item) => {
                                             const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
                                             const imgUrl = getProductImage(item.product as Product);
                                             return (
@@ -648,6 +660,33 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 </div>
                                             );
                                         })
+                                    )}
+
+                                    {/* Cart Pagination Controls when > 5 items */}
+                                    {cart.length > 5 && (
+                                        <div className="pt-2 flex items-center justify-between text-xs border-t border-[#534434]/40 text-[#d8c3ad]">
+                                            <button
+                                                type="button"
+                                                onClick={() => setCartPage((p) => Math.max(1, p - 1))}
+                                                disabled={cartPage === 1}
+                                                className="px-2.5 py-1 rounded-lg bg-[#121213] border border-[#534434] hover:text-white disabled:opacity-40 btn-bevel flex items-center gap-1 text-[11px]"
+                                            >
+                                                <ChevronLeft className="w-3 h-3" />
+                                                <span>Prev</span>
+                                            </button>
+                                            <span className="font-mono text-[11px] font-bold text-[#ffc174]">
+                                                Page {cartPage} of {totalCartPages} ({cart.length} items)
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCartPage((p) => Math.min(totalCartPages, p + 1))}
+                                                disabled={cartPage === totalCartPages}
+                                                className="px-2.5 py-1 rounded-lg bg-[#121213] border border-[#534434] hover:text-white disabled:opacity-40 btn-bevel flex items-center gap-1 text-[11px]"
+                                            >
+                                                <span>Next</span>
+                                                <ChevronRight className="w-3 h-3" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
@@ -711,7 +750,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                     {orderType === 'delivery' && (
                                         <div className="space-y-3 p-4 rounded-2xl bg-[#121213] border border-[#534434]">
-                                            {/* Lalamove & FREE Bulihan Delivery Notice (No Emojis) */}
                                             {isBulihanAddress ? (
                                                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
                                                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />

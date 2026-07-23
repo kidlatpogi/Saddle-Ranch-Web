@@ -146,19 +146,37 @@ const CardNav: React.FC<CardNavProps> = ({
 
   const toggleMenu = () => {
     const tl = tlRef.current;
-    if (!tl) return;
     if (!isExpanded) {
       setIsHamburgerOpen(true);
       setIsExpanded(true);
-      tl.play(0);
+      if (tl) tl.play(0);
     } else {
       setIsHamburgerOpen(false);
-      tl.eventCallback('onReverseComplete', () => setIsExpanded(false));
-      tl.reverse();
+      if (tl) {
+        tl.eventCallback('onReverseComplete', () => {
+          setIsExpanded(false);
+        });
+        tl.reverse();
+      } else {
+        setIsExpanded(false);
+      }
+    }
+  };
+
+  const closeMenuImmediately = () => {
+    setIsHamburgerOpen(false);
+    setIsExpanded(false);
+    if (tlRef.current) {
+      tlRef.current.progress(0).pause();
+    }
+    if (navRef.current) {
+      gsap.set(navRef.current, { height: 60 });
     }
   };
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    closeMenuImmediately();
+
     if (href.startsWith('#')) {
       e.preventDefault();
       const targetId = href.replace('#', '');
@@ -166,13 +184,7 @@ const CardNav: React.FC<CardNavProps> = ({
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
-      // Remove hash from browser URL bar cleanly
       window.history.replaceState(null, '', window.location.pathname);
-
-      // Close menu if open
-      if (isExpanded) {
-        toggleMenu();
-      }
     }
   };
 
@@ -230,6 +242,7 @@ const CardNav: React.FC<CardNavProps> = ({
           <div className="flex items-center gap-2">
             <a
               href="/order"
+              onClick={closeMenuImmediately}
               className="relative h-[42px] px-4 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-2 text-xs font-bold"
               aria-label="View Cart"
             >
@@ -244,7 +257,10 @@ const CardNav: React.FC<CardNavProps> = ({
 
             <button
               type="button"
-              onClick={onButtonClick}
+              onClick={() => {
+                closeMenuImmediately();
+                if (onButtonClick) onButtonClick();
+              }}
               className="card-nav-cta-button hidden md:inline-flex border-0 rounded-lg px-5 items-center h-[42px] font-bold text-xs uppercase tracking-wider cursor-pointer btn-bevel transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-[#f59e0b]/20"
               style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
             >

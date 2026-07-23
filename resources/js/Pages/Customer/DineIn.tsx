@@ -10,6 +10,8 @@ import {
     ShoppingBag, 
     AlertCircle,
     ShoppingCart,
+    ChevronLeft,
+    ChevronRight,
     X,
     Search,
     BellRing
@@ -58,6 +60,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
     const { cart, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount } = useCart();
+
+    // Cart Items Pagination State (> 5 items)
+    const [cartPage, setCartPage] = useState(1);
+    const cartItemsPerPage = 5;
 
     const fallbackProducts: Product[] = [
         {
@@ -159,6 +165,16 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         return matchesCategory && matchesSearch;
     });
 
+    // Paginated Cart items for > 5 items
+    const totalCartPages = Math.max(1, Math.ceil(cart.length / cartItemsPerPage));
+    const paginatedCartItems = cart.slice((cartPage - 1) * cartItemsPerPage, cartPage * cartItemsPerPage);
+
+    useEffect(() => {
+        if (cartPage > totalCartPages) {
+            setCartPage(totalCartPages);
+        }
+    }, [cart.length, totalCartPages]);
+
     const getProductImage = (p: Product) => {
         if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
         return fallbackProducts[0].image_path;
@@ -224,11 +240,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Header (Back button removed for QR Dine In) */}
+                {/* Header */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
                         
-                        {/* Top Bar Row 1: Title + Call Waiter & Table Badge */}
+                        {/* Top Bar Row 1 */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="truncate">
                                 <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
@@ -237,7 +253,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <p className="text-[10px] sm:text-xs text-[#d8c3ad] truncate">Bulihan Roadhouse</p>
                             </div>
 
-                            {/* Call Waiter & Table Pill */}
                             <div className="flex items-center gap-2 shrink-0">
                                 <button
                                     onClick={handleCallWaiter}
@@ -258,7 +273,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             </div>
                         </div>
 
-                        {/* Top Bar Row 2: Full-Width Search Input */}
+                        {/* Top Bar Row 2 */}
                         <div className="relative w-full">
                             <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
@@ -270,7 +285,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             />
                         </div>
 
-                        {/* Top Bar Row 3: Category Tabs */}
+                        {/* Top Bar Row 3 */}
                         <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
@@ -315,7 +330,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         {/* LEFT: Products */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* MOBILE (< md): 2-Column Mobile Grid */}
+                            {/* MOBILE (< md) */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
@@ -370,7 +385,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* DESKTOP (>= md): Grid Cards */}
+                            {/* DESKTOP (>= md) */}
                             <div className="hidden md:grid grid-cols-2 gap-6">
                                 {filteredProducts.map((product) => {
                                     const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
@@ -448,7 +463,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                         </div>
 
-                        {/* RIGHT: Desktop Cart Drawer */}
+                        {/* RIGHT: Desktop Cart Drawer with Cart Items Pagination when > 5 items */}
                         <div className="hidden lg:block lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
@@ -461,14 +476,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     </span>
                                 </div>
 
-                                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                                <div className="space-y-3">
                                     {cart.length === 0 ? (
                                         <div className="py-8 text-center text-[#8c7a6b] text-xs">
                                             <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#8c7a6b]" />
                                             Your table basket is empty. Add items from the menu.
                                         </div>
                                     ) : (
-                                        cart.map((item) => {
+                                        (cart.length > 5 ? paginatedCartItems : cart).map((item) => {
                                             const numPrice = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
                                             const imgUrl = getProductImage(item.product as Product);
                                             return (
@@ -512,6 +527,33 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 </div>
                                             );
                                         })
+                                    )}
+
+                                    {/* Cart Pagination Controls when > 5 items */}
+                                    {cart.length > 5 && (
+                                        <div className="pt-2 flex items-center justify-between text-xs border-t border-[#534434]/40 text-[#d8c3ad]">
+                                            <button
+                                                type="button"
+                                                onClick={() => setCartPage((p) => Math.max(1, p - 1))}
+                                                disabled={cartPage === 1}
+                                                className="px-2.5 py-1 rounded-lg bg-[#121213] border border-[#534434] hover:text-white disabled:opacity-40 btn-bevel flex items-center gap-1 text-[11px]"
+                                            >
+                                                <ChevronLeft className="w-3 h-3" />
+                                                <span>Prev</span>
+                                            </button>
+                                            <span className="font-mono text-[11px] font-bold text-[#ffc174]">
+                                                Page {cartPage} of {totalCartPages} ({cart.length} items)
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCartPage((p) => Math.min(totalCartPages, p + 1))}
+                                                disabled={cartPage === totalCartPages}
+                                                className="px-2.5 py-1 rounded-lg bg-[#121213] border border-[#534434] hover:text-white disabled:opacity-40 btn-bevel flex items-center gap-1 text-[11px]"
+                                            >
+                                                <span>Next</span>
+                                                <ChevronRight className="w-3 h-3" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
