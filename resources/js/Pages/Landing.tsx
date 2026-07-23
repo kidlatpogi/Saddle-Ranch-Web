@@ -236,20 +236,36 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/50 to-[#121213]/40" />
                     </div>
 
-                    <div className="absolute z-10 text-center px-6 max-w-4xl mx-auto space-y-6">
-                        {/* Cowboy Stat Pill Badge ("18+ Years Sizzling • Est. 2008") in the style of aditya-gupta.com.np */}
-                        <div className="inline-flex items-center gap-3 bg-[#19120a]/85 border border-[#f59e0b]/40 backdrop-blur-md px-5 py-2.5 rounded-full shadow-2xl shadow-[#f59e0b]/20 group hover:border-[#f59e0b] transition-all cursor-pointer">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f59e0b] to-[#d97706] text-[#121213] flex items-center justify-center font-black text-sm shadow-md group-hover:rotate-12 transition-transform">
-                                ★
-                            </div>
-                            <div className="flex items-baseline gap-2">
-                                <span className="font-domine font-black text-lg sm:text-xl text-[#ffc174]">18+ Years</span>
-                                <span className="font-mono text-xs text-[#d8c3ad] font-semibold border-l border-[#534434] pl-2 uppercase tracking-widest">
-                                    Est. 2008 Roadhouse
-                                </span>
+                    {/* Rotating Circular Stamp Seal Badge ("SINCE 2008") in Upper Right Corner (1:1 with aditya-gupta.com.np badge) */}
+                    <div className="absolute top-28 right-8 lg:right-16 z-20 hidden md:flex items-center justify-center">
+                        <div className="relative w-36 h-36 flex items-center justify-center group cursor-pointer">
+                            {/* Outer Scalloped Dashed Border Ring */}
+                            <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#f59e0b]/50 bg-[#1c150e]/85 backdrop-blur-md shadow-2xl shadow-[#f59e0b]/25 group-hover:border-[#f59e0b] group-hover:scale-105 transition-all duration-300" />
+                            
+                            {/* Rotating Curved Text Path */}
+                            <svg className="w-32 h-32 animate-[spin_14s_linear_infinite]" viewBox="0 0 100 100">
+                                <path
+                                    id="stampCirclePath"
+                                    d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                                    fill="none"
+                                />
+                                <text fill="#ffc174" fontSize="9" fontWeight="bold" letterSpacing="2.2">
+                                    <textPath href="#stampCirclePath" startOffset="0%">
+                                        ★ SINCE 2008 ★ ROADHOUSE EXCELLENCE
+                                    </textPath>
+                                </text>
+                            </svg>
+
+                            {/* Center Emblem */}
+                            <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+                                <Flame className="w-5 h-5 text-[#f59e0b] group-hover:scale-125 transition-transform duration-300" />
+                                <span className="font-domine font-black text-sm text-[#ffc174] tracking-tight leading-none mt-0.5">2008</span>
+                                <span className="font-mono text-[8px] font-bold text-[#d8c3ad] uppercase tracking-widest">RANCH</span>
                             </div>
                         </div>
+                    </div>
 
+                    <div className="absolute z-10 text-center px-6 max-w-4xl mx-auto space-y-6">
                         <h1 className="font-domine text-4xl sm:text-6xl md:text-7xl text-[#ffc174] font-bold tracking-tight drop-shadow-2xl leading-tight">
                             The Wild West of Sizzling Steaks
                         </h1>
