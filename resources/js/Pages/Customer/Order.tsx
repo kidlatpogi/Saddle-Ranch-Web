@@ -596,8 +596,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </span>
                                 </div>
 
-                                {/* Itemized Cart Breakdown */}
-                                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                                {/* Itemized Cart Breakdown (Unrestricted View - Fully viewable all orders) */}
+                                <div className="space-y-3">
                                     {cart.length === 0 ? (
                                         <div className="py-8 text-center text-[#8c7a6b] text-xs">
                                             <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#8c7a6b]" />
@@ -711,16 +711,16 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                     {orderType === 'delivery' && (
                                         <div className="space-y-3 p-4 rounded-2xl bg-[#121213] border border-[#534434]">
-                                            {/* Lalamove & FREE Bulihan Delivery Notice */}
+                                            {/* Lalamove & FREE Bulihan Delivery Notice (No Emojis) */}
                                             {isBulihanAddress ? (
                                                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
                                                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                                                    <span>✨ FREE Delivery Fee (Bulihan Area, Silang)</span>
+                                                    <span>FREE Delivery Fee (Bulihan Area, Silang)</span>
                                                 </div>
                                             ) : (
                                                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-2">
                                                     <Info className="w-4 h-4 text-amber-400 shrink-0" />
-                                                    <span>🚚 <strong>Delivery via Lalamove</strong>: Deliveries outside Bulihan are dispatched via Lalamove (customer pays actual rider delivery fee upon arrival).</span>
+                                                    <span>Delivery via Lalamove: Deliveries outside Bulihan Area are dispatched via Lalamove (customer pays actual rider delivery fee upon arrival).</span>
                                                 </div>
                                             )}
 
@@ -934,12 +934,12 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         {isBulihanAddress ? (
                                             <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5">
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                                                <span>✨ FREE Delivery Fee (Bulihan Area)</span>
+                                                <span>FREE Delivery Fee (Bulihan Area, Silang)</span>
                                             </div>
                                         ) : (
                                             <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold flex items-center gap-1.5">
                                                 <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                                <span>🚚 <strong>Delivery via Lalamove</strong>: Outside Bulihan area delivered via Lalamove (pay rider on arrival).</span>
+                                                <span>Delivery via Lalamove: Deliveries outside Bulihan Area are dispatched via Lalamove (customer pays actual rider delivery fee upon arrival).</span>
                                             </div>
                                         )}
 
