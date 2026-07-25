@@ -19,7 +19,48 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 - [Robust background job processing](https://laravel.com/docs/queues).
 - [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+
+## 🚀 Getting Started / How to Run
+
+### 1. Prerequisites
+Ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v18+)
+- [PHP](https://www.php.net/) (v8.2+) & [Composer](https://getcomposer.org/) (or [Laravel Herd](https://herd.laravel.com/) / [Laravel Sail](https://laravel.com/docs/sail))
+
+### 2. Installation
+```bash
+# Install frontend dependencies
+npm install --legacy-peer-deps
+
+# Install PHP dependencies
+composer install
+
+# Environment setup
+cp .env.example .env
+php artisan key:generate
+```
+
+### 3. Running the Application
+You need to run **both** the backend and frontend dev servers:
+
+1. **Start the Laravel backend server:**
+   ```bash
+   php artisan serve
+   ```
+   *(This starts the backend application at `http://127.0.0.1:8000`)*
+
+2. **Start the Vite frontend asset server:**
+   ```bash
+   npm run dev
+   ```
+   *(This starts the Vite HMR server on `http://localhost:5173`)*
+
+3. **Access the Application:**
+   Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser.
+   > 📌 **Important Note:** Navigating directly to `http://localhost:5173` will display the Laravel Vite placeholder page. Port `5173` is for Vite's Hot Module Replacement (HMR) asset bundling. The web application itself is served by PHP on port `8000`.
+
+---
+
 
 ## Learning Laravel
 

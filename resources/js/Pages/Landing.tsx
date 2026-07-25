@@ -290,22 +290,22 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                 {/* 2. PROMOTIONS & DEALS SECTION */}
                 <section
                     id="promos"
-                    className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto transition-transform duration-300"
+                    className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto transition-transform duration-300"
                     style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.03)}px)` }}
                 >
-                    <div className="text-center mb-10">
-                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
+                    <div className="text-center mb-8 sm:mb-12">
+                        <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
                             Exclusive Roadhouse Specials
                         </span>
-                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold">
+                        <h2 className="font-domine text-2xl sm:text-4xl md:text-5xl text-[#ffc174] font-bold tracking-tight">
                             Promotions & Deals
                         </h2>
                     </div>
 
                     {/* Asymmetric Bento Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                         {/* Card 1: Large Featured Hero Banner */}
-                        <div className="md:col-span-2 md:row-span-2 relative h-[360px] md:h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl">
+                        <div className="md:col-span-2 md:row-span-2 relative min-h-[280px] sm:min-h-[340px] md:min-h-[380px] lg:min-h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-700 group-hover:scale-105"
@@ -313,21 +313,21 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/90 to-transparent">
-                                <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] mb-3 inline-block font-bold shadow">
+                            <div className="relative z-10 p-5 sm:p-6 md:p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/90 to-transparent">
+                                <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] mb-2 sm:mb-3 inline-block font-bold shadow">
                                     WEEKEND SPECIAL • 20% OFF
                                 </span>
-                                <h3 className="font-domine text-2xl sm:text-4xl font-bold text-[#ffc174] mb-2 drop-shadow-md">
+                                <h3 className="font-domine text-xl sm:text-3xl md:text-4xl font-bold text-[#ffc174] mb-1.5 sm:mb-2 drop-shadow-md">
                                     Sisig Saturdays Deal
                                 </h3>
-                                <p className="font-sans text-sm sm:text-base text-[#d8c3ad] max-w-lg leading-relaxed">
+                                <p className="font-sans text-xs sm:text-sm md:text-base text-[#d8c3ad] max-w-lg leading-relaxed">
                                     Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.
                                 </p>
                             </div>
                         </div>
 
                         {/* Card 2: Square Card - New Arrival */}
-                        <div className="relative h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl">
+                        <div className="relative min-h-[170px] sm:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -335,17 +335,17 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqtvjGjUsuBGyzBHVhntcLtTHQL442EMNheO8rq-4bOP-zq35cYw-DswcOn6dpMuPv5ukX12iSEzREwKgb6iPoUk64ETmBeEcSAd_ACcZoIibAIU9yR4PAPlj2o5GbDfdalWoY2tkEYUIrX_067eJx75-iVNUhMQQwzXdK3OmEDSQSGelDLgr5zgcY5sN7zsIqaaHUGQXrLpgju8NF3deoQjQPo--R-W6fwR50zfB_tGo3dBdO2gM7hr6EUUVxLgCF5gCn94DbGA_N"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                            <div className="relative z-10 p-4 sm:p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                <span className="font-mono text-[9px] sm:text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1.5 inline-block font-bold">
                                     NEW ARRIVAL
                                 </span>
-                                <h3 className="font-domine text-lg font-bold text-[#ffc174]">Cowboy Ribeye Special</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Bone-in, seared on smoking cast iron.</p>
+                                <h3 className="font-domine text-base sm:text-lg font-bold text-[#ffc174]">Cowboy Ribeye Special</h3>
+                                <p className="font-sans text-[11px] sm:text-xs text-[#d8c3ad] mt-0.5">Bone-in, seared on smoking cast iron.</p>
                             </div>
                         </div>
 
                         {/* Card 3: Square Card - Free Unli-Rice & Soup */}
-                        <div className="relative h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl">
+                        <div className="relative min-h-[170px] sm:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -353,28 +353,28 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ"
                                 />
                             </div>
-                            <div className="absolute bottom-0 left-0 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[10px] text-emerald-400 bg-[#31281f] px-2.5 py-0.5 rounded border border-[#534434] mb-2 inline-block font-bold">
+                            <div className="relative z-10 p-4 sm:p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                <span className="font-mono text-[9px] sm:text-[10px] text-emerald-400 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1.5 inline-block font-bold">
                                     UNLIMITED REFILLS
                                 </span>
-                                <h3 className="font-domine text-lg font-bold text-[#f0e0d1]">Free Unli-Rice & Soup</h3>
-                                <p className="font-sans text-xs text-[#d8c3ad] mt-1">Free unlimited garlic rice & hot bulalo soup refill on all sizzling meals.</p>
+                                <h3 className="font-domine text-base sm:text-lg font-bold text-[#f0e0d1]">Free Unli-Rice & Soup</h3>
+                                <p className="font-sans text-[11px] sm:text-xs text-[#d8c3ad] mt-0.5">Free unlimited garlic rice & hot bulalo soup refill on all sizzling meals.</p>
                             </div>
                         </div>
 
                         {/* Card 4: Wide Accent Horizontal Banner */}
-                        <div className="md:col-span-3 relative h-48 rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
+                        <div className="md:col-span-3 relative min-h-[160px] sm:min-h-[180px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
                             <div className="absolute inset-0 flex items-center justify-between">
-                                <div className="w-full md:w-2/3 p-6 md:p-8 z-10 space-y-2">
-                                    <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] inline-block font-bold">
+                                <div className="w-full md:w-2/3 p-5 sm:p-6 md:p-8 z-10 space-y-1.5 sm:space-y-2">
+                                    <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] inline-block font-bold">
                                         HAPPY HOUR • 4PM - 7PM DAILY
                                     </span>
-                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174]">Pulutan Happy Hour Specials</h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] max-w-xl">
+                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174]">Pulutan Happy Hour Specials</h3>
+                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] max-w-xl">
                                         Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.
                                     </p>
-                                    <button onClick={() => setIsOrderModalOpen(true)} className="text-[#f59e0b] font-mono text-xs font-bold flex items-center hover:text-[#ffc174] transition-colors pt-1">
-                                        ORDER PULUTAN NOW <ArrowRight className="w-4 h-4 ml-1.5" />
+                                    <button onClick={() => setIsOrderModalOpen(true)} className="text-[#f59e0b] font-mono text-[11px] sm:text-xs font-bold flex items-center hover:text-[#ffc174] transition-colors pt-1">
+                                        ORDER PULUTAN NOW <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1.5" />
                                     </button>
                                 </div>
                                 <div className="hidden md:block w-1/3 h-full vignette-overlay relative">
@@ -392,21 +392,21 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
                 {/* 3. FEATURED SIZZLING ITEMS SECTION */}
-                <section id="featured-menu" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
-                    <div className="text-center max-w-3xl mx-auto mb-14">
-                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
+                <section id="featured-menu" className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto">
+                    <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 md:mb-14">
+                        <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Chef's Sizzling Favorites
                         </span>
-                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold tracking-tight mb-3">
+                        <h2 className="font-domine text-2xl sm:text-4xl md:text-5xl text-[#ffc174] font-bold tracking-tight mb-2 sm:mb-3">
                             Featured Sizzling Items
                         </h2>
-                        <p className="font-sans text-base sm:text-lg text-[#d8c3ad]">
+                        <p className="font-sans text-sm sm:text-base md:text-lg text-[#d8c3ad]">
                             Piping hot cast-iron platters seared right off our charcoal fire.
                         </p>
                     </div>
 
                     {/* Menu Items Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
                         {displayedProducts.map((product) => {
                             const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                             const isOutOfStock = product.stock_quantity <= 0;
@@ -418,23 +418,23 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all duration-300 shadow-xl group"
                                 >
                                     {/* Product Image Showcase */}
-                                    <div className="h-56 w-full relative vignette-overlay overflow-hidden">
+                                    <div className="h-44 sm:h-48 md:h-52 lg:h-56 w-full relative vignette-overlay overflow-hidden">
                                         <img
                                             src={product.image_path || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t'}
                                             alt={product.name}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                                         />
                                         <div className="absolute top-3 right-3 z-10">
-                                            <span className="font-mono text-sm font-black text-[#121213] bg-[#ffc174] px-3 py-1 rounded shadow-md">
+                                            <span className="font-mono text-xs sm:text-sm font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow-md">
                                                 ₱{numPrice.toFixed(2)}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Product Details */}
-                                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                    <div className="p-4 sm:p-5 md:p-6 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
                                         <div>
-                                            <h3 className="font-domine text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-2">
+                                            <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1.5 sm:mb-2">
                                                 {product.name}
                                             </h3>
                                             <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-3">
@@ -446,7 +446,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                             <button
                                                 onClick={() => handleAddToCart(product)}
                                                 disabled={isOutOfStock}
-                                                className={`w-full py-3 rounded font-bold text-xs uppercase tracking-wider btn-bevel transition-all flex items-center justify-center gap-2 ${
+                                                className={`w-full py-2.5 sm:py-3 rounded font-bold text-xs uppercase tracking-wider btn-bevel transition-all flex items-center justify-center gap-2 ${
                                                     isOutOfStock
                                                         ? 'bg-stone-800 text-stone-500 cursor-not-allowed border border-stone-800'
                                                         : isAdded
@@ -476,10 +476,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     {/* View More Button */}
-                    <div className="mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="mt-8 sm:mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
                         <button
                             onClick={() => setShowAllMenu(!showAllMenu)}
-                            className="inline-flex items-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-sm uppercase tracking-wider shadow-lg"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-xs sm:text-sm uppercase tracking-wider shadow-lg"
                         >
                             <span>{showAllMenu ? 'Show Less' : `Show More (${allProductsList.length} Total Items)`}</span>
                             {showAllMenu ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -487,7 +487,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         <Link
                             href="/order"
-                            className="inline-flex items-center gap-2 bg-[#f59e0b] text-[#472a00] font-bold px-8 py-3.5 rounded-lg btn-bevel hover:bg-[#ffc174] transition-all text-sm uppercase tracking-wider shadow-lg"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#f59e0b] text-[#472a00] font-bold px-8 py-3.5 rounded-lg btn-bevel hover:bg-[#ffc174] transition-all text-xs sm:text-sm uppercase tracking-wider shadow-lg"
                         >
                             <ShoppingCart className="w-4 h-4" />
                             <span>Cart {itemCount > 0 ? `(${itemCount})` : ''}</span>
@@ -498,34 +498,37 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
                 {/* 4. SIZZLING MENU CATEGORIES */}
-                <section id="categories" className="py-12 px-4 w-[90%] max-w-[1440px] mx-auto">
-                    <div className="text-center mb-12">
-                        <h2 className="font-domine text-3xl sm:text-4xl text-[#ffc174] font-bold mb-2">
+                <section id="categories" className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto">
+                    <div className="text-center mb-8 sm:mb-12">
+                        <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
+                            Signature Menu Lineup
+                        </span>
+                        <h2 className="font-domine text-2xl sm:text-4xl text-[#ffc174] font-bold mb-2">
                             Explore Our Sizzling Categories
                         </h2>
-                        <p className="font-sans text-base text-[#d8c3ad]">Signature sizzling categories straight from the fire.</p>
+                        <p className="font-sans text-sm sm:text-base text-[#d8c3ad]">Signature sizzling categories straight from the fire.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
                         {/* Category 1: Sizzling Rice Meals */}
-                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-48 relative vignette-overlay">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
+                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="Sizzling Rice Meals category"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ"
                                 />
                             </div>
-                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
                                 <div>
-                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
+                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
                                         Sizzling Rice Meals
                                     </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad]">
+                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
                                         Complete hearty platters with garlic rice, topped with tender meats and savory gravies on hot cast iron.
                                     </p>
                                 </div>
-                                <div className="flex gap-2 font-mono text-[10px] font-bold">
+                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">BEEF PEPPER</span>
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">PORK CHOP</span>
                                 </div>
@@ -533,24 +536,24 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
 
                         {/* Category 2: Authentic Filipino Cuisine */}
-                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-48 relative vignette-overlay">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
+                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="Authentic Filipino Cuisine category"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t"
                                 />
                             </div>
-                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
                                 <div>
-                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
+                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
                                         Authentic Filipino Cuisine
                                     </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad]">
+                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
                                         Time-honored Filipino heritage recipes cooked sizzling hot with bold local seasonings and native flair.
                                     </p>
                                 </div>
-                                <div className="flex gap-2 font-mono text-[10px] font-bold">
+                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SISIG</span>
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">LECHON KAWALI</span>
                                 </div>
@@ -558,24 +561,24 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
 
                         {/* Category 3: Barkada Platters */}
-                        <div className="bg-[#1A1A1B] rounded-lg border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300">
-                            <div className="h-48 relative vignette-overlay">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl sm:col-span-2 lg:col-span-1">
+                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="Barkada Platters category"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY"
                                 />
                             </div>
-                            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
                                 <div>
-                                    <h3 className="font-domine text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
+                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
                                         Barkada Platters
                                     </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad]">
+                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
                                         Generous sharing platters made for group feasts, family gatherings, and roadhouse celebrations.
                                     </p>
                                 </div>
-                                <div className="flex gap-2 font-mono text-[10px] font-bold">
+                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SHARING</span>
                                     <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">FEAST</span>
                                 </div>
@@ -587,37 +590,37 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                 <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
 
                 {/* 5. ROADHOUSE LOCATIONS SECTION */}
-                <section id="locations" className="py-16 px-4 w-[90%] max-w-[1440px] mx-auto">
-                    <div className="text-center mb-12">
-                        <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-3 inline-block">
+                <section id="locations" className="py-10 sm:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto">
+                    <div className="text-center mb-8 sm:mb-12">
+                        <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Visit Our Roadhouses
                         </span>
-                        <h2 className="font-domine text-3xl sm:text-5xl text-[#ffc174] font-bold">Our Locations</h2>
-                        <p className="font-sans text-base text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
+                        <h2 className="font-domine text-2xl sm:text-4xl md:text-5xl text-[#ffc174] font-bold">Our Locations</h2>
+                        <p className="font-sans text-sm sm:text-base text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-6 hover-heat transition-all shadow-xl">
-                            <div className="h-60 w-full relative vignette-overlay overflow-hidden">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-4 sm:space-y-6 hover-heat transition-all shadow-xl">
+                            <div className="h-48 sm:h-56 md:h-60 w-full relative vignette-overlay overflow-hidden">
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
                                     alt="Saddle Ranch Bulihan Storefront Exterior"
                                     src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
                                 />
                                 <div className="absolute top-3 left-3 z-10">
-                                    <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
+                                    <span className="font-mono text-[9px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
                                         ORIGINAL FLAGSHIP BRANCH
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-6 sm:p-8 flex-grow flex flex-col justify-between space-y-6">
+                            <div className="p-5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-4 sm:space-y-6">
                                 <div>
-                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Bulihan</h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed mb-4">
+                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Bulihan</h3>
+                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed mb-4">
                                         Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
                                     </p>
-                                    <div className="space-y-2 font-sans text-xs text-[#f0e0d1]">
+                                    <div className="space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
                                         <div className="flex items-center gap-3">
                                             <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>123 Roadhouse Lane, Barangay Bulihan, Cavite</span>
@@ -632,33 +635,33 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg">
+                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3 sm:py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
                                     Order from Bulihan Branch
                                 </button>
                             </div>
                         </div>
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-6 hover-heat transition-all shadow-xl">
-                            <div className="h-60 w-full relative vignette-overlay overflow-hidden">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-4 sm:space-y-6 hover-heat transition-all shadow-xl">
+                            <div className="h-48 sm:h-56 md:h-60 w-full relative vignette-overlay overflow-hidden">
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
                                     alt="Saddle Ranch Dasmarinas Storefront Exterior"
                                     src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=80"
                                 />
                                 <div className="absolute top-3 left-3 z-10">
-                                    <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
+                                    <span className="font-mono text-[9px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
                                         NEW BRANCH LOCATION
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-6 sm:p-8 flex-grow flex flex-col justify-between space-y-6">
+                            <div className="p-5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-4 sm:space-y-6">
                                 <div>
-                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Dasmariñas</h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed mb-4">
+                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Dasmariñas</h3>
+                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed mb-4">
                                         Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
                                     </p>
-                                    <div className="space-y-2 font-sans text-xs text-[#f0e0d1]">
+                                    <div className="space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
                                         <div className="flex items-center gap-3">
                                             <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite</span>
@@ -673,7 +676,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg">
+                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3 sm:py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
                                     Order from Dasmariñas Branch
                                 </button>
                             </div>
