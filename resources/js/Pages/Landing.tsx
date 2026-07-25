@@ -285,12 +285,12 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </header>
 
-                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 2. PROMOTIONS & DEALS SECTION */}
                 <section
                     id="promos"
-                    className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto transition-transform duration-300"
+                    className="py-8 sm:py-12 md:py-16 px-4 w-[80%] max-w-[1440px] mx-auto transition-transform duration-300"
                     style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.03)}px)` }}
                 >
                     <div className="text-center mb-8 sm:mb-12">
@@ -303,7 +303,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     {/* Asymmetric Bento Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                         {/* Card 1: Large Featured Hero Banner */}
                         <div className="md:col-span-2 md:row-span-2 relative min-h-[280px] sm:min-h-[340px] md:min-h-[380px] lg:min-h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
@@ -327,7 +327,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
 
                         {/* Card 2: Square Card - New Arrival */}
-                        <div className="relative min-h-[170px] sm:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                        <div className="relative min-h-[160px] sm:min-h-[180px] md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -345,7 +345,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
 
                         {/* Card 3: Square Card - Free Unli-Rice & Soup */}
-                        <div className="relative min-h-[170px] sm:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                        <div className="relative min-h-[160px] sm:min-h-[180px] md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -363,7 +363,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
 
                         {/* Card 4: Wide Accent Horizontal Banner */}
-                        <div className="md:col-span-3 relative min-h-[160px] sm:min-h-[180px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
+                        <div className="md:col-span-3 relative min-h-[150px] sm:min-h-[170px] md:min-h-[180px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
                             <div className="absolute inset-0 flex items-center justify-between">
                                 <div className="w-full md:w-2/3 p-5 sm:p-6 md:p-8 z-10 space-y-1.5 sm:space-y-2">
                                     <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] inline-block font-bold">
@@ -389,10 +389,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 3. FEATURED SIZZLING ITEMS SECTION */}
-                <section id="featured-menu" className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto">
+                <section id="featured-menu" className="py-8 sm:py-12 md:py-16 px-4 w-[80%] max-w-[1440px] mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 md:mb-14">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Chef's Sizzling Favorites
@@ -406,7 +406,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     {/* Menu Items Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
                         {displayedProducts.map((product) => {
                             const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                             const isOutOfStock = product.stock_quantity <= 0;
@@ -495,10 +495,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 4. SIZZLING MENU CATEGORIES */}
-                <section id="categories" className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto">
+                <section id="categories" className="py-8 sm:py-12 md:py-16 px-4 w-[80%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-8 sm:mb-12">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Signature Menu Lineup
@@ -509,7 +509,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         <p className="font-sans text-sm sm:text-base text-[#d8c3ad]">Signature sizzling categories straight from the fire.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
                         {/* Category 1: Sizzling Rice Meals */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
                             <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
@@ -561,7 +561,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
 
                         {/* Category 3: Barkada Platters */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl sm:col-span-2 lg:col-span-1">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl sm:col-span-2 md:col-span-1">
                             <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-80"
@@ -587,10 +587,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider w-[90%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 5. ROADHOUSE LOCATIONS SECTION */}
-                <section id="locations" className="py-10 sm:py-16 px-4 w-[92%] sm:w-[90%] max-w-[1440px] mx-auto">
+                <section id="locations" className="py-10 sm:py-16 px-4 w-[80%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-8 sm:mb-12">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Visit Our Roadhouses
@@ -599,7 +599,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         <p className="font-sans text-sm sm:text-base text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-4 sm:space-y-6 hover-heat transition-all shadow-xl">
                             <div className="h-48 sm:h-56 md:h-60 w-full relative vignette-overlay overflow-hidden">
@@ -686,7 +686,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 {/* Footer */}
                 <footer className="bg-[#140d06] font-sans text-sm w-full border-t border-[#534434]">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 py-12 w-[90%] max-w-[1440px] mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 py-12 w-[80%] max-w-[1440px] mx-auto">
                         <div className="flex flex-col space-y-3">
                             <div className="font-domine text-xl font-bold text-[#ffc174]">Saddle Ranch</div>
                             <p className="text-[#d8c3ad] text-xs">Bulihan & Dasmariñas Branches, Cavite</p>
