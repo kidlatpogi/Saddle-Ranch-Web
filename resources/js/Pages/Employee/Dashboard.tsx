@@ -564,7 +564,7 @@ export default function EmployeeDashboard() {
                             </div>
 
                             {/* ORDER QUEUE CARDS GRID */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                                 {filteredOrders.length > 0 ? (
                                     filteredOrders.map((o) => (
                                         <div
@@ -663,7 +663,7 @@ export default function EmployeeDashboard() {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="col-span-2 p-12 rounded-3xl bg-[#202024] border border-[#333338] text-center space-y-2">
+                                    <div className="col-span-3 p-12 rounded-3xl bg-[#202024] border border-[#333338] text-center space-y-2">
                                         <ListOrdered className="w-10 h-10 text-[#71717a] mx-auto" />
                                         <div className="text-base font-bold text-white font-domine">No orders found in status "{statusFilter}"</div>
                                         <p className="text-xs text-[#a1a1aa]">Select "All Orders" or place a new walk-in register order to test pipeline.</p>
@@ -673,42 +673,47 @@ export default function EmployeeDashboard() {
                         </div>
                     )}
 
-                    {/* TAB 2: MENU & STOCK AVAILABILITY */}
+                    {/* TAB 2: MENU & STOCK AVAILABILITY WITH TOUCH CATEGORY CHIPS */}
                     {activeTab === 'menu' && (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-[#a1a1aa]">Category:</span>
-                                <select
-                                    value={categoryFilter}
-                                    onChange={(e) => setCategoryFilter(e.target.value)}
-                                    className="bg-[#202024] border border-[#333338] text-xs font-bold text-[#fbbf24] px-3 py-1.5 rounded-xl focus:outline-none cursor-pointer"
-                                >
-                                    <option value="All" className="bg-[#18181b]">All Categories</option>
-                                    <option value="Sizzling Rice Meals" className="bg-[#18181b]">Sizzling Rice Meals</option>
-                                    <option value="Authentic Filipino Cuisine" className="bg-[#18181b]">Authentic Filipino Cuisine</option>
-                                    <option value="Barkada Platters" className="bg-[#18181b]">Barkada Platters</option>
-                                    <option value="Drinks & Extra Rice" className="bg-[#18181b]">Drinks & Extra Rice</option>
-                                </select>
+                            <div className="p-4 rounded-2xl bg-[#202024] border border-[#333338]">
+                                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                                    {['All', 'Sizzling Rice Meals', 'Authentic Filipino Cuisine', 'Barkada Platters', 'Drinks & Extra Rice'].map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setCategoryFilter(cat)}
+                                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                                categoryFilter === cat
+                                                    ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow'
+                                                    : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
+                                            }`}
+                                        >
+                                            {cat === 'All' ? 'All Dishes' : cat}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {filteredProducts.map((p) => (
-                                    <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-3">
-                                        <div className="relative h-36 w-full rounded-2xl overflow-hidden border border-[#3f3f46] bg-[#18181b]">
-                                            <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                                            <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-[#18181b]/90 text-[#fbbf24] font-mono font-black text-xs border border-[#f59e0b]/30">
-                                                ₱ {p.price.toFixed(2)}
-                                            </span>
+                                    <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-3 flex flex-col justify-between">
+                                        <div className="space-y-3">
+                                            <div className="relative h-40 w-full rounded-2xl overflow-hidden border border-[#3f3f46] bg-[#18181b]">
+                                                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-[#18181b]/90 text-[#fbbf24] font-mono font-black text-xs border border-[#f59e0b]/30">
+                                                    ₱ {p.price.toFixed(2)}
+                                                </span>
+                                            </div>
+
+                                            <div>
+                                                <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
+                                                <h4 className="text-base font-bold text-white font-domine">{p.name}</h4>
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
-                                            <h4 className="text-sm font-bold text-white font-domine">{p.name}</h4>
-                                        </div>
-
-                                        <div className="pt-2 border-t border-[#333338] flex items-center justify-between text-xs font-mono">
+                                        <div className="pt-3 border-t border-[#333338] flex items-center justify-between text-xs font-mono">
                                             <span className="text-[#a1a1aa]">Stock Level: <strong className="text-white">{p.stock}</strong></span>
-                                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase">
+                                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase">
                                                 In Stock
                                             </span>
                                         </div>
