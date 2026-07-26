@@ -99,3 +99,27 @@ html, body {
   background: radial-gradient(circle, transparent 50%, #1a1a1b 120%);
   pointer-events: none;
 }
+
+/* Precise Print Media Rules for Table QR Badge Printing */
+@media print {
+  body * {
+    visibility: hidden;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #printable-qr-modal, #printable-qr-modal * {
+    visibility: visible;
+  }
+  #printable-qr-modal {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 400px;
+    z-index: 9999;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
