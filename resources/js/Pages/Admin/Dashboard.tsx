@@ -36,13 +36,14 @@ import {
     PieChart,
     ArrowUpDown,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    MapPin
 } from 'lucide-react';
 
 interface ProductItem {
     id: number;
     name: string;
-    category: string;
+    category: 'Sizzling Rice Meals' | 'Authentic Filipino Cuisine' | 'Barkada Platters' | 'Drinks & Extra Rice';
     description: string;
     price: number;
     stock: number;
@@ -54,6 +55,7 @@ interface OrderItem {
     id: string;
     type: 'Dine-In' | 'Pick-Up' | 'Delivery';
     location: string;
+    branch: 'Bulihan' | 'Dasma';
     customer: string;
     phone: string;
     amount: number;
@@ -105,20 +107,27 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Sample initial dataset states
+    // Menu Products Dataset (12 items to demonstrate 10-item pagination)
     const [products, setProducts] = useState<ProductItem[]>([
-        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino', description: 'Crispy pork belly with local spices and egg.', price: 180, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
+        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino Cuisine', description: 'Crispy pork belly with local spices and egg.', price: 180, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
         { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', description: 'Tender T-Bone steak with signature gravy.', price: 280, stock: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino', description: 'Rich beef shank with simmering bone marrow gravy.', price: 450, stock: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Rice Meals', description: 'Chargrilled Bacolod-style chicken with garlic rice.', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
+        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino Cuisine', description: 'Rich beef shank with simmering bone marrow gravy.', price: 450, stock: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
+        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', description: 'Chargrilled Bacolod-style chicken with garlic rice.', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
         { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', description: 'Chilled house-brewed red iced tea pitcher.', price: 95, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 6, name: 'Sizzling Burger Steak Dual', category: 'Sizzling Rice Meals', description: 'Twin thick beef patties smothered in mushroom gravy.', price: 195, stock: 45, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
+        { id: 7, name: 'Sizzling Pork Chop Duo', category: 'Sizzling Rice Meals', description: 'Seared seasoned pork chops with fried garlic & egg.', price: 210, stock: 35, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
+        { id: 8, name: 'Barkada Ribs Feast Platter', category: 'Barkada Platters', description: 'Full rack bbq pork ribs with unli garlic rice & drinks.', price: 890, stock: 12, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
+        { id: 9, name: 'Sizzling Gambas Al Ajillo', category: 'Authentic Filipino Cuisine', description: 'Wild shrimp sautéed in garlic chili olive oil skillet.', price: 320, stock: 20, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
+        { id: 10, name: 'Crispy Pata Deluxe Platter', category: 'Barkada Platters', description: 'Deep fried pork knuckle with chili soy vinegar dip.', price: 750, stock: 10, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
+        { id: 11, name: 'Extra Garlic Butter Rice', category: 'Drinks & Extra Rice', description: 'Steamed jasmine rice tossed in brown butter & garlic.', price: 35, stock: 200, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 12, name: 'San Miguel Pale Pilsen Bucket', category: 'Drinks & Extra Rice', description: 'Bucket of 5 ice-cold San Miguel Pale Pilsen bottles.', price: 380, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
     ]);
 
     const [orders, setOrders] = useState<OrderItem[]>([
-        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3, date: '2026-07-26' },
-        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, date: '2026-07-26' },
-        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4, date: '2026-07-25' },
-        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, date: '2026-07-24' },
+        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', branch: 'Bulihan', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3, date: '2026-07-26' },
+        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', branch: 'Dasma', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, date: '2026-07-26' },
+        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', branch: 'Bulihan', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4, date: '2026-07-25' },
+        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', branch: 'Dasma', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, date: '2026-07-24' },
     ]);
 
     // 4 PROMO BANNER SLOTS matching customer landing page layout 1:1
@@ -173,7 +182,7 @@ export default function AdminDashboard() {
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
 
-    // Expanded Audit Logs Dataset (20+ items spanning dates for 10-item pagination testing)
+    // Expanded Audit Logs Dataset
     const [auditLogs] = useState<AuditLogItem[]>([
         { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products & Stock' },
         { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready (₱460.00)', module: 'Order Queue / Sales' },
@@ -190,22 +199,21 @@ export default function AdminDashboard() {
         { id: 13, timestamp: '2026-07-21 16:15:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated Promo Banner Slot #4 (Pulutan Happy Hour)', module: 'Promo Banners' },
         { id: 14, timestamp: '2026-07-21 13:20:44', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Completed Dine-In order #SR-1042 (₱1,250.00)', module: 'Order Queue / Sales' },
         { id: 15, timestamp: '2026-07-20 11:10:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated staff role for Cashier Employee', module: 'Employees' },
-        { id: 16, timestamp: '2026-07-19 14:05:33', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Added product Sizzling Chicken Inasal Platter', module: 'Products & Stock' },
-        { id: 17, timestamp: '2026-07-18 10:00:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Logged in to Admin Portal', module: 'Authentication' },
-        { id: 18, timestamp: '2026-07-17 15:40:12', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Prepared Pick-Up order #SR-1035', module: 'Order Queue / Sales' },
-        { id: 19, timestamp: '2026-07-16 09:12:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher WELCOME2026', module: 'Vouchers' },
-        { id: 20, timestamp: '2026-07-15 17:30:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'System database backup executed', module: 'Authentication' },
     ]);
 
     // Product Add & Edit Modals State
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [newProductName, setNewProductName] = useState('');
-    const [newProductCategory, setNewProductCategory] = useState('Authentic Filipino');
+    const [newProductCategory, setNewProductCategory] = useState<ProductItem['category']>('Sizzling Rice Meals');
     const [newProductPrice, setNewProductPrice] = useState('');
     const [newProductStock, setNewProductStock] = useState('50');
     const [newProductImage, setNewProductImage] = useState('');
 
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+
+    // Products Category Sort Filter & 10-Item Pagination
+    const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
+    const [productPage, setProductPage] = useState<number>(1);
 
     // Slot-based Banner Modal State with Real-Time Preview
     const [targetBannerSlot, setTargetBannerSlot] = useState<number | null>(null);
@@ -236,8 +244,12 @@ export default function AdminDashboard() {
     const [auditEndDate, setAuditEndDate] = useState<string>('');
     const [auditPage, setAuditPage] = useState<number>(1);
 
-    // Sales & Revenue Date Range Filter
+    // Sales & Revenue Filters (Branch Bulihan / Dasma + Date Range + Date Sort)
+    const [salesBranchFilter, setSalesBranchFilter] = useState<string>('All');
     const [salesDateRange, setSalesDateRange] = useState<'all' | 'today' | '7days' | 'month'>('all');
+    const [salesStartDate, setSalesStartDate] = useState<string>('');
+    const [salesEndDate, setSalesEndDate] = useState<string>('');
+    const [salesSortOrder, setSalesSortOrder] = useState<'newest' | 'oldest'>('newest');
 
     const [copiedTable, setCopiedTable] = useState<string | null>(null);
 
@@ -412,7 +424,18 @@ export default function AdminDashboard() {
         return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
     };
 
-    // Filtered & Sorted Audit Logs with Start / End Date Filtering
+    // Filtered Products by Category & Search
+    const filteredProducts = products.filter(p => {
+        if (productCategoryFilter !== 'All' && p.category !== productCategoryFilter) return false;
+        if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        return true;
+    });
+
+    const totalProductItems = filteredProducts.length;
+    const totalProductPages = Math.max(1, Math.ceil(totalProductItems / 10));
+    const paginatedProducts = filteredProducts.slice((productPage - 1) * 10, productPage * 10);
+
+    // Filtered & Sorted Audit Logs
     const filteredAuditLogs = auditLogs
         .filter(log => {
             if (auditModuleFilter !== 'All' && log.module !== auditModuleFilter) return false;
@@ -431,16 +454,21 @@ export default function AdminDashboard() {
             }
         });
 
-    // Audit Logs 10-Item Pagination
     const totalAuditItems = filteredAuditLogs.length;
     const totalAuditPages = Math.max(1, Math.ceil(totalAuditItems / 10));
     const paginatedAuditLogs = filteredAuditLogs.slice((auditPage - 1) * 10, auditPage * 10);
 
-    // Filtered Sales Orders by Date Range
+    // Filtered Sales Orders by Branch, Date Range, & Dates
     const filteredSalesOrders = orders.filter(o => {
-        if (salesDateRange === 'today') return o.date === '2026-07-26';
-        if (salesDateRange === '7days') return o.date >= '2026-07-20';
+        if (salesBranchFilter !== 'All' && o.branch !== salesBranchFilter) return false;
+        if (salesDateRange === 'today' && o.date !== '2026-07-26') return false;
+        if (salesDateRange === '7days' && o.date < '2026-07-20') return false;
+        if (salesStartDate && o.date < salesStartDate) return false;
+        if (salesEndDate && o.date > salesEndDate) return false;
         return true;
+    }).sort((a, b) => {
+        if (salesSortOrder === 'newest') return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
     const totalRevenue = filteredSalesOrders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
@@ -621,7 +649,7 @@ export default function AdminDashboard() {
                                                 {orders.map((o) => (
                                                     <tr key={o.id} className="hover:bg-[#261e15]/40 transition-colors">
                                                         <td className="py-3.5 px-4 font-mono font-bold text-white">{o.id}</td>
-                                                        <td className="py-3.5 px-4 font-semibold text-[#ffc174]">{o.type} ({o.location})</td>
+                                                        <td className="py-3.5 px-4 font-semibold text-[#ffc174]">{o.type} ({o.location}) - <span className="text-stone-300 font-mono">{o.branch}</span></td>
                                                         <td className="py-3.5 px-4 text-[#d8c3ad]">{o.customer}</td>
                                                         <td className="py-3.5 px-4 font-mono font-bold text-amber-400">₱{o.amount.toFixed(2)}</td>
                                                         <td className="py-3.5 px-4 text-xs font-medium text-stone-300">{o.payment}</td>
@@ -661,7 +689,7 @@ export default function AdminDashboard() {
                                                 <tr>
                                                     <th className="py-3.5 px-4">Order #</th>
                                                     <th className="py-3.5 px-4">Customer Details</th>
-                                                    <th className="py-3.5 px-4">Fulfillment Mode</th>
+                                                    <th className="py-3.5 px-4">Branch & Mode</th>
                                                     <th className="py-3.5 px-4">Amount & Payment</th>
                                                     <th className="py-3.5 px-4">Status</th>
                                                     <th className="py-3.5 px-4">Kitchen Actions</th>
@@ -677,7 +705,7 @@ export default function AdminDashboard() {
                                                         </td>
                                                         <td className="py-4 px-4">
                                                             <span className="font-bold text-[#ffc174]">{o.type}</span>
-                                                            <div className="text-[10px] text-[#8c7a6b]">{o.location}</div>
+                                                            <div className="text-[10px] text-[#8c7a6b] font-mono">{o.branch} Branch ({o.location})</div>
                                                         </td>
                                                         <td className="py-4 px-4">
                                                             <div className="font-mono font-bold text-amber-400 text-sm">₱{o.amount.toFixed(2)}</div>
@@ -730,10 +758,10 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 3: PRODUCTS & STOCKS MANAGEMENT */}
+                        {/* TAB 3: PRODUCTS & STOCKS MANAGEMENT WITH CATEGORY SORT & 10-ITEM PAGINATION */}
                         {activeTab === 'products' && (
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Products & Stock Inventory</h3>
                                         <p className="text-xs text-[#d8c3ad]">Manage sizzling menu items, prices, uploaded images, and stock counts</p>
@@ -747,8 +775,35 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
+                                {/* CATEGORY FILTER TOOLBAR */}
+                                <div className="p-4 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                        <Filter className="w-4 h-4 text-[#f59e0b]" />
+                                        <span className="text-[#8c7a6b] font-bold">Category Sort:</span>
+                                        <select
+                                            value={productCategoryFilter}
+                                            onChange={(e) => {
+                                                setProductCategoryFilter(e.target.value);
+                                                setProductPage(1);
+                                            }}
+                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="All" className="bg-[#121213]">All Categories</option>
+                                            <option value="Sizzling Rice Meals" className="bg-[#121213]">Sizzling Rice Meals</option>
+                                            <option value="Authentic Filipino Cuisine" className="bg-[#121213]">Authentic Filipino Cuisine</option>
+                                            <option value="Barkada Platters" className="bg-[#121213]">Barkada Platters</option>
+                                            <option value="Drinks & Extra Rice" className="bg-[#121213]">Drinks & Extra Rice</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="text-xs text-[#d8c3ad]">
+                                        Total Items: <strong className="text-[#ffc174] font-mono">{totalProductItems}</strong> dishes
+                                    </div>
+                                </div>
+
+                                {/* PRODUCTS GRID (PAGINATED AT 10 ITEMS) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {products.map((p) => (
+                                    {paginatedProducts.map((p) => (
                                         <div key={p.id} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/50 shadow-xl space-y-4 flex flex-col justify-between">
                                             <div className="space-y-3">
                                                 <div className="relative h-40 w-full rounded-2xl overflow-hidden border border-[#534434]/40 bg-[#121213]">
@@ -804,6 +859,39 @@ export default function AdminDashboard() {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+
+                                {/* 10-ITEM PRODUCTS PAGINATION CONTROLS */}
+                                <div className="p-4 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex items-center justify-between text-xs">
+                                    <div className="text-[#8c7a6b]">
+                                        Showing <strong className="text-white font-mono">{totalProductItems > 0 ? (productPage - 1) * 10 + 1 : 0}</strong> to{' '}
+                                        <strong className="text-white font-mono">{Math.min(productPage * 10, totalProductItems)}</strong> of{' '}
+                                        <strong className="text-[#ffc174] font-mono">{totalProductItems}</strong> dishes
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            disabled={productPage === 1}
+                                            onClick={() => setProductPage(productPage - 1)}
+                                            className="px-3.5 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-bold"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            <span>Prev</span>
+                                        </button>
+
+                                        <span className="font-mono text-xs font-bold text-[#ffc174] px-2">
+                                            Page {productPage} of {totalProductPages}
+                                        </span>
+
+                                        <button
+                                            disabled={productPage >= totalProductPages}
+                                            onClick={() => setProductPage(productPage + 1)}
+                                            className="px-3.5 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-bold"
+                                        >
+                                            <span>Next</span>
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -1370,35 +1458,99 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 9: SALES & REVENUE REPORT WITH DATE SORTING & REVENUE VISUAL CHARTS */}
+                        {/* TAB 9: SALES & REVENUE REPORT (WITH BRANCH BULIHAN/DASMA SORT, DATE RANGE & BIG 1-ROW TREND GRAPH) */}
                         {activeTab === 'sales' && (
                             <div className="space-y-8">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div>
-                                        <h3 className="text-lg font-bold text-white font-domine">Sales & Revenue Analytics</h3>
-                                        <p className="text-xs text-[#d8c3ad]">Gross figures, date range breakdowns, and sales trend graphs</p>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white font-domine">Sales & Revenue Analytics</h3>
+                                    <p className="text-xs text-[#d8c3ad]">Gross figures, branch breakdowns (Bulihan / Dasma), date range filters & high-resolution trend graph</p>
+                                </div>
+
+                                {/* REDESIGNED SALES TOOLBAR: BRANCH SORT, START/END DATES, & DATE SORT */}
+                                <div className="p-4 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        
+                                        {/* Branch Location Sort (Bulihan & Dasma) */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#8c7a6b] font-bold">Branch Sort:</span>
+                                            <select
+                                                value={salesBranchFilter}
+                                                onChange={(e) => setSalesBranchFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#121213]">All Branches (Bulihan & Dasma)</option>
+                                                <option value="Bulihan" className="bg-[#121213]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#121213]">Dasma Branch</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Period Dropdown */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <Calendar className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#8c7a6b] font-bold">Period:</span>
+                                            <select
+                                                value={salesDateRange}
+                                                onChange={(e) => setSalesDateRange(e.target.value as any)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="all" className="bg-[#121213]">All Time</option>
+                                                <option value="today" className="bg-[#121213]">Today (2026-07-26)</option>
+                                                <option value="7days" className="bg-[#121213]">Last 7 Days</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Start Date Picker */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <span className="text-[#8c7a6b] font-bold">Start:</span>
+                                            <input
+                                                type="date"
+                                                value={salesStartDate}
+                                                onChange={(e) => setSalesStartDate(e.target.value)}
+                                                className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {/* End Date Picker */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <span className="text-[#8c7a6b] font-bold">End:</span>
+                                            <input
+                                                type="date"
+                                                value={salesEndDate}
+                                                onChange={(e) => setSalesEndDate(e.target.value)}
+                                                className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {(salesStartDate || salesEndDate || salesBranchFilter !== 'All') && (
+                                            <button
+                                                onClick={() => {
+                                                    setSalesStartDate('');
+                                                    setSalesEndDate('');
+                                                    setSalesBranchFilter('All');
+                                                    setSalesDateRange('all');
+                                                }}
+                                                className="text-xs text-[#f59e0b] hover:text-[#ffc174] font-bold underline"
+                                            >
+                                                Clear Filters
+                                            </button>
+                                        )}
                                     </div>
 
-                                    {/* DATE FILTER SORTING */}
-                                    <div className="flex items-center gap-2 bg-[#1A1A1B] border border-[#534434]/60 px-3.5 py-2 rounded-xl text-xs">
-                                        <Calendar className="w-4 h-4 text-[#f59e0b]" />
-                                        <span className="text-[#8c7a6b] font-bold">Period:</span>
-                                        <select
-                                            value={salesDateRange}
-                                            onChange={(e) => setSalesDateRange(e.target.value as any)}
-                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="all" className="bg-[#121213]">All Time</option>
-                                            <option value="today" className="bg-[#121213]">Today (2026-07-26)</option>
-                                            <option value="7days" className="bg-[#121213]">Last 7 Days</option>
-                                        </select>
-                                    </div>
+                                    {/* Date Sort Toggle Button */}
+                                    <button
+                                        onClick={() => setSalesSortOrder(salesSortOrder === 'newest' ? 'oldest' : 'newest')}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] text-xs font-bold hover:bg-[#f59e0b] hover:text-[#472a00] transition-all btn-bevel shadow"
+                                    >
+                                        <ArrowUpDown className="w-4 h-4" />
+                                        <span>Sort: {salesSortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
+                                    </button>
                                 </div>
 
                                 {/* KPI Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2 shadow-xl">
-                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Gross Revenue (Period)</span>
+                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Gross Revenue ({salesBranchFilter === 'All' ? 'Bulihan & Dasma' : `${salesBranchFilter} Branch`})</span>
                                         <div className="text-3xl font-mono font-black text-[#ffc174]">₱ {totalRevenue.toFixed(2)}</div>
                                         <p className="text-[11px] text-emerald-400 font-bold">100% verified sales</p>
                                     </div>
@@ -1406,7 +1558,7 @@ export default function AdminDashboard() {
                                     <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2 shadow-xl">
                                         <span className="text-xs font-bold text-[#8c7a6b] uppercase">Average Order Value</span>
                                         <div className="text-3xl font-mono font-black text-white">₱ {(totalRevenue / Math.max(1, filteredSalesOrders.length)).toFixed(2)}</div>
-                                        <p className="text-[11px] text-[#d8c3ad]">Across all 3 fulfillment channels</p>
+                                        <p className="text-[11px] text-[#d8c3ad]">Across all fulfillment channels</p>
                                     </div>
 
                                     <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2 shadow-xl">
@@ -1416,51 +1568,93 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {/* VISUAL REVENUE GRAPH CHARTS */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    
-                                    {/* Chart 1: Daily Sales Trend Bar Chart */}
-                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <BarChart3 className="w-5 h-5 text-[#f59e0b]" />
-                                                <h4 className="font-domine font-bold text-white text-base">Daily Revenue Trend Graph (₱)</h4>
+                                {/* 1-ROW BIGGER DAILY REVENUE TREND GRAPH */}
+                                <div className="p-6 sm:p-8 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#f59e0b]">
+                                                <BarChart3 className="w-6 h-6" />
                                             </div>
-                                            <span className="text-[10px] font-mono font-bold text-[#8c7a6b] bg-[#121213] px-2.5 py-1 rounded border border-[#534434]">July 2026</span>
+                                            <div>
+                                                <h4 className="font-domine font-bold text-white text-lg sm:text-xl">Daily Revenue Trend Graph (₱)</h4>
+                                                <p className="text-xs text-[#d8c3ad]">Full-Width 1-Row Overview ({salesBranchFilter === 'All' ? 'Bulihan & Dasma Branches' : `${salesBranchFilter} Branch`})</p>
+                                            </div>
                                         </div>
 
-                                        <div className="h-48 flex items-end justify-between gap-3 pt-6 px-2 border-b border-[#534434]/40 relative">
-                                            {[
-                                                { day: 'Mon', amount: 18400, height: '55%' },
-                                                { day: 'Tue', amount: 22100, height: '70%' },
-                                                { day: 'Wed', amount: 19800, height: '62%' },
-                                                { day: 'Thu', amount: 25600, height: '82%' },
-                                                { day: 'Fri', amount: 31200, height: '95%' },
-                                                { day: 'Sat', amount: 28450, height: '90%' },
-                                                { day: 'Sun', amount: 24000, height: '75%' },
-                                            ].map((bar, i) => (
-                                                <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group cursor-pointer">
-                                                    <span className="text-[9px] font-mono font-bold text-[#ffc174] opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        ₱{(bar.amount/1000).toFixed(1)}k
-                                                    </span>
-                                                    <div
-                                                        style={{ height: bar.height }}
-                                                        className="w-full rounded-t-xl bg-gradient-to-t from-[#b45309] to-[#f59e0b] group-hover:brightness-125 transition-all shadow-lg"
-                                                    />
-                                                    <span className="text-[10px] font-bold text-[#8c7a6b] uppercase">{bar.day}</span>
+                                        <span className="text-xs font-mono font-bold text-[#ffc174] bg-[#121213] px-3.5 py-1.5 rounded-xl border border-[#534434]">
+                                            July 2026 Analytics
+                                        </span>
+                                    </div>
+
+                                    {/* Big 1-Row High Height Bar Chart */}
+                                    <div className="h-72 sm:h-80 flex items-end justify-between gap-4 sm:gap-6 pt-10 px-4 border-b border-[#534434]/50 relative bg-[#121213]/40 rounded-2xl p-4">
+                                        
+                                        {/* Background Reference Lines */}
+                                        <div className="absolute inset-x-4 top-8 border-b border-dashed border-[#534434]/30 pointer-events-none flex justify-end text-[10px] text-[#8c7a6b] pr-2">₱35,000</div>
+                                        <div className="absolute inset-x-4 top-28 border-b border-dashed border-[#534434]/30 pointer-events-none flex justify-end text-[10px] text-[#8c7a6b] pr-2">₱25,000</div>
+                                        <div className="absolute inset-x-4 top-48 border-b border-dashed border-[#534434]/30 pointer-events-none flex justify-end text-[10px] text-[#8c7a6b] pr-2">₱15,000</div>
+
+                                        {[
+                                            { day: 'Monday (Jul 20)', amount: 18400, height: '52%' },
+                                            { day: 'Tuesday (Jul 21)', amount: 22100, height: '63%' },
+                                            { day: 'Wednesday (Jul 22)', amount: 19800, height: '56%' },
+                                            { day: 'Thursday (Jul 23)', amount: 25600, height: '73%' },
+                                            { day: 'Friday (Jul 24)', amount: 31200, height: '89%' },
+                                            { day: 'Saturday (Jul 25)', amount: 34850, height: '98%' },
+                                            { day: 'Sunday (Jul 26)', amount: 28400, height: '81%' },
+                                        ].map((bar, i) => (
+                                            <div key={i} className="flex-1 flex flex-col items-center gap-2.5 h-full justify-end group cursor-pointer relative z-10">
+                                                <span className="text-xs font-mono font-black text-[#ffc174] opacity-80 group-hover:opacity-100 transition-all bg-[#121213] px-2 py-0.5 rounded border border-[#534434]/60">
+                                                    ₱{(bar.amount).toLocaleString()}
+                                                </span>
+                                                <div
+                                                    style={{ height: bar.height }}
+                                                    className="w-full max-w-[56px] rounded-t-2xl bg-gradient-to-t from-[#b45309] via-[#f59e0b] to-[#ffc174] group-hover:brightness-125 transition-all shadow-xl shadow-[#f59e0b]/10 border-t border-[#ffc174]"
+                                                />
+                                                <span className="text-[11px] font-bold text-[#d8c3ad] group-hover:text-white transition-colors">{bar.day}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* SECONDARY BREAKDOWN CARDS */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    
+                                    {/* Branch Location Sales Share */}
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-5 h-5 text-[#f59e0b]" />
+                                            <h4 className="font-domine font-bold text-white text-base">Branch Location Sales Share</h4>
+                                        </div>
+
+                                        <div className="space-y-4 pt-2">
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold mb-1">
+                                                    <span className="text-white">Bulihan Branch</span>
+                                                    <span className="text-[#ffc174] font-mono">₱ 18,450.00 (65%)</span>
                                                 </div>
-                                            ))}
+                                                <div className="w-full h-3.5 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                    <div className="h-full rounded-full bg-gradient-to-r from-[#b45309] to-[#f59e0b] w-[65%]" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold mb-1">
+                                                    <span className="text-white">Dasma Branch</span>
+                                                    <span className="text-[#ffc174] font-mono">₱ 10,000.00 (35%)</span>
+                                                </div>
+                                                <div className="w-full h-3.5 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                    <div className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 w-[35%]" />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Chart 2: Fulfillment Channel Sales Breakdown Bar Progress */}
-                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <PieChart className="w-5 h-5 text-[#f59e0b]" />
-                                                <h4 className="font-domine font-bold text-white text-base">Channel Revenue Share</h4>
-                                            </div>
-                                            <span className="text-[10px] font-mono font-bold text-[#8c7a6b] bg-[#121213] px-2.5 py-1 rounded border border-[#534434]">Distribution</span>
+                                    {/* Fulfillment Channel Share */}
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <PieChart className="w-5 h-5 text-[#f59e0b]" />
+                                            <h4 className="font-domine font-bold text-white text-base">Fulfillment Channel Revenue Share</h4>
                                         </div>
 
                                         <div className="space-y-4 pt-2">
@@ -1469,7 +1663,7 @@ export default function AdminDashboard() {
                                                     <span className="text-white">Dine-In Table Orders</span>
                                                     <span className="text-[#ffc174] font-mono">₱ 14,820.00 (52%)</span>
                                                 </div>
-                                                <div className="w-full h-3 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                <div className="w-full h-3.5 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
                                                     <div className="h-full rounded-full bg-[#f59e0b] w-[52%]" />
                                                 </div>
                                             </div>
@@ -1479,7 +1673,7 @@ export default function AdminDashboard() {
                                                     <span className="text-white">Bulihan Area Free Delivery</span>
                                                     <span className="text-[#ffc174] font-mono">₱ 8,940.00 (31%)</span>
                                                 </div>
-                                                <div className="w-full h-3 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                <div className="w-full h-3.5 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
                                                     <div className="h-full rounded-full bg-emerald-500 w-[31%]" />
                                                 </div>
                                             </div>
@@ -1489,7 +1683,7 @@ export default function AdminDashboard() {
                                                     <span className="text-white">Counter Pick-Up</span>
                                                     <span className="text-[#ffc174] font-mono">₱ 4,690.00 (17%)</span>
                                                 </div>
-                                                <div className="w-full h-3 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                <div className="w-full h-3.5 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
                                                     <div className="h-full rounded-full bg-blue-500 w-[17%]" />
                                                 </div>
                                             </div>
@@ -1525,6 +1719,20 @@ export default function AdminDashboard() {
                                 placeholder="e.g. Sizzling Ribeye Steak"
                                 className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Category *</label>
+                            <select
+                                value={newProductCategory}
+                                onChange={(e) => setNewProductCategory(e.target.value as any)}
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            >
+                                <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                <option value="Barkada Platters">Barkada Platters</option>
+                                <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                            </select>
                         </div>
 
                         <div>
@@ -1601,6 +1809,20 @@ export default function AdminDashboard() {
                                 onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                                 className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Category</label>
+                            <select
+                                value={editingProduct.category}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value as any })}
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            >
+                                <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                <option value="Barkada Platters">Barkada Platters</option>
+                                <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                            </select>
                         </div>
 
                         <div>
@@ -1777,19 +1999,7 @@ export default function AdminDashboard() {
 
                             <div>
                                 <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Upload Banner Image File (Blob File Upload) *</label>
-                                <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#121213] border border-dashed border-[#f59e0b]/60 text-xs font-bold text-[#ffc174] hover:bg-[#261e15] cursor-pointer">
-                                    <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                    <span>{newBannerImage ? 'Image Loaded! Click to replace' : 'Upload Banner File'}</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) handleFileUpload(file, setNewBannerImage);
-                                        }}
-                                        className="hidden"
-                                    />
-                                </label>
+                                <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase" />
                             </div>
                         </div>
 
