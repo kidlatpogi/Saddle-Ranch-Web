@@ -30,7 +30,11 @@ import {
     ShieldCheck,
     Printer,
     Upload,
-    ArrowRight
+    ArrowRight,
+    Calendar,
+    BarChart3,
+    PieChart,
+    ArrowUpDown
 } from 'lucide-react';
 
 interface ProductItem {
@@ -55,6 +59,7 @@ interface OrderItem {
     status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
     time: string;
     itemsCount: number;
+    date: string; // YYYY-MM-DD
 }
 
 interface BannerItem {
@@ -82,15 +87,16 @@ interface EmployeeItem {
     email: string;
     role: 'Admin' | 'Kitchen Staff' | 'Cashier';
     status: 'Active' | 'Inactive';
+    createdAt: string;
 }
 
 interface AuditLogItem {
     id: number;
-    timestamp: string;
+    timestamp: string; // YYYY-MM-DD HH:MM:SS
     user: string;
     role: string;
     action: string;
-    module: string;
+    module: 'Authentication' | 'Order Queue / Sales' | 'Products & Stock' | 'Vouchers' | 'Promo Banners' | 'Employees' | 'Tables & QR';
 }
 
 export default function AdminDashboard() {
@@ -107,10 +113,10 @@ export default function AdminDashboard() {
     ]);
 
     const [orders, setOrders] = useState<OrderItem[]>([
-        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3 },
-        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2 },
-        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4 },
-        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2 },
+        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3, date: '2026-07-26' },
+        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, date: '2026-07-26' },
+        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4, date: '2026-07-25' },
+        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, date: '2026-07-24' },
     ]);
 
     // 4 PROMO BANNER SLOTS matching customer landing page layout 1:1
@@ -157,19 +163,23 @@ export default function AdminDashboard() {
     ]);
 
     const [employees, setEmployees] = useState<EmployeeItem[]>([
-        { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', status: 'Active' },
-        { id: 2, name: 'Cashier Employee', email: 'cashier@saddleranch.ph', role: 'Cashier', status: 'Active' },
-        { id: 3, name: 'Kitchen Head Chef', email: 'kitchen@saddleranch.ph', role: 'Kitchen Staff', status: 'Active' }
+        { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', status: 'Active', createdAt: '2026-01-15' },
+        { id: 2, name: 'Cashier Employee', email: 'cashier@saddleranch.ph', role: 'Cashier', status: 'Active', createdAt: '2026-03-10' },
+        { id: 3, name: 'Kitchen Head Chef', email: 'kitchen@saddleranch.ph', role: 'Kitchen Staff', status: 'Active', createdAt: '2026-05-20' }
     ]);
 
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
 
-    const [auditLogs] = useState<AuditLogItem[]>([
-        { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products' },
-        { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready', module: 'Order Queue' },
+    const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([
+        { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products & Stock' },
+        { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready (₱460.00)', module: 'Order Queue / Sales' },
         { id: 3, timestamp: '2026-07-26 17:15:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher SADDLE10 (10% OFF)', module: 'Vouchers' },
         { id: 4, timestamp: '2026-07-26 16:00:44', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Logged in to Admin Portal', module: 'Authentication' },
+        { id: 5, timestamp: '2026-07-25 14:10:05', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Checked out customer order #SR-1047 (Delivery)', module: 'Order Queue / Sales' },
+        { id: 6, timestamp: '2026-07-25 10:00:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Generated Table #08 QR Code Badge', module: 'Tables & QR' },
+        { id: 7, timestamp: '2026-07-24 19:22:11', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated Promo Banner Slot #1 (Sisig Saturdays)', module: 'Promo Banners' },
+        { id: 8, timestamp: '2026-07-24 11:05:40', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Added new Kitchen Staff account (kitchen@saddleranch.ph)', module: 'Employees' },
     ]);
 
     // Product Add & Edit Modals State
@@ -190,16 +200,26 @@ export default function AdminDashboard() {
     const [newBannerImage, setNewBannerImage] = useState('');
     const [newBannerCta, setNewBannerCta] = useState('');
 
-    // Voucher Modal State
+    // Voucher Modal State with Real-Time Preview
     const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
     const [newVoucherCode, setNewVoucherCode] = useState('');
     const [newVoucherDiscount, setNewVoucherDiscount] = useState('10');
+    const [newVoucherMinSpend, setNewVoucherMinSpend] = useState('300');
 
-    // Employee Modal State
+    // Employee CRUD Modals State
     const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
     const [newEmpName, setNewEmpName] = useState('');
     const [newEmpEmail, setNewEmpEmail] = useState('');
-    const [newEmpRole, setNewEmpRole] = useState<'Cashier' | 'Kitchen Staff'>('Cashier');
+    const [newEmpRole, setNewEmpRole] = useState<'Admin' | 'Kitchen Staff' | 'Cashier'>('Cashier');
+
+    const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
+
+    // Audit Logs Filters & Sorting
+    const [auditModuleFilter, setAuditModuleFilter] = useState<string>('All');
+    const [auditSortOrder, setAuditSortOrder] = useState<'newest' | 'oldest'>('newest');
+
+    // Sales & Revenue Date Range Filter
+    const [salesDateRange, setSalesDateRange] = useState<'all' | 'today' | '7days' | 'month'>('all');
 
     const [copiedTable, setCopiedTable] = useState<string | null>(null);
 
@@ -235,6 +255,10 @@ export default function AdminDashboard() {
         setVouchers(vouchers.filter(v => v.id !== id));
     };
 
+    const deleteEmployee = (id: number) => {
+        setEmployees(employees.filter(e => e.id !== id));
+    };
+
     const handleCreateProduct = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newProductName.trim()) return;
@@ -263,6 +287,14 @@ export default function AdminDashboard() {
 
         setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
         setEditingProduct(null);
+    };
+
+    const handleSaveEditEmployee = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingEmployee) return;
+
+        setEmployees(employees.map(emp => emp.id === editingEmployee.id ? editingEmployee : emp));
+        setEditingEmployee(null);
     };
 
     const handleGenerateNewTableQR = () => {
@@ -322,7 +354,7 @@ export default function AdminDashboard() {
             id: Date.now(),
             code: newVoucherCode.toUpperCase(),
             discountPercent: parseInt(newVoucherDiscount) || 10,
-            minSpend: 300,
+            minSpend: parseFloat(newVoucherMinSpend) || 300,
             usedCount: 0,
             isActive: true
         };
@@ -340,7 +372,8 @@ export default function AdminDashboard() {
             name: newEmpName || 'Staff Member',
             email: newEmpEmail,
             role: newEmpRole,
-            status: 'Active'
+            status: 'Active',
+            createdAt: new Date().toISOString().split('T')[0]
         };
         setEmployees([...employees, newEmp]);
         setNewEmpName('');
@@ -361,6 +394,26 @@ export default function AdminDashboard() {
         return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
     };
 
+    // Filtered & Sorted Audit Logs
+    const filteredAuditLogs = auditLogs
+        .filter(log => auditModuleFilter === 'All' || log.module === auditModuleFilter)
+        .sort((a, b) => {
+            if (auditSortOrder === 'newest') {
+                return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+            } else {
+                return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+            }
+        });
+
+    // Filtered Sales Orders by Date Range
+    const filteredSalesOrders = orders.filter(o => {
+        if (salesDateRange === 'today') return o.date === '2026-07-26';
+        if (salesDateRange === '7days') return o.date >= '2026-07-20';
+        return true;
+    });
+
+    const totalRevenue = filteredSalesOrders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
+
     const sidebarLinks = [
         { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
         { id: 'orders', label: 'Order Queue', icon: <ListOrdered className="w-4 h-4" />, badge: orders.filter(o => o.status === 'pending' || o.status === 'preparing').length.toString() },
@@ -372,8 +425,6 @@ export default function AdminDashboard() {
         { id: 'audit', label: 'Audit Logs', icon: <FileText className="w-4 h-4" /> },
         { id: 'sales', label: 'Sales & Revenue', icon: <TrendingUp className="w-4 h-4" /> },
     ];
-
-    const totalRevenue = orders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
 
     return (
         <>
@@ -975,7 +1026,7 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 6: DISCOUNT VOUCHERS (RE-DESIGNED AS PHYSICAL TICKET COUPONS) */}
+                        {/* TAB 6: DISCOUNT VOUCHERS (PHYSICAL TICKET COUPONS WITH REALTIME PREVIEW MODAL) */}
                         {activeTab === 'vouchers' && (
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
@@ -1052,13 +1103,13 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 7: EMPLOYEES */}
+                        {/* TAB 7: EMPLOYEES (FULL CRUD IMPLEMENTATION) */}
                         {activeTab === 'employees' && (
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white font-domine">Staff & Employee Accounts</h3>
-                                        <p className="text-xs text-[#d8c3ad]">Manage Cashier and Kitchen KDS access permissions</p>
+                                        <h3 className="text-lg font-bold text-white font-domine">Staff & Employee Accounts (Full CRUD)</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Add, edit, deactivate, or delete Cashier and Kitchen staff permissions</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddEmployeeModal(true)}
@@ -1077,12 +1128,14 @@ export default function AdminDashboard() {
                                                 <th className="py-3.5 px-4">Email</th>
                                                 <th className="py-3.5 px-4">Role</th>
                                                 <th className="py-3.5 px-4">Status</th>
+                                                <th className="py-3.5 px-4">Created Date</th>
+                                                <th className="py-3.5 px-4 text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-[#534434]/30 text-stone-200">
                                             {employees.map((e) => (
                                                 <tr key={e.id} className="hover:bg-[#261e15]/40 transition-colors">
-                                                    <td className="py-4 px-4 font-bold text-white">{e.name}</td>
+                                                    <td className="py-4 px-4 font-bold text-white text-sm">{e.name}</td>
                                                     <td className="py-4 px-4 font-mono text-[#d8c3ad]">{e.email}</td>
                                                     <td className="py-4 px-4">
                                                         <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-[10px] font-black uppercase border border-[#f59e0b]/30">
@@ -1090,9 +1143,30 @@ export default function AdminDashboard() {
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/30">
+                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                            e.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                                        }`}>
                                                             {e.status}
                                                         </span>
+                                                    </td>
+                                                    <td className="py-4 px-4 font-mono text-[#8c7a6b]">{e.createdAt}</td>
+                                                    <td className="py-4 px-4 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => setEditingEmployee(e)}
+                                                                className="p-1.5 rounded-xl bg-[#261e15] text-[#ffc174] hover:bg-[#31281f] border border-[#534434]"
+                                                                title="Edit Employee"
+                                                            >
+                                                                <Edit2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteEmployee(e.id)}
+                                                                className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20"
+                                                                title="Delete Employee"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -1102,12 +1176,44 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 8: AUDIT LOGS */}
+                        {/* TAB 8: AUDIT LOGS WITH MODULE FILTER AND DATE SORTING */}
                         {activeTab === 'audit' && (
                             <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-lg font-bold text-white font-domine">System Audit Logs</h3>
-                                    <p className="text-xs text-[#d8c3ad]">Traceability log of all administrative and staff activities</p>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">System Audit Logs</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Complete traceability log across Products, Auth, Sales, Vouchers, Banners, Staff & QR</p>
+                                    </div>
+
+                                    {/* MODULE FILTER & DATE SORT CONTROLS */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#1A1A1B] border border-[#534434]/60 px-3 py-1.5 rounded-xl text-xs">
+                                            <Filter className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                            <span className="text-[#8c7a6b] font-bold">Module:</span>
+                                            <select
+                                                value={auditModuleFilter}
+                                                onChange={(e) => setAuditModuleFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#121213]">All Modules</option>
+                                                <option value="Authentication" className="bg-[#121213]">Authentication</option>
+                                                <option value="Order Queue / Sales" className="bg-[#121213]">Order Queue / Sales</option>
+                                                <option value="Products & Stock" className="bg-[#121213]">Products & Stock</option>
+                                                <option value="Vouchers" className="bg-[#121213]">Vouchers</option>
+                                                <option value="Promo Banners" className="bg-[#121213]">Promo Banners</option>
+                                                <option value="Employees" className="bg-[#121213]">Employees</option>
+                                                <option value="Tables & QR" className="bg-[#121213]">Tables & QR</option>
+                                            </select>
+                                        </div>
+
+                                        <button
+                                            onClick={() => setAuditSortOrder(auditSortOrder === 'newest' ? 'oldest' : 'newest')}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] text-xs font-bold hover:bg-[#31281f] btn-bevel"
+                                        >
+                                            <ArrowUpDown className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                            <span>Date: {auditSortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 overflow-hidden">
@@ -1121,11 +1227,15 @@ export default function AdminDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-[#534434]/30 text-stone-200">
-                                            {auditLogs.map((log) => (
+                                            {filteredAuditLogs.map((log) => (
                                                 <tr key={log.id} className="hover:bg-[#261e15]/40 transition-colors">
-                                                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#8c7a6b]">{log.timestamp}</td>
-                                                    <td className="py-3.5 px-4 font-semibold text-white">{log.user}</td>
-                                                    <td className="py-3.5 px-4 font-bold text-[#ffc174]">{log.module}</td>
+                                                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#ffc174] font-bold">{log.timestamp}</td>
+                                                    <td className="py-3.5 px-4 font-semibold text-white">{log.user} ({log.role})</td>
+                                                    <td className="py-3.5 px-4">
+                                                        <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-[10px] font-black uppercase border border-[#f59e0b]/30">
+                                                            {log.module}
+                                                        </span>
+                                                    </td>
                                                     <td className="py-3.5 px-4 text-[#d8c3ad] font-mono">{log.action}</td>
                                                 </tr>
                                             ))}
@@ -1135,32 +1245,132 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 9: SALES & REVENUE */}
+                        {/* TAB 9: SALES & REVENUE REPORT WITH DATE SORTING & REVENUE VISUAL CHARTS */}
                         {activeTab === 'sales' && (
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-lg font-bold text-white font-domine">Sales & Revenue Report</h3>
-                                    <p className="text-xs text-[#d8c3ad]">Gross sales figures, order type distribution, and top performers</p>
+                            <div className="space-y-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Sales & Revenue Analytics</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Gross figures, date range breakdowns, and sales trend graphs</p>
+                                    </div>
+
+                                    {/* DATE FILTER SORTING */}
+                                    <div className="flex items-center gap-2 bg-[#1A1A1B] border border-[#534434]/60 px-3.5 py-2 rounded-xl text-xs">
+                                        <Calendar className="w-4 h-4 text-[#f59e0b]" />
+                                        <span className="text-[#8c7a6b] font-bold">Period:</span>
+                                        <select
+                                            value={salesDateRange}
+                                            onChange={(e) => setSalesDateRange(e.target.value as any)}
+                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="all" className="bg-[#121213]">All Time</option>
+                                            <option value="today" className="bg-[#121213]">Today (2026-07-26)</option>
+                                            <option value="7days" className="bg-[#121213]">Last 7 Days</option>
+                                        </select>
+                                    </div>
                                 </div>
 
+                                {/* KPI Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2">
-                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Gross Revenue (Total)</span>
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2 shadow-xl">
+                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Gross Revenue (Period)</span>
                                         <div className="text-3xl font-mono font-black text-[#ffc174]">₱ {totalRevenue.toFixed(2)}</div>
                                         <p className="text-[11px] text-emerald-400 font-bold">100% verified sales</p>
                                     </div>
 
-                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2">
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2 shadow-xl">
                                         <span className="text-xs font-bold text-[#8c7a6b] uppercase">Average Order Value</span>
-                                        <div className="text-3xl font-mono font-black text-white">₱ {(totalRevenue / Math.max(1, orders.length)).toFixed(2)}</div>
+                                        <div className="text-3xl font-mono font-black text-white">₱ {(totalRevenue / Math.max(1, filteredSalesOrders.length)).toFixed(2)}</div>
                                         <p className="text-[11px] text-[#d8c3ad]">Across all 3 fulfillment channels</p>
                                     </div>
 
-                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2">
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2 shadow-xl">
                                         <span className="text-xs font-bold text-[#8c7a6b] uppercase">Completed Orders</span>
-                                        <div className="text-3xl font-mono font-black text-white">{orders.length} Orders</div>
+                                        <div className="text-3xl font-mono font-black text-white">{filteredSalesOrders.length} Orders</div>
                                         <p className="text-[11px] text-emerald-400 font-bold">0% Cancellation rate</p>
                                     </div>
+                                </div>
+
+                                {/* VISUAL REVENUE GRAPH CHARTS */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    
+                                    {/* Chart 1: Daily Sales Trend Bar Chart */}
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <BarChart3 className="w-5 h-5 text-[#f59e0b]" />
+                                                <h4 className="font-domine font-bold text-white text-base">Daily Revenue Trend Graph (₱)</h4>
+                                            </div>
+                                            <span className="text-[10px] font-mono font-bold text-[#8c7a6b] bg-[#121213] px-2.5 py-1 rounded border border-[#534434]">July 2026</span>
+                                        </div>
+
+                                        <div className="h-48 flex items-end justify-between gap-3 pt-6 px-2 border-b border-[#534434]/40 relative">
+                                            {[
+                                                { day: 'Mon', amount: 18400, height: '55%' },
+                                                { day: 'Tue', amount: 22100, height: '70%' },
+                                                { day: 'Wed', amount: 19800, height: '62%' },
+                                                { day: 'Thu', amount: 25600, height: '82%' },
+                                                { day: 'Fri', amount: 31200, height: '95%' },
+                                                { day: 'Sat', amount: 28450, height: '90%' },
+                                                { day: 'Sun', amount: 24000, height: '75%' },
+                                            ].map((bar, i) => (
+                                                <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group cursor-pointer">
+                                                    <span className="text-[9px] font-mono font-bold text-[#ffc174] opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        ₱{(bar.amount/1000).toFixed(1)}k
+                                                    </span>
+                                                    <div
+                                                        style={{ height: bar.height }}
+                                                        className="w-full rounded-t-xl bg-gradient-to-t from-[#b45309] to-[#f59e0b] group-hover:brightness-125 transition-all shadow-lg"
+                                                    />
+                                                    <span className="text-[10px] font-bold text-[#8c7a6b] uppercase">{bar.day}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Chart 2: Fulfillment Channel Sales Breakdown Bar Progress */}
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <PieChart className="w-5 h-5 text-[#f59e0b]" />
+                                                <h4 className="font-domine font-bold text-white text-base">Channel Revenue Share</h4>
+                                            </div>
+                                            <span className="text-[10px] font-mono font-bold text-[#8c7a6b] bg-[#121213] px-2.5 py-1 rounded border border-[#534434]">Distribution</span>
+                                        </div>
+
+                                        <div className="space-y-4 pt-2">
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold mb-1">
+                                                    <span className="text-white">Dine-In Table Orders</span>
+                                                    <span className="text-[#ffc174] font-mono">₱ 14,820.00 (52%)</span>
+                                                </div>
+                                                <div className="w-full h-3 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                    <div className="h-full rounded-full bg-[#f59e0b] w-[52%]" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold mb-1">
+                                                    <span className="text-white">Bulihan Area Free Delivery</span>
+                                                    <span className="text-[#ffc174] font-mono">₱ 8,940.00 (31%)</span>
+                                                </div>
+                                                <div className="w-full h-3 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                    <div className="h-full rounded-full bg-emerald-500 w-[31%]" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold mb-1">
+                                                    <span className="text-white">Counter Pick-Up</span>
+                                                    <span className="text-[#ffc174] font-mono">₱ 4,690.00 (17%)</span>
+                                                </div>
+                                                <div className="w-full h-3 rounded-full bg-[#121213] border border-[#534434] overflow-hidden p-0.5">
+                                                    <div className="h-full rounded-full bg-blue-500 w-[17%]" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         )}
@@ -1466,33 +1676,79 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* ADD VOUCHER MODAL */}
+            {/* ADD VOUCHER MODAL WITH REAL-TIME TICKET PREVIEW */}
             {showAddVoucherModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <form onSubmit={handleCreateVoucher} className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
-                        <h3 className="text-lg font-bold text-white font-domine">Create Promo Voucher</h3>
-                        <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Voucher Code *</label>
-                            <input
-                                type="text"
-                                required
-                                value={newVoucherCode}
-                                onChange={(e) => setNewVoucherCode(e.target.value)}
-                                placeholder="e.g. SUMMER15"
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase"
-                            />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+                    <form onSubmit={handleCreateVoucher} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
+                            <h3 className="text-lg font-bold text-white font-domine">Create Promo Ticket Voucher</h3>
+                            <button type="button" onClick={() => setShowAddVoucherModal(false)} className="text-[#8c7a6b] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Discount (% Off) *</label>
-                            <input
-                                type="number"
-                                required
-                                value={newVoucherDiscount}
-                                onChange={(e) => setNewVoucherDiscount(e.target.value)}
-                                placeholder="15"
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
-                            />
+
+                        {/* REALTIME TICKET PREVIEW */}
+                        <div className="space-y-1.5">
+                            <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider flex items-center gap-1">
+                                <Eye className="w-3.5 h-3.5 text-[#f59e0b]" /> Live Physical Ticket Real-Time Preview:
+                            </div>
+
+                            <div className="relative rounded-2xl bg-[#121213] border border-[#534434] p-4 flex items-center gap-3">
+                                <div className="flex-1 space-y-1 border-r border-dashed border-[#534434] pr-3">
+                                    <div className="text-[9px] font-mono font-bold text-[#f59e0b]">ROADHOUSE COUPON</div>
+                                    <div className="font-domine text-2xl font-black text-[#ffc174]">{newVoucherDiscount || '10'}% OFF</div>
+                                    <div className="font-mono text-xs font-bold text-white bg-[#261e15] px-2 py-0.5 rounded inline-block">
+                                        {newVoucherCode.toUpperCase() || 'PROMO10'}
+                                    </div>
+                                </div>
+                                <div className="text-right text-[10px] text-[#8c7a6b] font-mono space-y-1">
+                                    <div>Min ₱{newVoucherMinSpend || '300'}</div>
+                                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase inline-block">
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Voucher Code *</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={newVoucherCode}
+                                    onChange={(e) => setNewVoucherCode(e.target.value)}
+                                    placeholder="e.g. SUMMER15"
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Discount (% Off) *</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={newVoucherDiscount}
+                                        onChange={(e) => setNewVoucherDiscount(e.target.value)}
+                                        placeholder="15"
+                                        className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Min Order (₱) *</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={newVoucherMinSpend}
+                                        onChange={(e) => setNewVoucherMinSpend(e.target.value)}
+                                        placeholder="300"
+                                        className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddVoucherModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
                             <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create Ticket</button>
@@ -1505,7 +1761,13 @@ export default function AdminDashboard() {
             {showAddEmployeeModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <form onSubmit={handleCreateEmployee} className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
-                        <h3 className="text-lg font-bold text-white font-domine">Add Staff Account</h3>
+                        <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
+                            <h3 className="text-lg font-bold text-white font-domine">Add Staff Account</h3>
+                            <button type="button" onClick={() => setShowAddEmployeeModal(false)} className="text-[#8c7a6b] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
                         <div>
                             <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Full Name *</label>
                             <input
@@ -1517,6 +1779,7 @@ export default function AdminDashboard() {
                                 className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
                             />
                         </div>
+
                         <div>
                             <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Email Address *</label>
                             <input
@@ -1528,9 +1791,90 @@ export default function AdminDashboard() {
                                 className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
                             />
                         </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Account Role *</label>
+                            <select
+                                value={newEmpRole}
+                                onChange={(e) => setNewEmpRole(e.target.value as any)}
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            >
+                                <option value="Cashier">Cashier</option>
+                                <option value="Kitchen Staff">Kitchen Staff</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddEmployeeModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
                             <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* EDIT EMPLOYEE MODAL */}
+            {editingEmployee && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <form onSubmit={handleSaveEditEmployee} className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
+                            <h3 className="text-lg font-bold text-white font-domine">Edit Staff Account</h3>
+                            <button type="button" onClick={() => setEditingEmployee(null)} className="text-[#8c7a6b] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Full Name</label>
+                            <input
+                                type="text"
+                                required
+                                value={editingEmployee.name}
+                                onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Email Address</label>
+                            <input
+                                type="email"
+                                required
+                                value={editingEmployee.email}
+                                onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Role</label>
+                                <select
+                                    value={editingEmployee.role}
+                                    onChange={(e) => setEditingEmployee({ ...editingEmployee, role: e.target.value as any })}
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                >
+                                    <option value="Cashier">Cashier</option>
+                                    <option value="Kitchen Staff">Kitchen Staff</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Status</label>
+                                <select
+                                    value={editingEmployee.status}
+                                    onChange={(e) => setEditingEmployee({ ...editingEmployee, status: e.target.value as any })}
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                >
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setEditingEmployee(null)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Save Staff</button>
                         </div>
                     </form>
                 </div>
