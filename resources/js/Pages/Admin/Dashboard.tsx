@@ -34,7 +34,9 @@ import {
     Calendar,
     BarChart3,
     PieChart,
-    ArrowUpDown
+    ArrowUpDown,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 
 interface ProductItem {
@@ -171,7 +173,8 @@ export default function AdminDashboard() {
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
 
-    const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([
+    // Expanded Audit Logs Dataset (20+ items spanning dates for 10-item pagination testing)
+    const [auditLogs] = useState<AuditLogItem[]>([
         { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products & Stock' },
         { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready (₱460.00)', module: 'Order Queue / Sales' },
         { id: 3, timestamp: '2026-07-26 17:15:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher SADDLE10 (10% OFF)', module: 'Vouchers' },
@@ -180,6 +183,18 @@ export default function AdminDashboard() {
         { id: 6, timestamp: '2026-07-25 10:00:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Generated Table #08 QR Code Badge', module: 'Tables & QR' },
         { id: 7, timestamp: '2026-07-24 19:22:11', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated Promo Banner Slot #1 (Sisig Saturdays)', module: 'Promo Banners' },
         { id: 8, timestamp: '2026-07-24 11:05:40', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Added new Kitchen Staff account (kitchen@saddleranch.ph)', module: 'Employees' },
+        { id: 9, timestamp: '2026-07-23 15:30:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated stock quantity for Sizzling Bulalo Steak to 15', module: 'Products & Stock' },
+        { id: 10, timestamp: '2026-07-23 12:00:15', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Logged in to Cashier KDS terminal', module: 'Authentication' },
+        { id: 11, timestamp: '2026-07-22 18:00:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher BULIHANFREE (15% OFF)', module: 'Vouchers' },
+        { id: 12, timestamp: '2026-07-22 09:45:22', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Generated Table #07 QR Code Badge', module: 'Tables & QR' },
+        { id: 13, timestamp: '2026-07-21 16:15:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated Promo Banner Slot #4 (Pulutan Happy Hour)', module: 'Promo Banners' },
+        { id: 14, timestamp: '2026-07-21 13:20:44', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Completed Dine-In order #SR-1042 (₱1,250.00)', module: 'Order Queue / Sales' },
+        { id: 15, timestamp: '2026-07-20 11:10:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated staff role for Cashier Employee', module: 'Employees' },
+        { id: 16, timestamp: '2026-07-19 14:05:33', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Added product Sizzling Chicken Inasal Platter', module: 'Products & Stock' },
+        { id: 17, timestamp: '2026-07-18 10:00:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Logged in to Admin Portal', module: 'Authentication' },
+        { id: 18, timestamp: '2026-07-17 15:40:12', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Prepared Pick-Up order #SR-1035', module: 'Order Queue / Sales' },
+        { id: 19, timestamp: '2026-07-16 09:12:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher WELCOME2026', module: 'Vouchers' },
+        { id: 20, timestamp: '2026-07-15 17:30:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'System database backup executed', module: 'Authentication' },
     ]);
 
     // Product Add & Edit Modals State
@@ -214,9 +229,12 @@ export default function AdminDashboard() {
 
     const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
 
-    // Audit Logs Filters & Sorting
+    // Audit Logs Filters, Start/End Dates & 10-Item Pagination
     const [auditModuleFilter, setAuditModuleFilter] = useState<string>('All');
     const [auditSortOrder, setAuditSortOrder] = useState<'newest' | 'oldest'>('newest');
+    const [auditStartDate, setAuditStartDate] = useState<string>('');
+    const [auditEndDate, setAuditEndDate] = useState<string>('');
+    const [auditPage, setAuditPage] = useState<number>(1);
 
     // Sales & Revenue Date Range Filter
     const [salesDateRange, setSalesDateRange] = useState<'all' | 'today' | '7days' | 'month'>('all');
@@ -394,9 +412,17 @@ export default function AdminDashboard() {
         return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
     };
 
-    // Filtered & Sorted Audit Logs
+    // Filtered & Sorted Audit Logs with Start / End Date Filtering
     const filteredAuditLogs = auditLogs
-        .filter(log => auditModuleFilter === 'All' || log.module === auditModuleFilter)
+        .filter(log => {
+            if (auditModuleFilter !== 'All' && log.module !== auditModuleFilter) return false;
+            
+            const logDate = log.timestamp.split(' ')[0];
+            if (auditStartDate && logDate < auditStartDate) return false;
+            if (auditEndDate && logDate > auditEndDate) return false;
+            
+            return true;
+        })
         .sort((a, b) => {
             if (auditSortOrder === 'newest') {
                 return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
@@ -404,6 +430,11 @@ export default function AdminDashboard() {
                 return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
             }
         });
+
+    // Audit Logs 10-Item Pagination
+    const totalAuditItems = filteredAuditLogs.length;
+    const totalAuditPages = Math.max(1, Math.ceil(totalAuditItems / 10));
+    const paginatedAuditLogs = filteredAuditLogs.slice((auditPage - 1) * 10, auditPage * 10);
 
     // Filtered Sales Orders by Date Range
     const filteredSalesOrders = orders.filter(o => {
@@ -1176,23 +1207,28 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 8: AUDIT LOGS WITH MODULE FILTER AND DATE SORTING */}
+                        {/* TAB 8: AUDIT LOGS WITH RE-DESIGNED SORT, START/END DATE RANGE & 10-ITEM PAGINATION */}
                         {activeTab === 'audit' && (
                             <div className="space-y-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div>
-                                        <h3 className="text-lg font-bold text-white font-domine">System Audit Logs</h3>
-                                        <p className="text-xs text-[#d8c3ad]">Complete traceability log across Products, Auth, Sales, Vouchers, Banners, Staff & QR</p>
-                                    </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white font-domine">System Audit Logs</h3>
+                                    <p className="text-xs text-[#d8c3ad]">Complete traceability log across Products, Auth, Sales, Vouchers, Banners, Staff & QR</p>
+                                </div>
 
-                                    {/* MODULE FILTER & DATE SORT CONTROLS */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-2 bg-[#1A1A1B] border border-[#534434]/60 px-3 py-1.5 rounded-xl text-xs">
-                                            <Filter className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                {/* REDESIGNED FILTER & DATE RANGE SORT TOOLBAR */}
+                                <div className="p-4 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        
+                                        {/* Module Filter */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <Filter className="w-4 h-4 text-[#f59e0b]" />
                                             <span className="text-[#8c7a6b] font-bold">Module:</span>
                                             <select
                                                 value={auditModuleFilter}
-                                                onChange={(e) => setAuditModuleFilter(e.target.value)}
+                                                onChange={(e) => {
+                                                    setAuditModuleFilter(e.target.value);
+                                                    setAuditPage(1);
+                                                }}
                                                 className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
                                             >
                                                 <option value="All" className="bg-[#121213]">All Modules</option>
@@ -1206,41 +1242,130 @@ export default function AdminDashboard() {
                                             </select>
                                         </div>
 
-                                        <button
-                                            onClick={() => setAuditSortOrder(auditSortOrder === 'newest' ? 'oldest' : 'newest')}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] text-xs font-bold hover:bg-[#31281f] btn-bevel"
-                                        >
-                                            <ArrowUpDown className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                            <span>Date: {auditSortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
-                                        </button>
+                                        {/* Start Date Picker */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <Calendar className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#8c7a6b] font-bold">Start:</span>
+                                            <input
+                                                type="date"
+                                                value={auditStartDate}
+                                                onChange={(e) => {
+                                                    setAuditStartDate(e.target.value);
+                                                    setAuditPage(1);
+                                                }}
+                                                className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {/* End Date Picker */}
+                                        <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] px-3.5 py-2 rounded-xl text-xs">
+                                            <Calendar className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#8c7a6b] font-bold">End:</span>
+                                            <input
+                                                type="date"
+                                                value={auditEndDate}
+                                                onChange={(e) => {
+                                                    setAuditEndDate(e.target.value);
+                                                    setAuditPage(1);
+                                                }}
+                                                className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {(auditStartDate || auditEndDate || auditModuleFilter !== 'All') && (
+                                            <button
+                                                onClick={() => {
+                                                    setAuditStartDate('');
+                                                    setAuditEndDate('');
+                                                    setAuditModuleFilter('All');
+                                                    setAuditPage(1);
+                                                }}
+                                                className="text-xs text-[#f59e0b] hover:text-[#ffc174] font-bold underline"
+                                            >
+                                                Clear Filters
+                                            </button>
+                                        )}
                                     </div>
+
+                                    {/* Sort Order Toggle Button */}
+                                    <button
+                                        onClick={() => setAuditSortOrder(auditSortOrder === 'newest' ? 'oldest' : 'newest')}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] text-xs font-bold hover:bg-[#f59e0b] hover:text-[#472a00] transition-all btn-bevel shadow"
+                                    >
+                                        <ArrowUpDown className="w-4 h-4" />
+                                        <span>Sort: {auditSortOrder === 'newest' ? 'Newest First' : 'Oldest First'}</span>
+                                    </button>
                                 </div>
 
-                                <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 overflow-hidden">
-                                    <table className="w-full text-left text-xs">
-                                        <thead className="bg-[#121213] text-[#8c7a6b] uppercase font-bold border-b border-[#534434]/40">
-                                            <tr>
-                                                <th className="py-3.5 px-4">Timestamp</th>
-                                                <th className="py-3.5 px-4">User</th>
-                                                <th className="py-3.5 px-4">Module</th>
-                                                <th className="py-3.5 px-4">Action Detail</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-[#534434]/30 text-stone-200">
-                                            {filteredAuditLogs.map((log) => (
-                                                <tr key={log.id} className="hover:bg-[#261e15]/40 transition-colors">
-                                                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#ffc174] font-bold">{log.timestamp}</td>
-                                                    <td className="py-3.5 px-4 font-semibold text-white">{log.user} ({log.role})</td>
-                                                    <td className="py-3.5 px-4">
-                                                        <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-[10px] font-black uppercase border border-[#f59e0b]/30">
-                                                            {log.module}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3.5 px-4 text-[#d8c3ad] font-mono">{log.action}</td>
+                                {/* AUDIT LOGS TABLE */}
+                                <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 overflow-hidden space-y-4">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-xs">
+                                            <thead className="bg-[#121213] text-[#8c7a6b] uppercase font-bold border-b border-[#534434]/40">
+                                                <tr>
+                                                    <th className="py-3.5 px-4">Timestamp</th>
+                                                    <th className="py-3.5 px-4">User</th>
+                                                    <th className="py-3.5 px-4">Module</th>
+                                                    <th className="py-3.5 px-4">Action Detail</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#534434]/30 text-stone-200">
+                                                {paginatedAuditLogs.length > 0 ? (
+                                                    paginatedAuditLogs.map((log) => (
+                                                        <tr key={log.id} className="hover:bg-[#261e15]/40 transition-colors">
+                                                            <td className="py-3.5 px-4 font-mono text-[11px] text-[#ffc174] font-bold">{log.timestamp}</td>
+                                                            <td className="py-3.5 px-4 font-semibold text-white">{log.user} ({log.role})</td>
+                                                            <td className="py-3.5 px-4">
+                                                                <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-[10px] font-black uppercase border border-[#f59e0b]/30">
+                                                                    {log.module}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-3.5 px-4 text-[#d8c3ad] font-mono">{log.action}</td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan={4} className="py-8 text-center text-[#8c7a6b]">
+                                                            No audit log entries match the selected date range or module filter.
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* 10-ITEM PAGINATION CONTROLS */}
+                                    <div className="pt-4 border-t border-[#534434]/40 flex items-center justify-between text-xs">
+                                        <div className="text-[#8c7a6b]">
+                                            Showing <strong className="text-white font-mono">{totalAuditItems > 0 ? (auditPage - 1) * 10 + 1 : 0}</strong> to{' '}
+                                            <strong className="text-white font-mono">{Math.min(auditPage * 10, totalAuditItems)}</strong> of{' '}
+                                            <strong className="text-[#ffc174] font-mono">{totalAuditItems}</strong> logs
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                disabled={auditPage === 1}
+                                                onClick={() => setAuditPage(auditPage - 1)}
+                                                className="px-3 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-bold"
+                                            >
+                                                <ChevronLeft className="w-4 h-4" />
+                                                <span>Prev</span>
+                                            </button>
+
+                                            <span className="font-mono text-xs font-bold text-[#ffc174] px-2">
+                                                Page {auditPage} of {totalAuditPages}
+                                            </span>
+
+                                            <button
+                                                disabled={auditPage >= totalAuditPages}
+                                                onClick={() => setAuditPage(auditPage + 1)}
+                                                className="px-3 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-bold"
+                                            >
+                                                <span>Next</span>
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
