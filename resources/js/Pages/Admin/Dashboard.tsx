@@ -11,50 +11,227 @@ import {
     FileText, 
     TrendingUp, 
     Flame, 
-    Bell, 
     LogOut, 
     ArrowUpRight, 
     Clock, 
     CheckCircle2, 
     AlertCircle,
-    Search
+    Search,
+    Plus,
+    Edit2,
+    Trash2,
+    Check,
+    X,
+    Eye,
+    Download,
+    Copy,
+    RefreshCw,
+    Filter,
+    ShieldCheck
 } from 'lucide-react';
 
-interface KPIProps {
-    title: string;
-    value: string;
-    change: string;
-    isPositive: boolean;
-    icon: React.ReactNode;
+interface ProductItem {
+    id: number;
+    name: string;
+    category: string;
+    description: string;
+    price: number;
+    stock: number;
+    isActive: boolean;
+    image: string;
 }
 
-const KPICard: React.FC<KPIProps> = ({ title, value, change, isPositive, icon }) => (
-    <div className="rounded-2xl bg-stone-900/80 border border-stone-800 p-5 flex items-start justify-between shadow-lg relative overflow-hidden group hover:border-stone-700 transition-all">
-        <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-orange-500/5 rounded-full blur-xl group-hover:bg-orange-500/10 transition-all" />
-        <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">{title}</p>
-            <h4 className="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">{value}</h4>
-            <div className="flex items-center gap-1.5 mt-3 text-xs">
-                <span className={`font-bold flex items-center ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {change}
-                </span>
-                <span className="text-stone-500">vs yesterday</span>
-            </div>
-        </div>
-        <div className="p-3 rounded-xl bg-stone-800/80 border border-stone-700/60 text-orange-400 group-hover:scale-110 transition-transform">
-            {icon}
-        </div>
-    </div>
-);
+interface OrderItem {
+    id: string;
+    type: 'Dine-In' | 'Pick-Up' | 'Delivery';
+    location: string;
+    customer: string;
+    phone: string;
+    amount: number;
+    payment: string;
+    status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+    time: string;
+    itemsCount: number;
+}
+
+interface BannerItem {
+    id: number;
+    title: string;
+    subtitle: string;
+    image: string;
+    isActive: boolean;
+}
+
+interface VoucherItem {
+    id: number;
+    code: string;
+    discountPercent: number;
+    minSpend: number;
+    usedCount: number;
+    isActive: boolean;
+}
+
+interface EmployeeItem {
+    id: number;
+    name: string;
+    email: string;
+    role: 'Admin' | 'Kitchen Staff' | 'Cashier';
+    status: 'Active' | 'Inactive';
+}
+
+interface AuditLogItem {
+    id: number;
+    timestamp: string;
+    user: string;
+    role: string;
+    action: string;
+    module: string;
+}
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Sample initial dataset states for full CRUD interactivity
+    const [products, setProducts] = useState<ProductItem[]>([
+        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino', description: 'Crispy pork belly with local spices and egg.', price: 180, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
+        { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', description: 'Tender T-Bone steak with signature gravy.', price: 280, stock: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
+        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino', description: 'Rich beef shank with simmering bone marrow gravy.', price: 450, stock: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
+        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Rice Meals', description: 'Chargrilled Bacolod-style chicken with garlic rice.', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
+        { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', description: 'Chilled house-brewed red iced tea pitcher.', price: 95, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+    ]);
+
+    const [orders, setOrders] = useState<OrderItem[]>([
+        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3 },
+        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2 },
+        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4 },
+        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2 },
+    ]);
+
+    const [banners, setBanners] = useState<BannerItem[]>([
+        { id: 1, title: 'Roadhouse Excellence Since 2008', subtitle: 'Authentic Sizzling Platters & Filipino Classics', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY', isActive: true },
+        { id: 2, title: 'FREE Delivery within Bulihan Area', subtitle: 'Enjoy hot sizzling meals delivered straight to your home', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t', isActive: true }
+    ]);
+
+    const [vouchers, setVouchers] = useState<VoucherItem[]>([
+        { id: 1, code: 'SADDLE10', discountPercent: 10, minSpend: 300, usedCount: 42, isActive: true },
+        { id: 2, code: 'BULIHANFREE', discountPercent: 15, minSpend: 500, usedCount: 89, isActive: true },
+        { id: 3, code: 'WELCOME2026', discountPercent: 20, minSpend: 800, usedCount: 15, isActive: false }
+    ]);
+
+    const [employees, setEmployees] = useState<EmployeeItem[]>([
+        { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', status: 'Active' },
+        { id: 2, name: 'Cashier Employee', email: 'cashier@saddleranch.ph', role: 'Cashier', status: 'Active' },
+        { id: 3, name: 'Kitchen Head Chef', email: 'kitchen@saddleranch.ph', role: 'Kitchen Staff', status: 'Active' }
+    ]);
+
+    const [auditLogs] = useState<AuditLogItem[]>([
+        { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products' },
+        { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready', module: 'Order Queue' },
+        { id: 3, timestamp: '2026-07-26 17:15:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher SADDLE10 (10% OFF)', module: 'Vouchers' },
+        { id: 4, timestamp: '2026-07-26 16:00:44', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Logged in to Admin Portal', module: 'Authentication' },
+    ]);
+
+    // Modal forms states
+    const [showAddProductModal, setShowAddProductModal] = useState(false);
+    const [newProductName, setNewProductName] = useState('');
+    const [newProductCategory, setNewProductCategory] = useState('Authentic Filipino');
+    const [newProductPrice, setNewProductPrice] = useState('');
+    const [newProductStock, setNewProductStock] = useState('50');
+
+    const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
+    const [newVoucherCode, setNewVoucherCode] = useState('');
+    const [newVoucherDiscount, setNewVoucherDiscount] = useState('10');
+
+    const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
+    const [newEmpName, setNewEmpName] = useState('');
+    const [newEmpEmail, setNewEmpEmail] = useState('');
+    const [newEmpRole, setNewEmpRole] = useState<'Cashier' | 'Kitchen Staff'>('Cashier');
+
+    const [copiedTable, setCopiedTable] = useState<string | null>(null);
+
+    // Helpers
+    const updateOrderStatus = (orderId: string, newStatus: OrderItem['status']) => {
+        setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    };
+
+    const toggleProductStatus = (id: number) => {
+        setProducts(products.map(p => p.id === id ? { ...p, isActive: !p.isActive } : p));
+    };
+
+    const updateProductStock = (id: number, delta: number) => {
+        setProducts(products.map(p => p.id === id ? { ...p, stock: Math.max(0, p.stock + delta) } : p));
+    };
+
+    const deleteProduct = (id: number) => {
+        setProducts(products.filter(p => p.id !== id));
+    };
+
+    const handleCreateProduct = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newProductName.trim()) return;
+
+        const newProd: ProductItem = {
+            id: Date.now(),
+            name: newProductName,
+            category: newProductCategory,
+            description: 'Delicious roadhouse sizzling meal prepared fresh upon order.',
+            price: parseFloat(newProductPrice) || 150,
+            stock: parseInt(newProductStock) || 30,
+            isActive: true,
+            image: products[0].image
+        };
+        setProducts([newProd, ...products]);
+        setNewProductName('');
+        setShowAddProductModal(false);
+    };
+
+    const handleCreateVoucher = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newVoucherCode.trim()) return;
+
+        const newVouch: VoucherItem = {
+            id: Date.now(),
+            code: newVoucherCode.toUpperCase(),
+            discountPercent: parseInt(newVoucherDiscount) || 10,
+            minSpend: 300,
+            usedCount: 0,
+            isActive: true
+        };
+        setVouchers([newVouch, ...vouchers]);
+        setNewVoucherCode('');
+        setShowAddVoucherModal(false);
+    };
+
+    const handleCreateEmployee = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newEmpEmail.trim()) return;
+
+        const newEmp: EmployeeItem = {
+            id: Date.now(),
+            name: newEmpName || 'Staff Member',
+            email: newEmpEmail,
+            role: newEmpRole,
+            status: 'Active'
+        };
+        setEmployees([...employees, newEmp]);
+        setNewEmpName('');
+        setNewEmpEmail('');
+        setShowAddEmployeeModal(false);
+    };
+
+    const copyTableLink = (tableNum: string) => {
+        const url = `${window.location.origin}/dine-in?table=${tableNum}`;
+        navigator.clipboard.writeText(url);
+        setCopiedTable(tableNum);
+        setTimeout(() => setCopiedTable(null), 2000);
+    };
 
     const sidebarLinks = [
         { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { id: 'orders', label: 'Orders Queue', icon: <ListOrdered className="w-4 h-4" />, badge: '6' },
-        { id: 'products', label: 'Products & Stock', icon: <Utensils className="w-4 h-4" /> },
-        { id: 'tables', label: 'Tables & QR Generator', icon: <QrCode className="w-4 h-4" /> },
+        { id: 'orders', label: 'Order Queue', icon: <ListOrdered className="w-4 h-4" />, badge: orders.filter(o => o.status === 'pending' || o.status === 'preparing').length.toString() },
+        { id: 'products', label: 'Products & Stocks', icon: <Utensils className="w-4 h-4" /> },
+        { id: 'tables', label: 'Table & QR Generator', icon: <QrCode className="w-4 h-4" /> },
         { id: 'banners', label: 'Promo Banners', icon: <ImageIcon className="w-4 h-4" /> },
         { id: 'vouchers', label: 'Vouchers', icon: <Ticket className="w-4 h-4" /> },
         { id: 'employees', label: 'Employees', icon: <Users className="w-4 h-4" /> },
@@ -62,43 +239,46 @@ export default function AdminDashboard() {
         { id: 'sales', label: 'Sales & Revenue', icon: <TrendingUp className="w-4 h-4" /> },
     ];
 
+    const totalRevenue = orders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
+
     return (
         <>
             <Head title="Admin Dashboard | Saddle Ranch" />
 
-            <div className="min-h-screen bg-stone-950 text-stone-100 flex font-sans selection:bg-orange-500 selection:text-white">
-                {/* Dark Sidebar */}
-                <aside className="w-64 bg-stone-900 border-r border-stone-800 flex flex-col flex-shrink-0 hidden md:flex">
-                    <div className="h-20 px-6 flex items-center gap-3 border-b border-stone-800/80">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                            <Flame className="w-5 h-5 text-white" />
+            <div className="min-h-screen bg-[#121213] text-[#f0e0d1] flex font-sans selection:bg-[#f59e0b] selection:text-[#472a00]">
+                
+                {/* Sidebar Navigation */}
+                <aside className="w-64 bg-[#1A1A1B] border-r border-[#534434]/40 flex flex-col flex-shrink-0 hidden md:flex shadow-2xl">
+                    <div className="h-20 px-6 flex items-center gap-3 border-b border-[#534434]/40">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f59e0b] to-[#b45309] flex items-center justify-center shadow-lg shadow-[#f59e0b]/20">
+                            <Flame className="w-5 h-5 text-[#472a00]" />
                         </div>
                         <div>
-                            <span className="font-black text-base tracking-tight text-white block">SADDLE RANCH</span>
-                            <span className="text-[10px] tracking-widest uppercase text-orange-500 font-bold block">Admin Portal</span>
+                            <span className="font-black text-base tracking-tight font-domine text-[#ffc174] block">SADDLE RANCH</span>
+                            <span className="text-[10px] tracking-widest uppercase text-[#f59e0b] font-bold block">Admin Portal</span>
                         </div>
                     </div>
 
                     <div className="p-4 flex-1 overflow-y-auto space-y-1">
-                        <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-stone-500">Core Management</div>
+                        <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#8c7a6b]">Core Management</div>
                         {sidebarLinks.map((link) => (
                             <button
                                 key={link.id}
                                 onClick={() => setActiveTab(link.id)}
-                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                                     activeTab === link.id
-                                        ? 'bg-gradient-to-r from-orange-500/20 to-transparent border-l-2 border-orange-500 text-white shadow-sm'
-                                        : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
+                                        ? 'bg-[#f59e0b]/20 border-l-4 border-[#f59e0b] text-[#ffc174] shadow-sm'
+                                        : 'text-[#d8c3ad] hover:text-white hover:bg-[#261e15]'
                                 }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <span className={activeTab === link.id ? 'text-orange-400' : 'text-stone-500'}>
+                                    <span className={activeTab === link.id ? 'text-[#f59e0b]' : 'text-[#8c7a6b]'}>
                                         {link.icon}
                                     </span>
                                     <span>{link.label}</span>
                                 </div>
-                                {link.badge && (
-                                    <span className="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">
+                                {link.badge && parseInt(link.badge) > 0 && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-[10px] font-black border border-[#f59e0b]/40">
                                         {link.badge}
                                     </span>
                                 )}
@@ -106,155 +286,636 @@ export default function AdminDashboard() {
                         ))}
                     </div>
 
-                    <div className="p-4 border-t border-stone-800">
-                        <div className="p-3 rounded-xl bg-stone-950/80 border border-stone-800 flex items-center justify-between">
+                    <div className="p-4 border-t border-[#534434]/40">
+                        <div className="p-3 rounded-xl bg-[#121213] border border-[#534434]/40 flex items-center justify-between">
                             <div className="flex items-center gap-2.5 overflow-hidden">
-                                <div className="w-8 h-8 rounded-full bg-stone-800 border border-stone-700 flex items-center justify-center text-xs font-bold text-orange-400">
+                                <div className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] flex items-center justify-center text-xs font-black text-[#ffc174]">
                                     SA
                                 </div>
                                 <div className="truncate">
                                     <span className="block text-xs font-bold text-white truncate">Saddle Ranch Admin</span>
-                                    <span className="block text-[10px] text-stone-500">Principal Administrator</span>
+                                    <span className="block text-[10px] text-[#8c7a6b]">admin@saddleranch.ph</span>
                                 </div>
                             </div>
-                            <Link href="/logout" method="post" as="button" className="p-1.5 rounded-lg text-stone-400 hover:text-rose-400 hover:bg-stone-800 transition-colors">
+                            <Link href="/logout" method="post" as="button" className="p-1.5 rounded-lg text-[#d8c3ad] hover:text-rose-400 hover:bg-[#261e15] transition-colors">
                                 <LogOut className="w-4 h-4" />
                             </Link>
                         </div>
                     </div>
                 </aside>
 
-                {/* Main Content Area */}
+                {/* Main View Area */}
                 <main className="flex-1 flex flex-col min-w-0">
-                    {/* Top Header */}
-                    <header className="h-20 bg-stone-900/50 border-b border-stone-800 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
+                    
+                    {/* Header */}
+                    <header className="h-20 bg-[#1A1A1B]/95 border-b border-[#534434]/40 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
                         <div className="flex items-center gap-4">
-                            <h2 className="text-lg font-bold text-white tracking-tight capitalize">
+                            <h2 className="text-lg font-black font-domine text-[#ffc174] tracking-tight capitalize">
                                 {sidebarLinks.find(l => l.id === activeTab)?.label ?? 'Dashboard'}
                             </h2>
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold tracking-wide uppercase flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-wide uppercase flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                                Live TiDB / Laravel Sync
+                                Active Server & TiDB Sync
                             </span>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <div className="relative hidden sm:block">
-                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
+                                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8c7a6b]" />
                                 <input
                                     type="text"
-                                    placeholder="Search order number or product..."
-                                    className="w-64 pl-9 pr-4 py-1.5 bg-stone-950 border border-stone-800 rounded-xl text-xs text-stone-200 placeholder-stone-500 focus:outline-none focus:border-orange-500 transition-colors"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search orders, items, staff..."
+                                    className="w-64 pl-9 pr-4 py-1.5 bg-[#121213] border border-[#534434]/60 rounded-xl text-xs text-white placeholder-[#8c7a6b] focus:outline-none focus:border-[#f59e0b]"
                                 />
                             </div>
-                            <button className="p-2 rounded-xl bg-stone-800 border border-stone-700/60 text-stone-300 hover:text-white relative">
-                                <Bell className="w-4 h-4" />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                            </button>
+
+                            <Link
+                                href="/employee/kitchen"
+                                className="px-3.5 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 btn-bevel"
+                            >
+                                <Utensils className="w-3.5 h-3.5" />
+                                <span>Kitchen KDS</span>
+                            </Link>
                         </div>
                     </header>
 
-                    {/* Dashboard Body */}
+                    {/* Dynamic View Body */}
                     <div className="p-6 sm:p-8 space-y-8 flex-1 overflow-y-auto">
-                        {/* KPI Cards Section */}
-                        <div>
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">
-                                Philippine Peso (₱) Revenue & Operational Metrics
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                                <KPICard
-                                    title="Today's Sizzling Revenue"
-                                    value="₱28,450.00"
-                                    change="+18.4%"
-                                    isPositive={true}
-                                    icon={<TrendingUp className="w-5 h-5" />}
-                                />
-                                <KPICard
-                                    title="Pending & Kitchen Orders"
-                                    value="14 Orders"
-                                    change="-2.1%"
-                                    isPositive={false}
-                                    icon={<ListOrdered className="w-5 h-5" />}
-                                />
-                                <KPICard
-                                    title="Active Menu Products"
-                                    value="24 Items"
-                                    change="+4 Items"
-                                    isPositive={true}
-                                    icon={<Utensils className="w-5 h-5" />}
-                                />
-                                <KPICard
-                                    title="Active Promo Vouchers"
-                                    value="3 Codes"
-                                    change="100% Active"
-                                    isPositive={true}
-                                    icon={<Ticket className="w-5 h-5" />}
-                                />
-                            </div>
-                        </div>
 
-                        {/* Recent Activity / Live Orders Queue Preview Table */}
-                        <div className="rounded-2xl bg-stone-900/80 border border-stone-800 overflow-hidden shadow-xl">
-                            <div className="p-6 border-b border-stone-800 flex items-center justify-between">
-                                <div>
-                                    <h4 className="text-base font-bold text-white">Live Sizzling Orders Queue</h4>
-                                    <p className="text-xs text-stone-400 mt-0.5">Real-time status updates across Dine-In, Pick-Up, and Delivery.</p>
+                        {/* TAB 1: MAIN DASHBOARD OVERVIEW */}
+                        {activeTab === 'dashboard' && (
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                                    <div className="p-5 rounded-2xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-2">
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#8c7a6b]">Total Sizzling Revenue</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-[#ffc174]">₱ {totalRevenue.toFixed(2)}</div>
+                                        <div className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">+18.4% vs yesterday</div>
+                                    </div>
+
+                                    <div className="p-5 rounded-2xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-2">
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#8c7a6b]">Active Orders Queue</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">{orders.length} Orders</div>
+                                        <div className="text-[11px] text-amber-400 font-bold">{orders.filter(o => o.status === 'pending').length} Pending Kitchen</div>
+                                    </div>
+
+                                    <div className="p-5 rounded-2xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-2">
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#8c7a6b]">Active Menu Items</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">{products.length} Items</div>
+                                        <div className="text-[11px] text-emerald-400 font-bold">{products.filter(p => p.isActive).length} Available Today</div>
+                                    </div>
+
+                                    <div className="p-5 rounded-2xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-2">
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#8c7a6b]">Promo Vouchers</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">{vouchers.length} Codes</div>
+                                        <div className="text-[11px] text-emerald-400 font-bold">{vouchers.filter(v => v.isActive).length} Active Promos</div>
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={() => setActiveTab('orders')}
-                                    className="px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold hover:bg-orange-500 hover:text-white transition-all flex items-center gap-1.5"
-                                >
-                                    <span>Manage Full Queue</span>
-                                    <ArrowUpRight className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-xs">
-                                    <thead className="bg-stone-950/60 text-stone-400 uppercase tracking-wider font-semibold border-b border-stone-800">
-                                        <tr>
-                                            <th className="py-3.5 px-6">Order #</th>
-                                            <th className="py-3.5 px-6">Mode / Table</th>
-                                            <th className="py-3.5 px-6">Customer</th>
-                                            <th className="py-3.5 px-6">Total Amount (₱)</th>
-                                            <th className="py-3.5 px-6">Payment</th>
-                                            <th className="py-3.5 px-6">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-stone-800 text-stone-200">
-                                        {[
-                                            { id: 'SR-1049', type: 'Dine-In', table: 'Table 05', customer: 'Seated Guest', amount: '₱640.00', payment: 'GCash', status: 'preparing', statusColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
-                                            { id: 'SR-1048', type: 'Pick-Up', table: 'Counter', customer: 'Marco Reyes', amount: '₱460.00', payment: 'Cash', status: 'ready', statusColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
-                                            { id: 'SR-1047', type: 'Delivery', table: 'Bulihan Area', customer: 'Elena Cruz', amount: '₱890.00', payment: 'Maya', status: 'pending', statusColor: 'bg-orange-500/10 text-orange-400 border-orange-500/30' },
-                                            { id: 'SR-1046', type: 'Dine-In', table: 'Table 02', customer: 'Seated Guest', amount: '₱360.00', payment: 'GCash', status: 'completed', statusColor: 'bg-stone-500/10 text-stone-400 border-stone-500/30' },
-                                        ].map((row, index) => (
-                                            <tr key={index} className="hover:bg-stone-800/40 transition-colors">
-                                                <td className="py-4 px-6 font-mono font-bold text-white">{row.id}</td>
-                                                <td className="py-4 px-6">
-                                                    <span className="font-semibold text-white">{row.type}</span>
-                                                    <span className="block text-[10px] text-stone-400">{row.table}</span>
-                                                </td>
-                                                <td className="py-4 px-6 text-stone-300">{row.customer}</td>
-                                                <td className="py-4 px-6 font-bold text-amber-400">{row.amount}</td>
-                                                <td className="py-4 px-6">
-                                                    <span className="px-2 py-1 rounded-md bg-stone-800 text-stone-300 font-medium">
-                                                        {row.payment}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-6">
-                                                    <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${row.statusColor}`}>
-                                                        {row.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                {/* Order Queue Quick Table */}
+                                <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-base font-bold text-white font-domine">Recent Sizzling Orders</h3>
+                                            <p className="text-xs text-[#d8c3ad]">Real-time orders queue status</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setActiveTab('orders')}
+                                            className="px-3.5 py-1.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] text-xs font-bold hover:bg-[#31281f] flex items-center gap-1 btn-bevel"
+                                        >
+                                            <span>Full Queue View</span>
+                                            <ArrowUpRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-xs">
+                                            <thead className="bg-[#121213] text-[#8c7a6b] uppercase font-bold border-b border-[#534434]/40">
+                                                <tr>
+                                                    <th className="py-3 px-4">Order #</th>
+                                                    <th className="py-3 px-4">Mode / Location</th>
+                                                    <th className="py-3 px-4">Customer</th>
+                                                    <th className="py-3 px-4">Amount</th>
+                                                    <th className="py-3 px-4">Payment</th>
+                                                    <th className="py-3 px-4">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#534434]/30 text-stone-200">
+                                                {orders.map((o) => (
+                                                    <tr key={o.id} className="hover:bg-[#261e15]/40 transition-colors">
+                                                        <td className="py-3.5 px-4 font-mono font-bold text-white">{o.id}</td>
+                                                        <td className="py-3.5 px-4 font-semibold text-[#ffc174]">{o.type} ({o.location})</td>
+                                                        <td className="py-3.5 px-4 text-[#d8c3ad]">{o.customer}</td>
+                                                        <td className="py-3.5 px-4 font-mono font-bold text-amber-400">₱{o.amount.toFixed(2)}</td>
+                                                        <td className="py-3.5 px-4 text-xs font-medium text-stone-300">{o.payment}</td>
+                                                        <td className="py-3.5 px-4">
+                                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                                                o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                                                                o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' :
+                                                                o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                                                                'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                                                            }`}>
+                                                                {o.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* TAB 2: ORDER QUEUE MANAGEMENT */}
+                        {activeTab === 'orders' && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Full Orders Queue Management</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Advance kitchen states and view customer order specifications</p>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-xs">
+                                            <thead className="bg-[#121213] text-[#8c7a6b] uppercase font-bold border-b border-[#534434]/40">
+                                                <tr>
+                                                    <th className="py-3.5 px-4">Order #</th>
+                                                    <th className="py-3.5 px-4">Customer Details</th>
+                                                    <th className="py-3.5 px-4">Fulfillment Mode</th>
+                                                    <th className="py-3.5 px-4">Amount & Payment</th>
+                                                    <th className="py-3.5 px-4">Status</th>
+                                                    <th className="py-3.5 px-4">Kitchen Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#534434]/30 text-stone-200">
+                                                {orders.map((o) => (
+                                                    <tr key={o.id} className="hover:bg-[#261e15]/40 transition-colors">
+                                                        <td className="py-4 px-4 font-mono font-bold text-white text-sm">{o.id}</td>
+                                                        <td className="py-4 px-4">
+                                                            <div className="font-bold text-white">{o.customer}</div>
+                                                            <div className="text-[10px] text-[#d8c3ad]">{o.phone}</div>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <span className="font-bold text-[#ffc174]">{o.type}</span>
+                                                            <div className="text-[10px] text-[#8c7a6b]">{o.location}</div>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <div className="font-mono font-bold text-amber-400 text-sm">₱{o.amount.toFixed(2)}</div>
+                                                            <div className="text-[10px] text-stone-400">{o.payment}</div>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                                                o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                                                                o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' :
+                                                                o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                                                                'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                                                            }`}>
+                                                                {o.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <div className="flex items-center gap-2">
+                                                                {o.status === 'pending' && (
+                                                                    <button
+                                                                        onClick={() => updateOrderStatus(o.id, 'preparing')}
+                                                                        className="px-3 py-1.5 rounded-xl bg-amber-500 text-[#472a00] font-black text-[11px] hover:bg-[#ffc174] transition-all btn-bevel"
+                                                                    >
+                                                                        Prepare Order
+                                                                    </button>
+                                                                )}
+                                                                {o.status === 'preparing' && (
+                                                                    <button
+                                                                        onClick={() => updateOrderStatus(o.id, 'ready')}
+                                                                        className="px-3 py-1.5 rounded-xl bg-blue-500 text-white font-black text-[11px] hover:bg-blue-400 transition-all btn-bevel"
+                                                                    >
+                                                                        Mark Ready
+                                                                    </button>
+                                                                )}
+                                                                {o.status === 'ready' && (
+                                                                    <button
+                                                                        onClick={() => updateOrderStatus(o.id, 'completed')}
+                                                                        className="px-3 py-1.5 rounded-xl bg-emerald-500 text-stone-950 font-black text-[11px] hover:bg-emerald-400 transition-all btn-bevel"
+                                                                    >
+                                                                        Complete Order
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 3: PRODUCTS & STOCKS MANAGEMENT */}
+                        {activeTab === 'products' && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Products & Stock Inventory</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Manage sizzling menu items, prices, and stock counts</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAddProductModal(true)}
+                                        className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-lg"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Add New Dish</span>
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {products.map((p) => (
+                                        <div key={p.id} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/50 shadow-xl space-y-4 flex flex-col justify-between">
+                                            <div className="flex items-start gap-4">
+                                                <img src={p.image} alt={p.name} className="w-20 h-20 rounded-2xl object-cover border border-[#534434]/40" />
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
+                                                    <h4 className="text-sm font-bold text-white font-domine leading-snug">{p.name}</h4>
+                                                    <div className="font-mono text-base font-black text-[#ffc174] mt-1">₱ {p.price.toFixed(2)}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-[#534434]/30 flex items-center justify-between text-xs">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[#8c7a6b]">Stock Count:</span>
+                                                    <div className="flex items-center gap-1 border border-[#534434] rounded-lg p-0.5 bg-[#121213]">
+                                                        <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#d8c3ad] hover:text-white">-</button>
+                                                        <span className="font-mono font-bold px-1.5 text-white">{p.stock}</span>
+                                                        <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#d8c3ad] hover:text-white">+</button>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => toggleProductStatus(p.id)}
+                                                    className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                        p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                                                    }`}
+                                                >
+                                                    {p.isActive ? 'Active' : 'Disabled'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 4: TABLE AND QR GENERATOR */}
+                        {activeTab === 'tables' && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white font-domine">Table QR Code Generator</h3>
+                                    <p className="text-xs text-[#d8c3ad]">Dynamic QR links for in-house table ordering</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    {Array.from({ length: 8 }).map((_, idx) => {
+                                        const tableNum = (idx + 1).toString().padStart(2, '0');
+                                        return (
+                                            <div key={tableNum} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl text-center space-y-4">
+                                                <div className="w-12 h-12 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-lg">
+                                                    #{tableNum}
+                                                </div>
+
+                                                <div className="w-32 h-32 mx-auto p-2 bg-white rounded-2xl shadow-inner flex items-center justify-center">
+                                                    <QrCode className="w-24 h-24 text-[#121213]" />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <button
+                                                        onClick={() => copyTableLink(tableNum)}
+                                                        className="w-full py-2 rounded-xl bg-[#121213] border border-[#534434] text-[#ffc174] font-bold text-xs hover:bg-[#261e15] flex items-center justify-center gap-1.5 btn-bevel"
+                                                    >
+                                                        <Copy className="w-3.5 h-3.5" />
+                                                        <span>{copiedTable === tableNum ? 'Copied Link!' : 'Copy Table Link'}</span>
+                                                    </button>
+
+                                                    <a
+                                                        href={`/dine-in?table=${tableNum}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="block text-[10px] text-[#8c7a6b] hover:text-white font-mono underline"
+                                                    >
+                                                        Test Table #{tableNum} Menu
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 5: PROMO BANNERS */}
+                        {activeTab === 'banners' && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white font-domine">Promo Banners</h3>
+                                    <p className="text-xs text-[#d8c3ad]">Manage marketing banners on the customer landing page</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {banners.map((b) => (
+                                        <div key={b.id} className="p-4 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <img src={b.image} alt={b.title} className="w-24 h-16 rounded-2xl object-cover border border-[#534434]/40" />
+                                                <div>
+                                                    <h4 className="font-bold text-white text-sm font-domine">{b.title}</h4>
+                                                    <p className="text-xs text-[#d8c3ad]">{b.subtitle}</p>
+                                                </div>
+                                            </div>
+
+                                            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
+                                                Active Banner
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 6: VOUCHERS */}
+                        {activeTab === 'vouchers' && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Discount Vouchers</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Create promo discount codes for customer checkout</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAddVoucherModal(true)}
+                                        className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-lg"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Create Voucher</span>
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {vouchers.map((v) => (
+                                        <div key={v.id} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-mono font-black text-lg text-[#ffc174] tracking-widest">{v.code}</span>
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                                    v.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-stone-800 text-stone-400'
+                                                }`}>
+                                                    {v.isActive ? 'Active' : 'Expired'}
+                                                </span>
+                                            </div>
+
+                                            <div className="text-xs text-[#d8c3ad] space-y-1">
+                                                <div>Discount: <strong className="text-white">{v.discountPercent}% OFF</strong></div>
+                                                <div>Min. Order Amount: <strong className="text-amber-400">₱{v.minSpend.toFixed(2)}</strong></div>
+                                                <div>Times Redeemed: <strong className="text-white">{v.usedCount} times</strong></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 7: EMPLOYEES */}
+                        {activeTab === 'employees' && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Staff & Employee Accounts</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Manage Cashier and Kitchen KDS access permissions</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAddEmployeeModal(true)}
+                                        className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-lg"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Add Staff Account</span>
+                                    </button>
+                                </div>
+
+                                <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 overflow-hidden">
+                                    <table className="w-full text-left text-xs">
+                                        <thead className="bg-[#121213] text-[#8c7a6b] uppercase font-bold border-b border-[#534434]/40">
+                                            <tr>
+                                                <th className="py-3.5 px-4">Name</th>
+                                                <th className="py-3.5 px-4">Email</th>
+                                                <th className="py-3.5 px-4">Role</th>
+                                                <th className="py-3.5 px-4">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[#534434]/30 text-stone-200">
+                                            {employees.map((e) => (
+                                                <tr key={e.id} className="hover:bg-[#261e15]/40 transition-colors">
+                                                    <td className="py-4 px-4 font-bold text-white">{e.name}</td>
+                                                    <td className="py-4 px-4 font-mono text-[#d8c3ad]">{e.email}</td>
+                                                    <td className="py-4 px-4">
+                                                        <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/20 text-[#ffc174] text-[10px] font-black uppercase border border-[#f59e0b]/30">
+                                                            {e.role}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-4 px-4">
+                                                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/30">
+                                                            {e.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 8: AUDIT LOGS */}
+                        {activeTab === 'audit' && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white font-domine">System Audit Logs</h3>
+                                    <p className="text-xs text-[#d8c3ad]">Traceability log of all administrative and staff activities</p>
+                                </div>
+
+                                <div className="rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl p-6 overflow-hidden">
+                                    <table className="w-full text-left text-xs">
+                                        <thead className="bg-[#121213] text-[#8c7a6b] uppercase font-bold border-b border-[#534434]/40">
+                                            <tr>
+                                                <th className="py-3.5 px-4">Timestamp</th>
+                                                <th className="py-3.5 px-4">User</th>
+                                                <th className="py-3.5 px-4">Module</th>
+                                                <th className="py-3.5 px-4">Action Detail</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[#534434]/30 text-stone-200">
+                                            {auditLogs.map((log) => (
+                                                <tr key={log.id} className="hover:bg-[#261e15]/40 transition-colors">
+                                                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#8c7a6b]">{log.timestamp}</td>
+                                                    <td className="py-3.5 px-4 font-semibold text-white">{log.user}</td>
+                                                    <td className="py-3.5 px-4 font-bold text-[#ffc174]">{log.module}</td>
+                                                    <td className="py-3.5 px-4 text-[#d8c3ad] font-mono">{log.action}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 9: SALES & REVENUE */}
+                        {activeTab === 'sales' && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white font-domine">Sales & Revenue Report</h3>
+                                    <p className="text-xs text-[#d8c3ad]">Gross sales figures, order type distribution, and top performers</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2">
+                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Gross Revenue (Total)</span>
+                                        <div className="text-3xl font-mono font-black text-[#ffc174]">₱ {totalRevenue.toFixed(2)}</div>
+                                        <p className="text-[11px] text-emerald-400 font-bold">100% verified sales</p>
+                                    </div>
+
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2">
+                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Average Order Value</span>
+                                        <div className="text-3xl font-mono font-black text-white">₱ {(totalRevenue / Math.max(1, orders.length)).toFixed(2)}</div>
+                                        <p className="text-[11px] text-[#d8c3ad]">Across all 3 fulfillment channels</p>
+                                    </div>
+
+                                    <div className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 space-y-2">
+                                        <span className="text-xs font-bold text-[#8c7a6b] uppercase">Completed Orders</span>
+                                        <div className="text-3xl font-mono font-black text-white">{orders.length} Orders</div>
+                                        <p className="text-[11px] text-emerald-400 font-bold">0% Cancellation rate</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
                 </main>
             </div>
+
+            {/* ADD PRODUCT MODAL */}
+            {showAddProductModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <form onSubmit={handleCreateProduct} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <h3 className="text-lg font-bold text-white font-domine">Add New Sizzling Dish</h3>
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Name *</label>
+                            <input
+                                type="text"
+                                required
+                                value={newProductName}
+                                onChange={(e) => setNewProductName(e.target.value)}
+                                placeholder="e.g. Sizzling Ribeye Steak"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Price (₱) *</label>
+                                <input
+                                    type="number"
+                                    required
+                                    value={newProductPrice}
+                                    onChange={(e) => setNewProductPrice(e.target.value)}
+                                    placeholder="250.00"
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Stock *</label>
+                                <input
+                                    type="number"
+                                    required
+                                    value={newProductStock}
+                                    onChange={(e) => setNewProductStock(e.target.value)}
+                                    placeholder="50"
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setShowAddProductModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Add Dish</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* ADD VOUCHER MODAL */}
+            {showAddVoucherModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <form onSubmit={handleCreateVoucher} className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <h3 className="text-lg font-bold text-white font-domine">Create Promo Voucher</h3>
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Voucher Code *</label>
+                            <input
+                                type="text"
+                                required
+                                value={newVoucherCode}
+                                onChange={(e) => setNewVoucherCode(e.target.value)}
+                                placeholder="e.g. SUMMER15"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Discount (% Off) *</label>
+                            <input
+                                type="number"
+                                required
+                                value={newVoucherDiscount}
+                                onChange={(e) => setNewVoucherDiscount(e.target.value)}
+                                placeholder="15"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setShowAddVoucherModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* ADD EMPLOYEE MODAL */}
+            {showAddEmployeeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <form onSubmit={handleCreateEmployee} className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <h3 className="text-lg font-bold text-white font-domine">Add Staff Account</h3>
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Full Name *</label>
+                            <input
+                                type="text"
+                                required
+                                value={newEmpName}
+                                onChange={(e) => setNewEmpName(e.target.value)}
+                                placeholder="Staff Name"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Email Address *</label>
+                            <input
+                                type="email"
+                                required
+                                value={newEmpEmail}
+                                onChange={(e) => setNewEmpEmail(e.target.value)}
+                                placeholder="staff@saddleranch.ph"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setShowAddEmployeeModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </>
     );
 }
