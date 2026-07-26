@@ -206,7 +206,7 @@ export default function KitchenDisplaySystem() {
                                     onClick={() => setStatusFilter(chip.id)}
                                     className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                                         statusFilter === chip.id
-                                            ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel'
+                                            ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md'
                                             : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
                                     }`}
                                 >
@@ -232,7 +232,7 @@ export default function KitchenDisplaySystem() {
                                     key={order.id}
                                     className={`p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-5 flex flex-col justify-between transition-all ${
                                         order.status === 'pending'
-                                            ? 'bg-[#202024] border-amber-500/60 shadow-amber-500/10 animate-pulse'
+                                            ? 'bg-[#202024] border-amber-500/60 shadow-amber-500/10'
                                             : order.status === 'preparing'
                                             ? 'bg-[#202024] border-yellow-500/50'
                                             : 'bg-[#1d2636] border-blue-500/60 shadow-blue-500/10'
@@ -246,7 +246,7 @@ export default function KitchenDisplaySystem() {
                                             </span>
 
                                             <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-3 py-1 rounded-full ${
-                                                order.elapsedMins >= 10 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-bounce' : 'bg-amber-500/20 text-amber-400'
+                                                order.elapsedMins >= 10 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse' : 'bg-amber-500/20 text-amber-400'
                                             }`}>
                                                 <Clock className="w-3.5 h-3.5" />
                                                 {order.elapsedMins} mins elapsed
@@ -282,31 +282,31 @@ export default function KitchenDisplaySystem() {
                                         </div>
                                     </div>
 
-                                    {/* BIG AF TOUCH ACTION BUTTONS IDENTICAL TO ORDERS QUEUE */}
+                                    {/* CLEAN HIGH-CONTRAST BIG ACTION BUTTONS */}
                                     <div className="pt-2">
                                         {order.status === 'pending' && (
                                             <button
                                                 onClick={() => updateKdsStatus(order.id, 'preparing')}
-                                                className="w-full py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                                className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-[#f59e0b]/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                             >
-                                                <Flame className="w-5 h-5" />
-                                                <span>START PREPARING (COOK ON GRILL)</span>
+                                                <Flame className="w-6 h-6 flex-shrink-0" />
+                                                <span className="text-center">START PREPARING (COOK ON GRILL)</span>
                                             </button>
                                         )}
 
                                         {order.status === 'preparing' && (
                                             <button
                                                 onClick={() => updateKdsStatus(order.id, 'ready')}
-                                                className="w-full py-4 sm:py-5 rounded-2xl bg-blue-500 hover:bg-blue-400 text-white font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                                className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                             >
-                                                <CheckCircle2 className="w-5 h-5" />
-                                                <span>BUMP / MARK READY TO SERVE</span>
+                                                <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+                                                <span className="text-center">BUMP / MARK READY TO SERVE</span>
                                             </button>
                                         )}
 
                                         {order.status === 'ready' && (
-                                            <div className="w-full py-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 font-bold text-xs text-center flex items-center justify-center gap-2">
-                                                <CheckCircle2 className="w-4 h-4" />
+                                            <div className="w-full px-4 py-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 font-bold text-xs sm:text-sm text-center flex items-center justify-center gap-2">
+                                                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                                                 <span>BUMPED & READY AT COUNTER</span>
                                             </div>
                                         )}

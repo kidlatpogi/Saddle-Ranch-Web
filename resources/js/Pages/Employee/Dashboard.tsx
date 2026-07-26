@@ -190,7 +190,7 @@ export default function EmployeeDashboard() {
                     <div className="flex items-center gap-3">
                         <Link
                             href="/employee/kitchen"
-                            className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md btn-bevel"
+                            className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md"
                         >
                             <ChefHat className="w-4 h-4" />
                             <span>Kitchen KDS Terminal</span>
@@ -217,7 +217,7 @@ export default function EmployeeDashboard() {
                             <button
                                 onClick={() => setActiveTab('pos')}
                                 className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'pos' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                    activeTab === 'pos' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
                                 <Receipt className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -227,7 +227,7 @@ export default function EmployeeDashboard() {
                             <button
                                 onClick={() => setActiveTab('queue')}
                                 className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'queue' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                    activeTab === 'queue' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
                                 <ListOrdered className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -237,7 +237,7 @@ export default function EmployeeDashboard() {
                             <button
                                 onClick={() => setActiveTab('menu')}
                                 className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'menu' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                    activeTab === 'menu' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
                                 <Utensils className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -247,7 +247,7 @@ export default function EmployeeDashboard() {
                             <button
                                 onClick={() => setActiveTab('sales')}
                                 className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'sales' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                    activeTab === 'sales' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
                                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -359,7 +359,7 @@ export default function EmployeeDashboard() {
                                             type="button"
                                             onClick={() => setPosOrderType('Dine-In')}
                                             className={`py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                                                posOrderType === 'Dine-In' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                                posOrderType === 'Dine-In' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
                                             }`}
                                         >
                                             <Utensils className="w-4 h-4" /> Dine-In Order
@@ -369,7 +369,7 @@ export default function EmployeeDashboard() {
                                             type="button"
                                             onClick={() => setPosOrderType('Pick-Up')}
                                             className={`py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                                                posOrderType === 'Pick-Up' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                                posOrderType === 'Pick-Up' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
                                             }`}
                                         >
                                             <ShoppingBag className="w-4 h-4" /> Takeout Order
@@ -516,9 +516,9 @@ export default function EmployeeDashboard() {
                                         <button
                                             type="submit"
                                             disabled={posCart.length === 0 || (posPaymentMethod === 'Cash' && posTenderedAmount < posCartTotal)}
-                                            className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                            className="w-full px-4 py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                         >
-                                            <Printer className="w-5 h-5" />
+                                            <Printer className="w-5 h-5 flex-shrink-0" />
                                             <span>COMPLETE ORDER & PRINT RECEIPT</span>
                                         </button>
                                     </form>
@@ -546,7 +546,7 @@ export default function EmployeeDashboard() {
                                             onClick={() => setStatusFilter(chip.id)}
                                             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                                                 statusFilter === chip.id
-                                                    ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel'
+                                                    ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md'
                                                     : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
                                             }`}
                                         >
@@ -620,41 +620,41 @@ export default function EmployeeDashboard() {
                                                 </div>
                                             </div>
 
-                                            {/* BIG AF TOUCH ACTION BUTTONS */}
+                                            {/* CLEAN HIGH-CONTRAST BIG ACTION BUTTONS */}
                                             <div className="pt-2">
                                                 {o.status === 'pending' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'preparing')}
-                                                        className="w-full py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                                        className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-[#f59e0b]/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                                     >
-                                                        <Flame className="w-5 h-5" />
-                                                        <span>START PREPARING (SEND TO KITCHEN GRILL)</span>
+                                                        <Flame className="w-6 h-6 flex-shrink-0" />
+                                                        <span className="text-center">START PREPARING (COOK ON GRILL)</span>
                                                     </button>
                                                 )}
 
                                                 {o.status === 'preparing' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'ready')}
-                                                        className="w-full py-4 sm:py-5 rounded-2xl bg-blue-500 hover:bg-blue-400 text-white font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                                        className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                                     >
-                                                        <CheckCircle2 className="w-5 h-5" />
-                                                        <span>MARK DISH READY TO SERVE / PICK-UP</span>
+                                                        <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+                                                        <span className="text-center">BUMP / MARK READY TO SERVE</span>
                                                     </button>
                                                 )}
 
                                                 {o.status === 'ready' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'completed')}
-                                                        className="w-full py-4 sm:py-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                                        className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                                     >
-                                                        <Check className="w-5 h-5" />
-                                                        <span>COMPLETE ORDER (HAND OVER TO GUEST)</span>
+                                                        <Check className="w-6 h-6 flex-shrink-0" />
+                                                        <span className="text-center">COMPLETE ORDER (HAND OVER TO GUEST)</span>
                                                     </button>
                                                 )}
 
                                                 {o.status === 'completed' && (
-                                                    <div className="w-full py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs text-center flex items-center justify-center gap-2">
-                                                        <CheckCircle2 className="w-4 h-4" />
+                                                    <div className="w-full px-4 py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs text-center flex items-center justify-center gap-2">
+                                                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                                                         <span>ORDER FULLY FULFILLED & SERVED</span>
                                                     </div>
                                                 )}
@@ -787,7 +787,7 @@ export default function EmployeeDashboard() {
                         <div className="pt-2 flex gap-2 no-print">
                             <button
                                 onClick={() => window.print()}
-                                className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl btn-bevel"
+                                className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl"
                             >
                                 <Printer className="w-4 h-4" />
                                 <span>Print Thermal Customer Receipt</span>
