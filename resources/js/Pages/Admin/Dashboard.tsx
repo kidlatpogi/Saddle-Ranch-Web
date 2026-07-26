@@ -27,7 +27,8 @@ import {
     Copy,
     RefreshCw,
     Filter,
-    ShieldCheck
+    ShieldCheck,
+    Printer
 } from 'lucide-react';
 
 interface ProductItem {
@@ -58,6 +59,7 @@ interface BannerItem {
     id: number;
     title: string;
     subtitle: string;
+    tag: string;
     image: string;
     isActive: boolean;
 }
@@ -109,8 +111,8 @@ export default function AdminDashboard() {
     ]);
 
     const [banners, setBanners] = useState<BannerItem[]>([
-        { id: 1, title: 'Roadhouse Excellence Since 2008', subtitle: 'Authentic Sizzling Platters & Filipino Classics', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY', isActive: true },
-        { id: 2, title: 'FREE Delivery within Bulihan Area', subtitle: 'Enjoy hot sizzling meals delivered straight to your home', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t', isActive: true }
+        { id: 1, title: 'Roadhouse Excellence Since 2008', subtitle: 'Authentic Sizzling Platters & Filipino Classics', tag: 'HOUSE SPECIAL', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY', isActive: true },
+        { id: 2, title: 'FREE Delivery within Bulihan Area', subtitle: 'Enjoy hot sizzling meals delivered straight to your home', tag: 'WEEKEND SPECIAL • 20% OFF', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t', isActive: true }
     ]);
 
     const [vouchers, setVouchers] = useState<VoucherItem[]>([
@@ -125,6 +127,9 @@ export default function AdminDashboard() {
         { id: 3, name: 'Kitchen Head Chef', email: 'kitchen@saddleranch.ph', role: 'Kitchen Staff', status: 'Active' }
     ]);
 
+    const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
+    const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
+
     const [auditLogs] = useState<AuditLogItem[]>([
         { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products' },
         { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready', module: 'Order Queue' },
@@ -132,17 +137,29 @@ export default function AdminDashboard() {
         { id: 4, timestamp: '2026-07-26 16:00:44', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Logged in to Admin Portal', module: 'Authentication' },
     ]);
 
-    // Modal forms states
+    // Product Add & Edit Modals State
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [newProductName, setNewProductName] = useState('');
     const [newProductCategory, setNewProductCategory] = useState('Authentic Filipino');
     const [newProductPrice, setNewProductPrice] = useState('');
     const [newProductStock, setNewProductStock] = useState('50');
+    const [newProductImage, setNewProductImage] = useState('');
 
+    const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+
+    // Banner Modal State
+    const [showAddBannerModal, setShowAddBannerModal] = useState(false);
+    const [newBannerTitle, setNewBannerTitle] = useState('');
+    const [newBannerSubtitle, setNewBannerSubtitle] = useState('');
+    const [newBannerTag, setNewBannerTag] = useState('WEEKEND SPECIAL • 20% OFF');
+    const [newBannerImage, setNewBannerImage] = useState('');
+
+    // Voucher Modal State
     const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
     const [newVoucherCode, setNewVoucherCode] = useState('');
     const [newVoucherDiscount, setNewVoucherDiscount] = useState('10');
 
+    // Employee Modal State
     const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
     const [newEmpName, setNewEmpName] = useState('');
     const [newEmpEmail, setNewEmpEmail] = useState('');
@@ -171,19 +188,56 @@ export default function AdminDashboard() {
         e.preventDefault();
         if (!newProductName.trim()) return;
 
+        const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+
         const newProd: ProductItem = {
             id: Date.now(),
             name: newProductName,
             category: newProductCategory,
             description: 'Delicious roadhouse sizzling meal prepared fresh upon order.',
-            price: parseFloat(newProductPrice) || 150,
-            stock: parseInt(newProductStock) || 30,
+            price: parseFloat(newProductPrice) || 180,
+            stock: parseInt(newProductStock) || 50,
             isActive: true,
-            image: products[0].image
+            image: newProductImage.trim() ? newProductImage : defaultImg
         };
         setProducts([newProd, ...products]);
         setNewProductName('');
+        setNewProductImage('');
         setShowAddProductModal(false);
+    };
+
+    const handleSaveEditProduct = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingProduct) return;
+
+        setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
+        setEditingProduct(null);
+    };
+
+    const handleGenerateNewTableQR = () => {
+        const nextNum = (tables.length + 1).toString().padStart(2, '0');
+        setTables([...tables, nextNum]);
+    };
+
+    const handleCreateBanner = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newBannerTitle.trim()) return;
+
+        const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
+
+        const newB: BannerItem = {
+            id: Date.now(),
+            title: newBannerTitle,
+            subtitle: newBannerSubtitle || 'Saddle Ranch Bulihan Roadhouse Promo',
+            tag: newBannerTag || 'PROMO BANNER',
+            image: newBannerImage.trim() ? newBannerImage : defaultBannerImg,
+            isActive: true
+        };
+        setBanners([...banners, newB]);
+        setNewBannerTitle('');
+        setNewBannerSubtitle('');
+        setNewBannerImage('');
+        setShowAddBannerModal(false);
     };
 
     const handleCreateVoucher = (e: React.FormEvent) => {
@@ -520,7 +574,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Products & Stock Inventory</h3>
-                                        <p className="text-xs text-[#d8c3ad]">Manage sizzling menu items, prices, and stock counts</p>
+                                        <p className="text-xs text-[#d8c3ad]">Manage sizzling menu items, prices, image URLs, and stock counts</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddProductModal(true)}
@@ -534,32 +588,49 @@ export default function AdminDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {products.map((p) => (
                                         <div key={p.id} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/50 shadow-xl space-y-4 flex flex-col justify-between">
-                                            <div className="flex items-start gap-4">
-                                                <img src={p.image} alt={p.name} className="w-20 h-20 rounded-2xl object-cover border border-[#534434]/40" />
+                                            <div className="space-y-3">
+                                                <div className="relative h-40 w-full rounded-2xl overflow-hidden border border-[#534434]/40 bg-[#121213]">
+                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                    <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-[#121213]/90 text-[#ffc174] font-mono font-black text-xs border border-[#f59e0b]/40">
+                                                        ₱ {p.price.toFixed(2)}
+                                                    </span>
+                                                </div>
+
                                                 <div>
                                                     <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
-                                                    <h4 className="text-sm font-bold text-white font-domine leading-snug">{p.name}</h4>
-                                                    <div className="font-mono text-base font-black text-[#ffc174] mt-1">₱ {p.price.toFixed(2)}</div>
+                                                    <h4 className="text-base font-bold text-white font-domine leading-snug">{p.name}</h4>
+                                                    <p className="text-xs text-[#d8c3ad] mt-1 line-clamp-2">{p.description}</p>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-3 border-t border-[#534434]/30 flex items-center justify-between text-xs">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[#8c7a6b]">Stock Count:</span>
-                                                    <div className="flex items-center gap-1 border border-[#534434] rounded-lg p-0.5 bg-[#121213]">
-                                                        <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#d8c3ad] hover:text-white">-</button>
-                                                        <span className="font-mono font-bold px-1.5 text-white">{p.stock}</span>
-                                                        <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#d8c3ad] hover:text-white">+</button>
+                                            <div className="pt-3 border-t border-[#534434]/30 space-y-3">
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[#8c7a6b]">Stock Count:</span>
+                                                        <div className="flex items-center gap-1 border border-[#534434] rounded-lg p-0.5 bg-[#121213]">
+                                                            <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#d8c3ad] hover:text-white">-</button>
+                                                            <span className="font-mono font-bold px-1.5 text-white">{p.stock}</span>
+                                                            <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#d8c3ad] hover:text-white">+</button>
+                                                        </div>
                                                     </div>
+
+                                                    <button
+                                                        onClick={() => toggleProductStatus(p.id)}
+                                                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                            p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                                                        }`}
+                                                    >
+                                                        {p.isActive ? 'Active' : 'Disabled'}
+                                                    </button>
                                                 </div>
 
+                                                {/* Edit Product Action Button */}
                                                 <button
-                                                    onClick={() => toggleProductStatus(p.id)}
-                                                    className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
-                                                        p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
-                                                    }`}
+                                                    onClick={() => setEditingProduct(p)}
+                                                    className="w-full py-2 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:bg-[#31281f] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all"
                                                 >
-                                                    {p.isActive ? 'Active' : 'Disabled'}
+                                                    <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                                    <span>Edit Name, Price, Image & Stock</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -571,45 +642,50 @@ export default function AdminDashboard() {
                         {/* TAB 4: TABLE AND QR GENERATOR */}
                         {activeTab === 'tables' && (
                             <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-lg font-bold text-white font-domine">Table QR Code Generator</h3>
-                                    <p className="text-xs text-[#d8c3ad]">Dynamic QR links for in-house table ordering</p>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Table QR Code Generator</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Generate and print dynamic QR badges for in-house table ordering</p>
+                                    </div>
+                                    <button
+                                        onClick={handleGenerateNewTableQR}
+                                        className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-lg"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Generate New Table QR</span>
+                                    </button>
                                 </div>
 
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {Array.from({ length: 8 }).map((_, idx) => {
-                                        const tableNum = (idx + 1).toString().padStart(2, '0');
-                                        return (
-                                            <div key={tableNum} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl text-center space-y-4">
-                                                <div className="w-12 h-12 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-lg">
-                                                    #{tableNum}
-                                                </div>
-
-                                                <div className="w-32 h-32 mx-auto p-2 bg-white rounded-2xl shadow-inner flex items-center justify-center">
-                                                    <QrCode className="w-24 h-24 text-[#121213]" />
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <button
-                                                        onClick={() => copyTableLink(tableNum)}
-                                                        className="w-full py-2 rounded-xl bg-[#121213] border border-[#534434] text-[#ffc174] font-bold text-xs hover:bg-[#261e15] flex items-center justify-center gap-1.5 btn-bevel"
-                                                    >
-                                                        <Copy className="w-3.5 h-3.5" />
-                                                        <span>{copiedTable === tableNum ? 'Copied Link!' : 'Copy Table Link'}</span>
-                                                    </button>
-
-                                                    <a
-                                                        href={`/dine-in?table=${tableNum}`}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="block text-[10px] text-[#8c7a6b] hover:text-white font-mono underline"
-                                                    >
-                                                        Test Table #{tableNum} Menu
-                                                    </a>
-                                                </div>
+                                    {tables.map((tableNum) => (
+                                        <div key={tableNum} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl text-center space-y-4">
+                                            <div className="w-12 h-12 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-lg">
+                                                #{tableNum}
                                             </div>
-                                        );
-                                    })}
+
+                                            <div className="w-32 h-32 mx-auto p-2 bg-white rounded-2xl shadow-inner flex items-center justify-center">
+                                                <QrCode className="w-24 h-24 text-[#121213]" />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <button
+                                                    onClick={() => setSelectedPrintTable(tableNum)}
+                                                    className="w-full py-2 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] font-bold text-xs hover:bg-[#f59e0b] hover:text-[#472a00] flex items-center justify-center gap-1.5 btn-bevel transition-all"
+                                                >
+                                                    <Printer className="w-3.5 h-3.5" />
+                                                    <span>View & Print QR</span>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => copyTableLink(tableNum)}
+                                                    className="w-full py-1.5 rounded-xl bg-[#121213] border border-[#534434] text-[#d8c3ad] hover:text-white font-semibold text-[11px] flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Copy className="w-3 h-3" />
+                                                    <span>{copiedTable === tableNum ? 'Copied Link!' : 'Copy Link'}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
@@ -617,27 +693,61 @@ export default function AdminDashboard() {
                         {/* TAB 5: PROMO BANNERS */}
                         {activeTab === 'banners' && (
                             <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-lg font-bold text-white font-domine">Promo Banners</h3>
-                                    <p className="text-xs text-[#d8c3ad]">Manage marketing banners on the customer landing page</p>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Promo Banners Management</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Configure hero banners and promotional cards on customer pages</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAddBannerModal(true)}
+                                        className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-lg"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Add Promo Banner</span>
+                                    </button>
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    
+                                    {/* DOTTED LINE BORDER ADD CARD WITH '+' ICON AT CENTER */}
+                                    <button
+                                        onClick={() => setShowAddBannerModal(true)}
+                                        className="h-64 rounded-3xl border-2 border-dashed border-[#f59e0b]/50 hover:border-[#f59e0b] bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-6 text-center space-y-3 group"
+                                    >
+                                        <div className="w-14 h-14 rounded-full bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <Plus className="w-8 h-8 text-[#f59e0b]" />
+                                        </div>
+                                        <div>
+                                            <div className="font-domine font-bold text-white text-base">Add New Promo Banner</div>
+                                            <p className="text-xs text-[#8c7a6b] mt-1">Image, Title, Subtitle & Promo Tag</p>
+                                        </div>
+                                    </button>
+
+                                    {/* EXISTING BANNER CARDS */}
                                     {banners.map((b) => (
-                                        <div key={b.id} className="p-4 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-4">
-                                                <img src={b.image} alt={b.title} className="w-24 h-16 rounded-2xl object-cover border border-[#534434]/40" />
-                                                <div>
-                                                    <h4 className="font-bold text-white text-sm font-domine">{b.title}</h4>
-                                                    <p className="text-xs text-[#d8c3ad]">{b.subtitle}</p>
-                                                </div>
+                                        <div key={b.id} className="h-64 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl overflow-hidden relative flex flex-col justify-between group">
+                                            <img src={b.image} alt={b.title} className="absolute inset-0 w-full h-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/60 to-transparent" />
+
+                                            <div className="relative z-10 p-5 flex justify-between items-start">
+                                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] text-[10px] font-black uppercase tracking-wider shadow">
+                                                    {b.tag}
+                                                </span>
+
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                                                    b.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-stone-800 text-stone-400'
+                                                }`}>
+                                                    {b.isActive ? 'Active' : 'Hidden'}
+                                                </span>
                                             </div>
 
-                                            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
-                                                Active Banner
-                                            </span>
+                                            <div className="relative z-10 p-5 space-y-1">
+                                                <h4 className="font-domine font-bold text-lg text-white leading-snug">{b.title}</h4>
+                                                <p className="text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">{b.subtitle}</p>
+                                            </div>
                                         </div>
                                     ))}
+
                                 </div>
                             </div>
                         )}
@@ -799,11 +909,17 @@ export default function AdminDashboard() {
                 </main>
             </div>
 
-            {/* ADD PRODUCT MODAL */}
+            {/* ADD PRODUCT MODAL (WITH IMAGE URL FIELD) */}
             {showAddProductModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <form onSubmit={handleCreateProduct} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
-                        <h3 className="text-lg font-bold text-white font-domine">Add New Sizzling Dish</h3>
+                        <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
+                            <h3 className="text-lg font-bold text-white font-domine">Add New Sizzling Dish</h3>
+                            <button type="button" onClick={() => setShowAddProductModal(false)} className="text-[#8c7a6b] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
                         <div>
                             <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Name *</label>
                             <input
@@ -812,9 +928,21 @@ export default function AdminDashboard() {
                                 value={newProductName}
                                 onChange={(e) => setNewProductName(e.target.value)}
                                 placeholder="e.g. Sizzling Ribeye Steak"
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
+                                className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
                             />
                         </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Image URL *</label>
+                            <input
+                                type="text"
+                                value={newProductImage}
+                                onChange={(e) => setNewProductImage(e.target.value)}
+                                placeholder="https://example.com/dish.jpg"
+                                className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
+                            />
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Price (₱) *</label>
@@ -828,7 +956,7 @@ export default function AdminDashboard() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Stock *</label>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Stock Count *</label>
                                 <input
                                     type="number"
                                     required
@@ -839,9 +967,175 @@ export default function AdminDashboard() {
                                 />
                             </div>
                         </div>
+
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddProductModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
                             <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Add Dish</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* EDIT PRODUCT MODAL */}
+            {editingProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <form onSubmit={handleSaveEditProduct} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
+                            <h3 className="text-lg font-bold text-white font-domine">Edit Product Details</h3>
+                            <button type="button" onClick={() => setEditingProduct(null)} className="text-[#8c7a6b] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Name</label>
+                            <input
+                                type="text"
+                                required
+                                value={editingProduct.name}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                                className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Image URL</label>
+                            <input
+                                type="text"
+                                required
+                                value={editingProduct.image}
+                                onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                                className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Price (₱)</label>
+                                <input
+                                    type="number"
+                                    required
+                                    value={editingProduct.price}
+                                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Stock Count</label>
+                                <input
+                                    type="number"
+                                    required
+                                    value={editingProduct.stock}
+                                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) || 0 })}
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setEditingProduct(null)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* PRINT & VIEW TABLE QR MODAL */}
+            {selectedPrintTable && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <div className="w-full max-w-sm rounded-3xl bg-white text-[#121213] p-6 shadow-2xl text-center space-y-4 animate-in fade-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-200">
+                            <span className="font-domine font-black text-[#121213] text-sm">SADDLE RANCH ROADHOUSE</span>
+                            <button onClick={() => setSelectedPrintTable(null)} className="text-stone-400 hover:text-stone-700">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-widest">In-House Dine In QR</div>
+                            <h3 className="text-2xl font-black font-domine text-[#121213]">TABLE #{selectedPrintTable}</h3>
+                        </div>
+
+                        <div className="w-48 h-48 mx-auto p-3 bg-stone-50 border-2 border-stone-900 rounded-2xl flex items-center justify-center">
+                            <QrCode className="w-40 h-40 text-stone-900" />
+                        </div>
+
+                        <p className="text-xs text-stone-600 leading-snug font-semibold">
+                            Scan with camera to order directly from Table #{selectedPrintTable}
+                        </p>
+
+                        <div className="pt-2 flex gap-2">
+                            <button
+                                onClick={() => window.print()}
+                                className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg btn-bevel"
+                            >
+                                <Printer className="w-4 h-4" />
+                                <span>Print Table Badge</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ADD PROMO BANNER MODAL */}
+            {showAddBannerModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <form onSubmit={handleCreateBanner} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
+                            <h3 className="text-lg font-bold text-white font-domine">Add New Promo Banner</h3>
+                            <button type="button" onClick={() => setShowAddBannerModal(false)} className="text-[#8c7a6b] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Banner Title *</label>
+                            <input
+                                type="text"
+                                required
+                                value={newBannerTitle}
+                                onChange={(e) => setNewBannerTitle(e.target.value)}
+                                placeholder="e.g. Sizzling Weekend Feast"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Subtitle / Promotion Hook</label>
+                            <input
+                                type="text"
+                                value={newBannerSubtitle}
+                                onChange={(e) => setNewBannerSubtitle(e.target.value)}
+                                placeholder="e.g. Get 20% OFF all sizzling platters"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Promo Tag (e.g. WEEKEND SPECIAL • 20% OFF)</label>
+                            <input
+                                type="text"
+                                value={newBannerTag}
+                                onChange={(e) => setNewBannerTag(e.target.value)}
+                                placeholder="WEEKEND SPECIAL • 20% OFF"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Banner Image URL *</label>
+                            <input
+                                type="text"
+                                value={newBannerImage}
+                                onChange={(e) => setNewBannerImage(e.target.value)}
+                                placeholder="https://example.com/banner.jpg"
+                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                            />
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setShowAddBannerModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create Banner</button>
                         </div>
                     </form>
                 </div>
