@@ -28,7 +28,9 @@ import {
     RefreshCw,
     Filter,
     ShieldCheck,
-    Printer
+    Printer,
+    Upload,
+    ArrowRight
 } from 'lucide-react';
 
 interface ProductItem {
@@ -108,7 +110,7 @@ export default function AdminDashboard() {
         { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3 },
         { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2 },
         { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4 },
-        { id: 'SR-[#1046]', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2 },
+        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2 },
     ]);
 
     // 4 PROMO BANNER SLOTS matching customer landing page layout 1:1
@@ -118,13 +120,13 @@ export default function AdminDashboard() {
             title: 'Sisig Saturdays Deal',
             subtitle: 'Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.',
             tag: 'WEEKEND SPECIAL • 20% OFF',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
             isActive: true
         },
         2: {
             slot: 2,
             title: 'Cowboy Ribeye Special',
-            subtitle: 'Bone-In, seared on smoking cast iron.',
+            subtitle: 'Bone-in, seared on smoking cast iron.',
             tag: 'NEW ARRIVAL',
             image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
             isActive: true
@@ -142,7 +144,7 @@ export default function AdminDashboard() {
             title: 'Pulutan Happy Hour Specials',
             subtitle: "Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.",
             tag: 'HAPPY HOUR • 4PM - 7PM DAILY',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
             ctaText: 'ORDER PULUTAN NOW →',
             isActive: true
         }
@@ -180,7 +182,7 @@ export default function AdminDashboard() {
 
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
 
-    // Slot-based Banner Modal State
+    // Slot-based Banner Modal State with Real-Time Preview
     const [targetBannerSlot, setTargetBannerSlot] = useState<number | null>(null);
     const [newBannerTitle, setNewBannerTitle] = useState('');
     const [newBannerSubtitle, setNewBannerSubtitle] = useState('');
@@ -201,6 +203,17 @@ export default function AdminDashboard() {
 
     const [copiedTable, setCopiedTable] = useState<string | null>(null);
 
+    // Helper: File Upload Blob Converter
+    const handleFileUpload = (file: File, callback: (blobUrl: string) => void) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                callback(reader.result);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     // Helpers
     const updateOrderStatus = (orderId: string, newStatus: OrderItem['status']) => {
         setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
@@ -216,6 +229,10 @@ export default function AdminDashboard() {
 
     const deleteProduct = (id: number) => {
         setProducts(products.filter(p => p.id !== id));
+    };
+
+    const deleteVoucher = (id: number) => {
+        setVouchers(vouchers.filter(v => v.id !== id));
     };
 
     const handleCreateProduct = (e: React.FormEvent) => {
@@ -637,7 +654,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Products & Stock Inventory</h3>
-                                        <p className="text-xs text-[#d8c3ad]">Manage sizzling menu items, prices, image URLs, and stock counts</p>
+                                        <p className="text-xs text-[#d8c3ad]">Manage sizzling menu items, prices, uploaded images, and stock counts</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddProductModal(true)}
@@ -774,207 +791,260 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 5: PROMO BANNERS (EXACT 4-BOX LAYOUT MATCHING LANDING PAGE PICTURE 1:1) */}
+                        {/* TAB 5: PROMO BANNERS (EXACT 1:1 BENTO GRID LAYOUT WITH CUSTOMER LANDING PAGE) */}
                         {activeTab === 'banners' && (
                             <div className="space-y-6">
                                 <div>
-                                    <h3 className="text-lg font-bold text-white font-domine">Promotions & Deals Manager</h3>
-                                    <p className="text-xs text-[#d8c3ad]">Configure the 4 specific promotion box positions on customer landing page</p>
+                                    <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
+                                        Exclusive Roadhouse Specials
+                                    </span>
+                                    <h3 className="font-domine text-2xl sm:text-4xl text-[#ffc174] font-bold tracking-tight">
+                                        Promotions & Deals (Customer View Live Preview)
+                                    </h3>
+                                    <p className="text-xs text-[#d8c3ad] mt-1">Exact 1:1 layout display. Click any slot to upload local image blobs and edit promotion text in real time.</p>
                                 </div>
 
-                                {/* 4-SLOT GRID LAYOUT (MATCHING LANDING PAGE PICTURE 1:1) */}
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                                        
-                                        {/* SLOT 1 (Top Left Large Box) */}
-                                        <div className="md:col-span-7 h-80 rounded-3xl relative overflow-hidden shadow-2xl group border border-[#534434]/60">
-                                            {banners[1] ? (
-                                                <div className="w-full h-full relative p-6 flex flex-col justify-end">
-                                                    <img src={banners[1].image} alt={banners[1].title} className="absolute inset-0 w-full h-full object-cover opacity-45 group-hover:scale-105 transition-transform duration-700" />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/60 to-transparent" />
+                                {/* Asymmetric Bento Grid matching Landing.tsx 1:1 */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                                    
+                                    {/* Slot 1: Large Featured Hero Banner */}
+                                    <div className="md:col-span-2 md:row-span-2 relative min-h-[380px] lg:min-h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl flex flex-col justify-end">
+                                        {banners[1] ? (
+                                            <>
+                                                <div className="absolute inset-0 vignette-overlay">
+                                                    <img
+                                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-700 group-hover:scale-105"
+                                                        alt={banners[1].title}
+                                                        src={banners[1].image}
+                                                    />
+                                                </div>
+                                                <div className="relative z-10 p-6 md:p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/90 to-transparent">
+                                                    <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] mb-3 inline-block font-bold shadow uppercase">
+                                                        {banners[1].tag}
+                                                    </span>
+                                                    <h3 className="font-domine text-2xl sm:text-4xl font-bold text-[#ffc174] mb-2 drop-shadow-md">
+                                                        {banners[1].title}
+                                                    </h3>
+                                                    <p className="font-sans text-xs sm:text-sm md:text-base text-[#d8c3ad] max-w-lg leading-relaxed">
+                                                        {banners[1].subtitle}
+                                                    </p>
                                                     
-                                                    <div className="relative z-10 space-y-2">
-                                                        <span className="px-3 py-1 rounded-md bg-[#f59e0b] text-[#472a00] text-[10px] font-black uppercase tracking-wider">
-                                                            {banners[1].tag}
-                                                        </span>
-                                                        <h4 className="font-domine text-2xl font-bold text-[#ffc174]">{banners[1].title}</h4>
-                                                        <p className="text-xs text-[#d8c3ad] leading-relaxed max-w-md line-clamp-2">{banners[1].subtitle}</p>
-                                                    </div>
-
                                                     <button
                                                         onClick={() => openSlotBannerModal(1)}
-                                                        className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-[#121213]/90 border border-[#f59e0b] text-[#ffc174] text-xs font-bold flex items-center gap-1.5 btn-bevel"
+                                                        className="mt-4 px-4 py-2 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-xl"
                                                     >
-                                                        <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                                        <span>Edit Slot #1</span>
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                        <span>Edit Slot #1 (Main Hero)</span>
                                                     </button>
                                                 </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => openSlotBannerModal(1)}
-                                                    className="w-full h-full border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-6 text-center space-y-3"
-                                                >
-                                                    <div className="w-14 h-14 rounded-full bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] flex items-center justify-center">
-                                                        <Plus className="w-8 h-8 text-[#f59e0b]" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-domine font-bold text-white text-base">Assign Promo to Slot #1</div>
-                                                        <p className="text-xs text-[#8c7a6b]">Main Featured Box (Top Left)</p>
-                                                    </div>
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* RIGHT COLUMN (SLOTS 2 & 3) */}
-                                        <div className="md:col-span-5 flex flex-col gap-5">
-                                            
-                                            {/* SLOT 2 (Top Right Upper Box) */}
-                                            <div className="h-36 rounded-3xl relative overflow-hidden shadow-2xl group border border-[#534434]/60">
-                                                {banners[2] ? (
-                                                    <div className="w-full h-full relative p-4 flex flex-col justify-end">
-                                                        <img src={banners[2].image} alt={banners[2].title} className="absolute inset-0 w-full h-full object-cover opacity-45 group-hover:scale-105 transition-transform duration-700" />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/60 to-transparent" />
-                                                        
-                                                        <div className="relative z-10 space-y-1">
-                                                            <span className="px-2.5 py-0.5 rounded bg-[#f59e0b] text-[#472a00] text-[9px] font-black uppercase tracking-wider">
-                                                                {banners[2].tag}
-                                                            </span>
-                                                            <h5 className="font-domine font-bold text-sm text-[#ffc174]">{banners[2].title}</h5>
-                                                            <p className="text-[11px] text-[#d8c3ad] line-clamp-1">{banners[2].subtitle}</p>
-                                                        </div>
-
-                                                        <button
-                                                            onClick={() => openSlotBannerModal(2)}
-                                                            className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-xl bg-[#121213]/90 border border-[#f59e0b] text-[#ffc174] text-[10px] font-bold flex items-center gap-1 btn-bevel"
-                                                        >
-                                                            <Edit2 className="w-3 h-3 text-[#f59e0b]" />
-                                                            <span>Edit Slot #2</span>
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => openSlotBannerModal(2)}
-                                                        className="w-full h-full border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-4 text-center space-y-1.5"
-                                                    >
-                                                        <Plus className="w-6 h-6 text-[#f59e0b]" />
-                                                        <div className="font-bold text-white text-xs">Assign Slot #2 (Top Right)</div>
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {/* SLOT 3 (Top Right Lower Box) */}
-                                            <div className="h-36 rounded-3xl relative overflow-hidden shadow-2xl group border border-[#534434]/60">
-                                                {banners[3] ? (
-                                                    <div className="w-full h-full relative p-4 flex flex-col justify-end">
-                                                        <img src={banners[3].image} alt={banners[3].title} className="absolute inset-0 w-full h-full object-cover opacity-45 group-hover:scale-105 transition-transform duration-700" />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/60 to-transparent" />
-                                                        
-                                                        <div className="relative z-10 space-y-1">
-                                                            <span className="px-2.5 py-0.5 rounded bg-[#f59e0b] text-[#472a00] text-[9px] font-black uppercase tracking-wider">
-                                                                {banners[3].tag}
-                                                            </span>
-                                                            <h5 className="font-domine font-bold text-sm text-[#ffc174]">{banners[3].title}</h5>
-                                                            <p className="text-[11px] text-[#d8c3ad] line-clamp-1">{banners[3].subtitle}</p>
-                                                        </div>
-
-                                                        <button
-                                                            onClick={() => openSlotBannerModal(3)}
-                                                            className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-xl bg-[#121213]/90 border border-[#f59e0b] text-[#ffc174] text-[10px] font-bold flex items-center gap-1 btn-bevel"
-                                                        >
-                                                            <Edit2 className="w-3 h-3 text-[#f59e0b]" />
-                                                            <span>Edit Slot #3</span>
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => openSlotBannerModal(3)}
-                                                        className="w-full h-full border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-4 text-center space-y-1.5"
-                                                    >
-                                                        <Plus className="w-6 h-6 text-[#f59e0b]" />
-                                                        <div className="font-bold text-white text-xs">Assign Slot #3 (Middle Right)</div>
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    {/* SLOT 4 (Bottom Full-Width Banner Box) */}
-                                    <div className="h-44 rounded-3xl relative overflow-hidden shadow-2xl group border border-[#534434]/60">
-                                        {banners[4] ? (
-                                            <div className="w-full h-full relative p-6 flex flex-col justify-end">
-                                                <img src={banners[4].image} alt={banners[4].title} className="absolute inset-0 w-full h-full object-cover opacity-45 group-hover:scale-105 transition-transform duration-700" />
-                                                <div className="absolute inset-0 bg-gradient-to-r from-[#121213] via-[#121213]/80 to-transparent" />
-                                                
-                                                <div className="relative z-10 space-y-2 max-w-xl">
-                                                    <span className="px-3 py-1 rounded-md bg-[#f59e0b] text-[#472a00] text-[10px] font-black uppercase tracking-wider">
-                                                        {banners[4].tag}
-                                                    </span>
-                                                    <h4 className="font-domine text-xl font-bold text-[#ffc174]">{banners[4].title}</h4>
-                                                    <p className="text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">{banners[4].subtitle}</p>
-                                                    {banners[4].ctaText && (
-                                                        <div className="text-xs font-black text-[#f59e0b] uppercase tracking-wider pt-1">{banners[4].ctaText}</div>
-                                                    )}
-                                                </div>
-
-                                                <button
-                                                    onClick={() => openSlotBannerModal(4)}
-                                                    className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-[#121213]/90 border border-[#f59e0b] text-[#ffc174] text-xs font-bold flex items-center gap-1.5 btn-bevel"
-                                                >
-                                                    <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                                    <span>Edit Slot #4</span>
-                                                </button>
-                                            </div>
+                                            </>
                                         ) : (
                                             <button
-                                                onClick={() => openSlotBannerModal(4)}
-                                                className="w-full h-full border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-6 text-center space-y-3"
+                                                onClick={() => openSlotBannerModal(1)}
+                                                className="w-full h-full min-h-[380px] border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-6 text-center space-y-3"
                                             >
-                                                <Plus className="w-8 h-8 text-[#f59e0b]" />
+                                                <div className="w-16 h-16 rounded-full bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] flex items-center justify-center">
+                                                    <Plus className="w-8 h-8 text-[#f59e0b]" />
+                                                </div>
                                                 <div>
-                                                    <div className="font-domine font-bold text-white text-base">Assign Slot #4</div>
-                                                    <p className="text-xs text-[#8c7a6b]">Bottom Full-Width Horizontal Banner</p>
+                                                    <div className="font-domine font-bold text-white text-lg">Assign Slot #1 (Main Hero Box)</div>
+                                                    <p className="text-xs text-[#8c7a6b]">Large Box (Top Left)</p>
                                                 </div>
                                             </button>
                                         )}
                                     </div>
+
+                                    {/* Slot 2: Square Card - Top Right */}
+                                    <div className="relative min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                                        {banners[2] ? (
+                                            <>
+                                                <div className="absolute inset-0 vignette-overlay">
+                                                    <img
+                                                        className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
+                                                        alt={banners[2].title}
+                                                        src={banners[2].image}
+                                                    />
+                                                </div>
+                                                <div className="relative z-10 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                                    <span className="font-mono text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1.5 inline-block font-bold uppercase">
+                                                        {banners[2].tag}
+                                                    </span>
+                                                    <h3 className="font-domine text-base font-bold text-[#ffc174]">{banners[2].title}</h3>
+                                                    <p className="font-sans text-xs text-[#d8c3ad] mt-0.5 line-clamp-1">{banners[2].subtitle}</p>
+
+                                                    <button
+                                                        onClick={() => openSlotBannerModal(2)}
+                                                        className="mt-2 text-[10px] font-bold text-[#f59e0b] hover:text-[#ffc174] uppercase flex items-center gap-1"
+                                                    >
+                                                        <Edit2 className="w-3 h-3" /> Edit Slot #2
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => openSlotBannerModal(2)}
+                                                className="w-full h-full min-h-[190px] border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-4 text-center space-y-1.5"
+                                            >
+                                                <Plus className="w-6 h-6 text-[#f59e0b]" />
+                                                <div className="font-bold text-white text-xs">Assign Slot #2 (Top Right Box)</div>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Slot 3: Square Card - Middle Right */}
+                                    <div className="relative min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                                        {banners[3] ? (
+                                            <>
+                                                <div className="absolute inset-0 vignette-overlay">
+                                                    <img
+                                                        className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
+                                                        alt={banners[3].title}
+                                                        src={banners[3].image}
+                                                    />
+                                                </div>
+                                                <div className="relative z-10 p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
+                                                    <span className="font-mono text-[10px] text-emerald-400 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1.5 inline-block font-bold uppercase">
+                                                        {banners[3].tag}
+                                                    </span>
+                                                    <h3 className="font-domine text-base font-bold text-[#f0e0d1]">{banners[3].title}</h3>
+                                                    <p className="font-sans text-xs text-[#d8c3ad] mt-0.5 line-clamp-1">{banners[3].subtitle}</p>
+
+                                                    <button
+                                                        onClick={() => openSlotBannerModal(3)}
+                                                        className="mt-2 text-[10px] font-bold text-[#f59e0b] hover:text-[#ffc174] uppercase flex items-center gap-1"
+                                                    >
+                                                        <Edit2 className="w-3 h-3" /> Edit Slot #3
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => openSlotBannerModal(3)}
+                                                className="w-full h-full min-h-[190px] border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-4 text-center space-y-1.5"
+                                            >
+                                                <Plus className="w-6 h-6 text-[#f59e0b]" />
+                                                <div className="font-bold text-white text-xs">Assign Slot #3 (Middle Right Box)</div>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Slot 4: Wide Accent Horizontal Banner */}
+                                    <div className="md:col-span-3 relative min-h-[180px] rounded-2xl overflow-hidden raised-layer group hover-heat bg-[#221a12] border border-[#534434]/60 shadow-xl flex items-center">
+                                        {banners[4] ? (
+                                            <>
+                                                <div className="w-full md:w-2/3 p-6 md:p-8 z-10 space-y-2">
+                                                    <span className="font-mono text-xs text-[#f59e0b] bg-[#31281f] px-3 py-1 rounded border border-[#534434] inline-block font-bold uppercase">
+                                                        {banners[4].tag}
+                                                    </span>
+                                                    <h3 className="font-domine text-2xl font-bold text-[#ffc174]">{banners[4].title}</h3>
+                                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] max-w-xl">
+                                                        {banners[4].subtitle}
+                                                    </p>
+                                                    <div className="text-[#f59e0b] font-mono text-xs font-bold flex items-center pt-1">
+                                                        {banners[4].ctaText || 'ORDER PULUTAN NOW →'} <ArrowRight className="w-4 h-4 ml-1.5" />
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => openSlotBannerModal(4)}
+                                                        className="mt-3 px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase flex items-center gap-1.5 btn-bevel"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" /> Edit Slot #4
+                                                    </button>
+                                                </div>
+
+                                                <div className="hidden md:block w-1/3 h-full vignette-overlay relative">
+                                                    <img
+                                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-500"
+                                                        alt={banners[4].title}
+                                                        src={banners[4].image}
+                                                    />
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => openSlotBannerModal(4)}
+                                                className="w-full h-full min-h-[180px] border-2 border-dashed border-[#f59e0b]/50 bg-[#1A1A1B]/40 hover:bg-[#1A1A1B] transition-all flex flex-col items-center justify-center p-6 text-center space-y-2"
+                                            >
+                                                <Plus className="w-8 h-8 text-[#f59e0b]" />
+                                                <div className="font-domine font-bold text-white text-base">Assign Slot #4 (Bottom Wide Banner)</div>
+                                            </button>
+                                        )}
+                                    </div>
+
                                 </div>
                             </div>
                         )}
 
-                        {/* TAB 6: VOUCHERS */}
+                        {/* TAB 6: DISCOUNT VOUCHERS (RE-DESIGNED AS PHYSICAL TICKET COUPONS) */}
                         {activeTab === 'vouchers' && (
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white font-domine">Discount Vouchers</h3>
-                                        <p className="text-xs text-[#d8c3ad]">Create promo discount codes for customer checkout</p>
+                                        <h3 className="text-lg font-bold text-white font-domine">Discount Vouchers & Ticket Coupons</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Create and issue physical ticket style promo codes for customer checkout</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddVoucherModal(true)}
                                         className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 btn-bevel shadow-lg"
                                     >
                                         <Plus className="w-4 h-4" />
-                                        <span>Create Voucher</span>
+                                        <span>Create New Ticket</span>
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {vouchers.map((v) => (
-                                        <div key={v.id} className="p-5 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-xl space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className="font-mono font-black text-lg text-[#ffc174] tracking-widest">{v.code}</span>
-                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                                                    v.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-stone-800 text-stone-400'
-                                                }`}>
-                                                    {v.isActive ? 'Active' : 'Expired'}
-                                                </span>
-                                            </div>
+                                        <div key={v.id} className="relative rounded-3xl bg-[#1A1A1B] border border-[#534434]/80 shadow-2xl overflow-hidden flex flex-col justify-between group">
+                                            
+                                            {/* Top & Bottom Ticket Cutout Punch Notches */}
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-[#121213] border border-[#534434]/80 z-20" />
+                                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-[#121213] border border-[#534434]/80 z-20" />
 
-                                            <div className="text-xs text-[#d8c3ad] space-y-1">
-                                                <div>Discount: <strong className="text-white">{v.discountPercent}% OFF</strong></div>
-                                                <div>Min. Order Amount: <strong className="text-amber-400">₱{v.minSpend.toFixed(2)}</strong></div>
-                                                <div>Times Redeemed: <strong className="text-white">{v.usedCount} times</strong></div>
+                                            {/* Ticket Body Layout with Vertical Tear Line */}
+                                            <div className="p-6 flex items-stretch gap-4 relative z-10">
+                                                
+                                                {/* Left Section: Gold Foil Discount */}
+                                                <div className="flex-1 space-y-2 pr-4 border-r-2 border-dashed border-[#534434]/60">
+                                                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#f59e0b]">
+                                                        <Ticket className="w-4 h-4 text-[#f59e0b]" />
+                                                        <span className="uppercase tracking-widest font-mono text-[10px]">ROADHOUSE COUPON</span>
+                                                    </div>
+
+                                                    <div className="font-domine text-3xl font-black text-[#ffc174] tracking-tight">
+                                                        {v.discountPercent}% OFF
+                                                    </div>
+
+                                                    <div className="inline-block px-3 py-1 rounded-xl bg-[#261e15] border border-[#534434] font-mono font-black text-white text-sm tracking-wider">
+                                                        {v.code}
+                                                    </div>
+
+                                                    <div className="text-[11px] text-[#d8c3ad]">
+                                                        Min order: <strong className="text-amber-400 font-mono font-bold">₱{v.minSpend.toFixed(2)}</strong>
+                                                    </div>
+                                                </div>
+
+                                                {/* Right Section: Redemption Counter & Status */}
+                                                <div className="w-24 flex flex-col justify-between items-end text-right pl-2">
+                                                    <button
+                                                        onClick={() => deleteVoucher(v.id)}
+                                                        className="p-1.5 rounded-full text-stone-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                                        title="Delete Voucher"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+
+                                                    <div className="space-y-1">
+                                                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider block ${
+                                                            v.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-stone-800 text-stone-400'
+                                                        }`}>
+                                                            {v.isActive ? 'Active' : 'Expired'}
+                                                        </span>
+                                                        <div className="text-[10px] text-[#8c7a6b] font-mono font-bold">
+                                                            {v.usedCount} Redeemed
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         </div>
                                     ))}
@@ -1099,7 +1169,7 @@ export default function AdminDashboard() {
                 </main>
             </div>
 
-            {/* ADD PRODUCT MODAL (WITH IMAGE URL FIELD) */}
+            {/* ADD PRODUCT MODAL (WITH BLOB IMAGE FILE UPLOADER) */}
             {showAddProductModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <form onSubmit={handleCreateProduct} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
@@ -1123,14 +1193,24 @@ export default function AdminDashboard() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Dish Image URL *</label>
-                            <input
-                                type="text"
-                                value={newProductImage}
-                                onChange={(e) => setNewProductImage(e.target.value)}
-                                placeholder="https://example.com/dish.jpg"
-                                className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b]"
-                            />
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Upload Dish Image (Local File) *</label>
+                            <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#121213] border border-dashed border-[#f59e0b]/60 text-xs font-bold text-[#ffc174] hover:bg-[#261e15] cursor-pointer">
+                                <Upload className="w-4 h-4 text-[#f59e0b]" />
+                                <span>{newProductImage ? 'Image Loaded! Click to replace' : 'Upload Image File'}</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleFileUpload(file, setNewProductImage);
+                                    }}
+                                    className="hidden"
+                                />
+                            </label>
+
+                            {newProductImage && (
+                                <img src={newProductImage} alt="Uploaded dish preview" className="w-24 h-24 object-cover rounded-xl mt-2 border border-[#534434]" />
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
@@ -1166,7 +1246,7 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* EDIT PRODUCT MODAL */}
+            {/* EDIT PRODUCT MODAL (WITH BLOB IMAGE FILE UPLOADER) */}
             {editingProduct && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <form onSubmit={handleSaveEditProduct} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
@@ -1189,14 +1269,24 @@ export default function AdminDashboard() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Image URL</label>
-                            <input
-                                type="text"
-                                required
-                                value={editingProduct.image}
-                                onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                                className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
-                            />
+                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Replace Image File (Upload Blob)</label>
+                            <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#121213] border border-dashed border-[#f59e0b]/60 text-xs font-bold text-[#ffc174] hover:bg-[#261e15] cursor-pointer">
+                                <Upload className="w-4 h-4 text-[#f59e0b]" />
+                                <span>Upload New Image File</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleFileUpload(file, (blobUrl) => setEditingProduct({ ...editingProduct, image: blobUrl }));
+                                    }}
+                                    className="hidden"
+                                />
+                            </label>
+
+                            {editingProduct.image && (
+                                <img src={editingProduct.image} alt="Dish preview" className="w-24 h-24 object-cover rounded-xl mt-2 border border-[#534434]" />
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
@@ -1271,76 +1361,102 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* ASSIGN / EDIT BANNER FOR SLOT MODAL */}
+            {/* ASSIGN / EDIT BANNER MODAL WITH REAL-TIME PREVIEW & IMAGE FILE BLOB UPLOADER */}
             {targetBannerSlot !== null && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <form onSubmit={handleSaveSlotBanner} className="w-full max-w-md rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+                    <form onSubmit={handleSaveSlotBanner} className="w-full max-w-xl rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-4 my-8">
                         <div className="flex items-center justify-between pb-2 border-b border-[#534434]/40">
                             <h3 className="text-lg font-bold text-white font-domine">
-                                Assign Promo to Slot #{targetBannerSlot}
+                                Edit Promo Banner (Slot #{targetBannerSlot})
                             </h3>
                             <button type="button" onClick={() => setTargetBannerSlot(null)} className="text-[#8c7a6b] hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Banner Title *</label>
-                            <input
-                                type="text"
-                                required
-                                value={newBannerTitle}
-                                onChange={(e) => setNewBannerTitle(e.target.value)}
-                                placeholder="e.g. Sisig Saturdays Deal"
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
-                            />
+                        {/* REAL-TIME PREVIEW BOX */}
+                        <div className="space-y-1.5">
+                            <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider flex items-center gap-1">
+                                <Eye className="w-3.5 h-3.5 text-[#f59e0b]" /> Live Real-Time Customer Landing Page Preview:
+                            </div>
+
+                            <div className="relative min-h-[160px] rounded-2xl overflow-hidden raised-layer bg-[#1A1A1B] border border-[#f59e0b]/50 shadow-xl flex flex-col justify-end p-4">
+                                <div className="absolute inset-0 vignette-overlay">
+                                    {newBannerImage ? (
+                                        <img className="w-full h-full object-cover opacity-60" alt="Preview" src={newBannerImage} />
+                                    ) : (
+                                        <div className="w-full h-full bg-[#261e15] flex items-center justify-center text-[#8c7a6b] text-xs">
+                                            No Image File Uploaded
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="relative z-10 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent p-2">
+                                    <span className="font-mono text-[9px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1 inline-block font-bold uppercase">
+                                        {newBannerTag || 'PROMO TAG'}
+                                    </span>
+                                    <h4 className="font-domine text-lg font-bold text-[#ffc174] truncate">
+                                        {newBannerTitle || 'Promotion Title'}
+                                    </h4>
+                                    <p className="font-sans text-xs text-[#d8c3ad] line-clamp-1">
+                                        {newBannerSubtitle || 'Promotion Subtitle details...'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Subtitle / Deal Description</label>
-                            <input
-                                type="text"
-                                value={newBannerSubtitle}
-                                onChange={(e) => setNewBannerSubtitle(e.target.value)}
-                                placeholder="e.g. Enjoy 20% off our legendary Pork Sisig..."
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Promo Tag (e.g. WEEKEND SPECIAL • 20% OFF)</label>
-                            <input
-                                type="text"
-                                value={newBannerTag}
-                                onChange={(e) => setNewBannerTag(e.target.value)}
-                                placeholder="WEEKEND SPECIAL • 20% OFF"
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Banner Image URL *</label>
-                            <input
-                                type="text"
-                                value={newBannerImage}
-                                onChange={(e) => setNewBannerImage(e.target.value)}
-                                placeholder="https://example.com/banner.jpg"
-                                className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
-                            />
-                        </div>
-
-                        {targetBannerSlot === 4 && (
+                        {/* INPUT FIELDS */}
+                        <div className="space-y-3">
                             <div>
-                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">CTA Action Text (Optional)</label>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Banner Title *</label>
                                 <input
                                     type="text"
-                                    value={newBannerCta}
-                                    onChange={(e) => setNewBannerCta(e.target.value)}
-                                    placeholder="e.g. ORDER PULUTAN NOW →"
+                                    required
+                                    value={newBannerTitle}
+                                    onChange={(e) => setNewBannerTitle(e.target.value)}
+                                    placeholder="e.g. Sisig Saturdays Deal"
                                     className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
                                 />
                             </div>
-                        )}
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Subtitle / Deal Description</label>
+                                <input
+                                    type="text"
+                                    value={newBannerSubtitle}
+                                    onChange={(e) => setNewBannerSubtitle(e.target.value)}
+                                    placeholder="e.g. Enjoy 20% off our legendary Pork Sisig..."
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Promo Tag (e.g. WEEKEND SPECIAL • 20% OFF)</label>
+                                <input
+                                    type="text"
+                                    value={newBannerTag}
+                                    onChange={(e) => setNewBannerTag(e.target.value)}
+                                    placeholder="WEEKEND SPECIAL • 20% OFF"
+                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white uppercase"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#d8c3ad] mb-1">Upload Banner Image File (Blob File Upload) *</label>
+                                <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#121213] border border-dashed border-[#f59e0b]/60 text-xs font-bold text-[#ffc174] hover:bg-[#261e15] cursor-pointer">
+                                    <Upload className="w-4 h-4 text-[#f59e0b]" />
+                                    <span>{newBannerImage ? 'Image Loaded! Click to replace' : 'Upload Banner File'}</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleFileUpload(file, setNewBannerImage);
+                                        }}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+                        </div>
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setTargetBannerSlot(null)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
@@ -1379,7 +1495,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddVoucherModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#261e15] text-[#d8c3ad] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create</button>
+                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] text-xs font-black uppercase btn-bevel">Create Ticket</button>
                         </div>
                     </form>
                 </div>
