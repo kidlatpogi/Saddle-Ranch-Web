@@ -64,7 +64,8 @@ export default function EmployeeDashboard() {
     // POS is default active tab for Cashiers!
     const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    // Cashier Order Queue defaults to 'ready' (ready to serve)!
+    const [statusFilter, setStatusFilter] = useState('ready');
     const [categoryFilter, setCategoryFilter] = useState('All');
 
     // POS Walk-In Cart State
@@ -78,9 +79,9 @@ export default function EmployeeDashboard() {
 
     // Live State Orders Dataset
     const [orders, setOrders] = useState<OrderItem[]>([
-        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3, itemsSummary: '2x Sizzling Pork Sisig, 1x Red Iced Tea Pitcher' },
+        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'ready', time: '10 mins ago', itemsCount: 3, itemsSummary: '2x Sizzling Pork Sisig, 1x Red Iced Tea Pitcher' },
         { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, itemsSummary: '1x Sizzling T-Bone Steak, 1x Extra Garlic Rice' },
-        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4, itemsSummary: '1x Sizzling Bulalo Steak, 2x Chicken Inasal, 1x Red Iced Tea' },
+        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'preparing', time: '30 mins ago', itemsCount: 4, itemsSummary: '1x Sizzling Bulalo Steak, 2x Chicken Inasal, 1x Red Iced Tea' },
         { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, itemsSummary: '2x Sizzling Pork Sisig' },
     ]);
 
@@ -170,6 +171,9 @@ export default function EmployeeDashboard() {
 
     const shiftRevenue = orders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
 
+    const readyCount = orders.filter(o => o.status === 'ready').length;
+    const completedCount = orders.filter(o => o.status === 'completed').length;
+
     return (
         <>
             <Head title="Cashier POS & Employee Portal | Saddle Ranch" />
@@ -183,7 +187,7 @@ export default function EmployeeDashboard() {
                         </div>
                         <div>
                             <h1 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight">Saddle Ranch Cashier POS & Employee Terminal</h1>
-                            <p className="text-xs text-[#a1a1aa]">Touchscreen Tablet Register & Live Kitchen Queue Control</p>
+                            <p className="text-xs text-[#a1a1aa]">Touchscreen Tablet Register & Live Ready-Order Serve Control</p>
                         </div>
                     </div>
 
@@ -231,7 +235,7 @@ export default function EmployeeDashboard() {
                                 }`}
                             >
                                 <ListOrdered className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span>Orders Queue ({orders.length})</span>
+                                <span>Ready to Serve Orders ({readyCount})</span>
                             </button>
 
                             <button
@@ -528,18 +532,16 @@ export default function EmployeeDashboard() {
                         </div>
                     )}
 
-                    {/* TAB 1: UNCONFUSING HIGH-VISIBILITY ORDER QUEUE WITH BIG AF BUTTONS */}
+                    {/* TAB 1: CASHIER FOCUSED READY-TO-SERVE ORDERS QUEUE */}
                     {activeTab === 'queue' && (
                         <div className="space-y-6">
                             {/* FILTER PIPELINE CHIPS */}
                             <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-3 shadow-lg">
                                 <div className="flex items-center gap-2 overflow-x-auto">
                                     {[
+                                        { id: 'ready', label: '🟦 Ready to Serve / Pick-Up', count: readyCount, color: 'text-blue-400' },
+                                        { id: 'completed', label: '🟩 Completed Orders', count: completedCount, color: 'text-emerald-400' },
                                         { id: 'All', label: 'All Orders', count: orders.length, color: 'text-white' },
-                                        { id: 'pending', label: '1. Pending Kitchen', count: orders.filter(o => o.status === 'pending').length, color: 'text-amber-400' },
-                                        { id: 'preparing', label: '2. Preparing (On Grill)', count: orders.filter(o => o.status === 'preparing').length, color: 'text-amber-300' },
-                                        { id: 'ready', label: '3. Ready to Serve', count: orders.filter(o => o.status === 'ready').length, color: 'text-blue-400' },
-                                        { id: 'completed', label: '4. Completed', count: orders.filter(o => o.status === 'completed').length, color: 'text-emerald-400' },
                                     ].map((chip) => (
                                         <button
                                             key={chip.id}
@@ -559,21 +561,20 @@ export default function EmployeeDashboard() {
                                 </div>
 
                                 <div className="text-xs text-[#a1a1aa]">
-                                    Showing <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> active tickets
+                                    Cashier Serving Queue: <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> ready tickets
                                 </div>
                             </div>
 
-                            {/* ORDER QUEUE CARDS GRID */}
+                            {/* CASHIER ORDER QUEUE CARDS GRID */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                                 {filteredOrders.length > 0 ? (
                                     filteredOrders.map((o) => (
                                         <div
                                             key={o.id}
                                             className={`p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-5 flex flex-col justify-between transition-all ${
-                                                o.status === 'pending' ? 'bg-[#202024] border-amber-500/50' :
-                                                o.status === 'preparing' ? 'bg-[#202024] border-yellow-500/50' :
-                                                o.status === 'ready' ? 'bg-[#1d2636] border-blue-500/60 shadow-blue-500/10' :
-                                                'bg-[#19261f] border-emerald-500/50'
+                                                o.status === 'ready' ? 'bg-[#1b2638] border-blue-500/80 shadow-blue-500/20' :
+                                                o.status === 'completed' ? 'bg-[#19261f] border-emerald-500/50' :
+                                                'bg-[#202024] border-[#333338]'
                                             }`}
                                         >
                                             <div className="space-y-4">
@@ -587,15 +588,13 @@ export default function EmployeeDashboard() {
                                                     </div>
 
                                                     <span className={`px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                                                        o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
                                                         o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse' :
-                                                        o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
-                                                        'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                                                        o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                                                        'bg-amber-500/20 text-amber-400 border border-amber-500/40'
                                                     }`}>
-                                                        {o.status === 'pending' ? '🟧 Pending Kitchen' :
-                                                         o.status === 'preparing' ? '🟨 Preparing on Grill' :
-                                                         o.status === 'ready' ? '🟦 Ready to Serve' :
-                                                         '🟩 Completed'}
+                                                        {o.status === 'ready' ? '🟦 Ready to Serve' :
+                                                         o.status === 'completed' ? '🟩 Completed' :
+                                                         o.status}
                                                     </span>
                                                 </div>
 
@@ -607,7 +606,7 @@ export default function EmployeeDashboard() {
                                                     </div>
 
                                                     <div className="p-4 rounded-2xl bg-[#141416] border border-[#3f3f46] space-y-1">
-                                                        <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider">Dishes Ordered:</div>
+                                                        <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider">Dishes Ready for Customer:</div>
                                                         <div className="text-xs sm:text-sm font-mono font-bold text-zinc-100 leading-relaxed">
                                                             {o.itemsSummary}
                                                         </div>
@@ -616,32 +615,12 @@ export default function EmployeeDashboard() {
 
                                                 <div className="flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
                                                     <span>Payment: <strong className="text-white">{o.payment}</strong></span>
-                                                    <span className="text-base font-black text-[#fbbf24]">Total: ₱{o.amount.toFixed(2)}</span>
+                                                    <span className="text-base font-black text-[#fbbf24]">Total Paid: ₱{o.amount.toFixed(2)}</span>
                                                 </div>
                                             </div>
 
-                                            {/* CLEAN HIGH-CONTRAST BIG ACTION BUTTONS */}
+                                            {/* CASHIER ACTION BUTTON */}
                                             <div className="pt-2">
-                                                {o.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => updateOrderStatus(o.id, 'preparing')}
-                                                        className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-[#f59e0b]/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
-                                                    >
-                                                        <Flame className="w-6 h-6 flex-shrink-0" />
-                                                        <span className="text-center">START PREPARING (COOK ON GRILL)</span>
-                                                    </button>
-                                                )}
-
-                                                {o.status === 'preparing' && (
-                                                    <button
-                                                        onClick={() => updateOrderStatus(o.id, 'ready')}
-                                                        className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
-                                                    >
-                                                        <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-                                                        <span className="text-center">BUMP / MARK READY TO SERVE</span>
-                                                    </button>
-                                                )}
-
                                                 {o.status === 'ready' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'completed')}
@@ -658,15 +637,25 @@ export default function EmployeeDashboard() {
                                                         <span>ORDER FULLY FULFILLED & SERVED</span>
                                                     </div>
                                                 )}
+
+                                                {o.status !== 'ready' && o.status !== 'completed' && (
+                                                    <button
+                                                        onClick={() => updateOrderStatus(o.id, 'ready')}
+                                                        className="w-full px-4 py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                                                        <span>MARK READY FOR SERVE</span>
+                                                    </button>
+                                                )}
                                             </div>
 
                                         </div>
                                     ))
                                 ) : (
                                     <div className="col-span-3 p-12 rounded-3xl bg-[#202024] border border-[#333338] text-center space-y-2">
-                                        <ListOrdered className="w-10 h-10 text-[#71717a] mx-auto" />
-                                        <div className="text-base font-bold text-white font-domine">No orders found in status "{statusFilter}"</div>
-                                        <p className="text-xs text-[#a1a1aa]">Select "All Orders" or place a new walk-in register order to test pipeline.</p>
+                                        <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                                        <div className="text-base font-bold text-white font-domine">No orders currently ready for serve</div>
+                                        <p className="text-xs text-[#a1a1aa]">New orders ready from the kitchen grill will appear here automatically.</p>
                                     </div>
                                 )}
                             </div>
@@ -735,13 +724,13 @@ export default function EmployeeDashboard() {
 
                                 <div className="p-6 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-2">
                                     <span className="text-xs font-bold text-[#a1a1aa] uppercase">Total Shift Orders</span>
-                                    <div className="text-3xl font-mono font-black text-white">{orders.length} Orders</div>
+                                    <div className="text-3xl font-mono font-black text-[#ffffff]">{orders.length} Orders</div>
                                     <p className="text-[11px] text-[#a1a1aa]">Processed today</p>
                                 </div>
 
                                 <div className="p-6 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-2">
                                     <span className="text-xs font-bold text-[#a1a1aa] uppercase">Average Order Value</span>
-                                    <div className="text-3xl font-mono font-black text-white">₱ {(shiftRevenue / Math.max(1, orders.length)).toFixed(2)}</div>
+                                    <div className="text-3xl font-mono font-black text-[#ffffff]">₱ {(shiftRevenue / Math.max(1, orders.length)).toFixed(2)}</div>
                                     <p className="text-[11px] text-emerald-400 font-bold">Good throughput</p>
                                 </div>
                             </div>

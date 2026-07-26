@@ -5,14 +5,13 @@ import {
     Clock, 
     CheckCircle2, 
     ArrowLeft, 
-    RefreshCw, 
     ChefHat, 
-    AlertCircle, 
-    Filter, 
     Volume2, 
     VolumeX,
     Bell,
-    Check
+    Check,
+    UtensilsCrossed,
+    Sparkles
 } from 'lucide-react';
 
 interface KDSOrder {
@@ -192,14 +191,14 @@ export default function KitchenDisplaySystem() {
                 {/* KDS Main Container - Expanded Width for Laptop/Desktop & Tablets */}
                 <main className="max-w-[1600px] w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1 space-y-6">
                     
-                    {/* PIPELINE FILTER CHIPS IDENTICAL TO ORDERS QUEUE */}
+                    {/* PIPELINE FILTER CHIPS */}
                     <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-3 shadow-lg">
                         <div className="flex items-center gap-2 overflow-x-auto">
                             {[
                                 { id: 'All', label: 'All Active Tickets', count: kdsOrders.length, color: 'text-white' },
-                                { id: 'pending', label: '1. Pending Kitchen', count: pendingCount, color: 'text-amber-400' },
-                                { id: 'preparing', label: '2. Preparing (On Grill)', count: preparingCount, color: 'text-amber-300' },
-                                { id: 'ready', label: '3. Ready to Serve', count: readyCount, color: 'text-blue-400' },
+                                { id: 'pending', label: '🟧 1. Pending Kitchen', count: pendingCount, color: 'text-amber-400' },
+                                { id: 'preparing', label: '🟨 2. Preparing (On Grill)', count: preparingCount, color: 'text-yellow-300' },
+                                { id: 'ready', label: '🟦 3. Ready to Serve', count: readyCount, color: 'text-blue-400' },
                             ].map((chip) => (
                                 <button
                                     key={chip.id}
@@ -220,76 +219,100 @@ export default function KitchenDisplaySystem() {
 
                         <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
                             <ChefHat className="w-4 h-4 text-[#f59e0b]" />
-                            <span>Showing <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> active tickets</span>
+                            <span>Active Cook Queue: <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> tickets</span>
                         </div>
                     </div>
 
-                    {/* KDS CARDS GRID RESPONSIVE FOR TABLET, LAPTOP, DESKTOP */}
+                    {/* HIGH-DISTINCTION UNCONFUSING KDS CARDS GRID */}
                     {filteredOrders.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                             {filteredOrders.map((order) => (
                                 <div
                                     key={order.id}
-                                    className={`p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-5 flex flex-col justify-between transition-all ${
+                                    className={`rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden transition-all ${
                                         order.status === 'pending'
-                                            ? 'bg-[#202024] border-amber-500/60 shadow-amber-500/10'
+                                            ? 'bg-[#1e1710] border-[#f59e0b] shadow-[#f59e0b]/20'
                                             : order.status === 'preparing'
-                                            ? 'bg-[#202024] border-yellow-500/50'
-                                            : 'bg-[#1d2636] border-blue-500/60 shadow-blue-500/10'
+                                            ? 'bg-[#1f1e18] border-yellow-400/80 shadow-yellow-500/10'
+                                            : 'bg-[#131b29] border-blue-500/80 shadow-blue-500/20'
                                     }`}
                                 >
-                                    <div className="space-y-4">
-                                        {/* Ticket Header Bar */}
+                                    {/* DISTINCT TOP BANNER BY STATUS */}
+                                    <div className={`px-5 py-2.5 font-black text-xs uppercase tracking-wider flex items-center justify-between ${
+                                        order.status === 'pending'
+                                            ? 'bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#3f2000]'
+                                            : order.status === 'preparing'
+                                            ? 'bg-yellow-500/20 text-yellow-300 border-b border-yellow-500/30'
+                                            : 'bg-blue-600/20 text-blue-300 border-b border-blue-500/30'
+                                    }`}>
+                                        <div className="flex items-center gap-1.5 font-domine">
+                                            {order.status === 'pending' && <Flame className="w-4 h-4 flex-shrink-0 animate-bounce" />}
+                                            {order.status === 'preparing' && <UtensilsCrossed className="w-4 h-4 flex-shrink-0" />}
+                                            {order.status === 'ready' && <Sparkles className="w-4 h-4 flex-shrink-0" />}
+                                            <span>
+                                                {order.status === 'pending' ? '🔥 NEW ORDER - NEEDS GRILL' :
+                                                 order.status === 'preparing' ? '🍳 SIZZLING ON GRILL' :
+                                                 '✨ BUMPED & READY AT COUNTER'}
+                                            </span>
+                                        </div>
+
+                                        <span className="font-mono text-[11px]">
+                                            {order.elapsedMins} mins
+                                        </span>
+                                    </div>
+
+                                    {/* CARD BODY CONTENT */}
+                                    <div className="p-6 space-y-4 flex-1">
+                                        {/* Ticket Sub-Header Bar */}
                                         <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
-                                            <span className="px-3.5 py-1 rounded-full bg-[#18181b] text-[#fbbf24] text-xs font-mono font-black border border-[#3f3f46]">
+                                            <span className="px-3.5 py-1 rounded-xl bg-[#141416] text-[#fbbf24] text-xs font-mono font-black border border-[#3f3f46]">
                                                 [{order.tableOrMode}]
                                             </span>
 
-                                            <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-3 py-1 rounded-full ${
-                                                order.elapsedMins >= 10 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse' : 'bg-amber-500/20 text-amber-400'
+                                            <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-3 py-1 rounded-xl ${
+                                                order.elapsedMins >= 10 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse' : 'bg-[#141416] text-[#a1a1aa]'
                                             }`}>
                                                 <Clock className="w-3.5 h-3.5" />
-                                                {order.elapsedMins} mins elapsed
+                                                {order.timeAgo}
                                             </span>
                                         </div>
 
                                         {/* Order ID & Customer */}
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <span className="font-mono text-xl font-black text-white tracking-wider">{order.id}</span>
+                                                <span className="font-mono text-2xl font-black text-white tracking-wider">{order.id}</span>
                                                 <div className="text-xs text-[#a1a1aa] font-bold">Guest: {order.customer}</div>
                                             </div>
-                                            <span className="text-xs text-[#a1a1aa] font-mono">{order.timeAgo}</span>
                                         </div>
 
-                                        {/* Dish Items list */}
-                                        <div className="space-y-2.5 pt-1">
+                                        {/* Dish Items list with High-Visibility Badges */}
+                                        <div className="space-y-3 pt-1">
                                             {order.items.map((item, idx) => (
-                                                <div key={idx} className="p-3.5 rounded-2xl bg-[#141416] border border-[#3f3f46] space-y-1">
-                                                    <div className="text-base font-black text-white font-domine flex items-center gap-2.5">
-                                                        <span className="w-7 h-7 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs flex items-center justify-center font-mono font-black">
+                                                <div key={idx} className="p-4 rounded-2xl bg-[#141416] border border-[#3f3f46] space-y-1.5 shadow-inner">
+                                                    <div className="text-base sm:text-lg font-black text-white font-domine flex items-center gap-3">
+                                                        <span className="w-8 h-8 rounded-xl bg-[#f59e0b] text-[#3f2000] text-sm flex items-center justify-center font-mono font-black shadow-md flex-shrink-0">
                                                             {item.qty}x
                                                         </span>
                                                         <span>{item.name}</span>
                                                     </div>
                                                     {item.notes && (
-                                                        <p className="text-xs text-amber-300 font-sans italic pl-9">
-                                                            ★ Note: {item.notes}
-                                                        </p>
+                                                        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 font-sans italic">
+                                                            ★ Special Request: {item.notes}
+                                                        </div>
                                                     )}
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* CLEAN HIGH-CONTRAST BIG ACTION BUTTONS */}
-                                    <div className="pt-2">
+                                    {/* DISTINCT ACTION BUTTON FOOTER */}
+                                    <div className="p-6 pt-0">
                                         {order.status === 'pending' && (
                                             <button
                                                 onClick={() => updateKdsStatus(order.id, 'preparing')}
                                                 className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-[#f59e0b]/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                             >
-                                                <Flame className="w-6 h-6 flex-shrink-0" />
+                                                <Flame className="w-6 h-6 flex-shrink-0 animate-bounce" />
                                                 <span className="text-center">START PREPARING (COOK ON GRILL)</span>
                                             </button>
                                         )}
