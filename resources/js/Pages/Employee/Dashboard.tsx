@@ -12,7 +12,19 @@ import {
     Clock, 
     ChefHat, 
     ArrowUpRight,
-    ShoppingBag
+    ShoppingBag,
+    Plus,
+    Minus,
+    Trash2,
+    Printer,
+    DollarSign,
+    CreditCard,
+    Smartphone,
+    User,
+    MapPin,
+    Receipt,
+    Check,
+    X
 } from 'lucide-react';
 
 interface OrderItem {
@@ -39,11 +51,28 @@ interface ProductItem {
     image: string;
 }
 
+interface PosCartItem {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
 export default function EmployeeDashboard() {
-    const [activeTab, setActiveTab] = useState<'queue' | 'menu' | 'sales'>('queue');
+    // POS is default active tab for Cashiers!
+    const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState('All');
+
+    // POS Walk-In Cart State
+    const [posCart, setPosCart] = useState<PosCartItem[]>([]);
+    const [posCustomerName, setPosCustomerName] = useState('Walk-In Guest');
+    const [posTableNumber, setPosTableNumber] = useState('01');
+    const [posOrderType, setPosOrderType] = useState<'Dine-In' | 'Pick-Up'>('Dine-In');
+    const [posPaymentMethod, setPosPaymentMethod] = useState<'Cash' | 'GCash' | 'Maya / Card'>('Cash');
+    const [cashTendered, setCashTendered] = useState<string>('');
+    const [showReceiptModal, setShowReceiptModal] = useState<OrderItem | null>(null);
 
     // Live State Orders Dataset
     const [orders, setOrders] = useState<OrderItem[]>([
@@ -61,6 +90,65 @@ export default function EmployeeDashboard() {
         { id: 4, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
         { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', price: 95, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
     ]);
+
+    // POS Cart Helpers
+    const addToPosCart = (product: ProductItem) => {
+        const existing = posCart.find(item => item.id === product.id);
+        if (existing) {
+            setPosCart(posCart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
+        } else {
+            setPosCart([...posCart, { id: product.id, name: product.name, price: product.price, quantity: 1 }]);
+        }
+    };
+
+    const updatePosQuantity = (productId: number, delta: number) => {
+        setPosCart(posCart.map(item => {
+            if (item.id === productId) {
+                const newQty = item.quantity + delta;
+                return newQty > 0 ? { ...item, quantity: newQty } : null;
+            }
+            return item;
+        }).filter(Boolean) as PosCartItem[]);
+    };
+
+    const removePosItem = (productId: number) => {
+        setPosCart(posCart.filter(item => item.id !== productId));
+    };
+
+    const posCartTotal = posCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const posTenderedAmount = parseFloat(cashTendered) || 0;
+    const posChangeAmount = Math.max(0, posTenderedAmount - posCartTotal);
+
+    const handleCheckoutWalkInOrder = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (posCart.length === 0) return;
+
+        const nextNum = (orders.length + 50).toString().padStart(4, '0');
+        const newOrderId = `SR-${nextNum}`;
+        const itemsSummaryText = posCart.map(i => `${i.quantity}x ${i.name}`).join(', ');
+
+        const newOrder: OrderItem = {
+            id: newOrderId,
+            type: posOrderType,
+            location: posOrderType === 'Dine-In' ? `Table ${posTableNumber}` : 'Counter Pick-Up',
+            customer: posCustomerName || 'Walk-In Customer',
+            phone: 'Walk-In Counter',
+            amount: posCartTotal,
+            payment: `${posPaymentMethod} (Walk-In POS)`,
+            status: 'preparing',
+            time: 'Just now',
+            itemsCount: posCart.reduce((sum, i) => sum + i.quantity, 0),
+            itemsSummary: itemsSummaryText
+        };
+
+        setOrders([newOrder, ...orders]);
+        setShowReceiptModal(newOrder);
+
+        // Reset Cart
+        setPosCart([]);
+        setCashTendered('');
+        setPosCustomerName('Walk-In Guest');
+    };
 
     const updateOrderStatus = (orderId: string, newStatus: OrderItem['status']) => {
         setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
@@ -82,7 +170,7 @@ export default function EmployeeDashboard() {
 
     return (
         <>
-            <Head title="Employee Portal | Saddle Ranch" />
+            <Head title="Cashier POS & Employee Portal | Saddle Ranch" />
             <div className="min-h-screen bg-[#141416] text-[#f4f4f5] font-sans selection:bg-[#f59e0b] selection:text-[#3f2000] flex flex-col">
                 
                 {/* Header */}
@@ -92,8 +180,8 @@ export default function EmployeeDashboard() {
                             <Flame className="w-6 h-6 text-[#3f2000]" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight">Saddle Ranch Employee Portal</h1>
-                            <p className="text-xs text-[#a1a1aa]">Staff Cashier & Front-of-House Order Terminal</p>
+                            <h1 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight">Saddle Ranch Cashier POS & Employee Terminal</h1>
+                            <p className="text-xs text-[#a1a1aa]">Front-of-House Walk-In Register & Live Kitchen Queue Control</p>
                         </div>
                     </div>
 
@@ -124,6 +212,16 @@ export default function EmployeeDashboard() {
                     {/* Navigation Tabs Bar */}
                     <div className="p-2 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-4 shadow-lg">
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setActiveTab('pos')}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'pos' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                }`}
+                            >
+                                <Receipt className="w-4 h-4" />
+                                <span>POS Walk-In Register</span>
+                            </button>
+
                             <button
                                 onClick={() => setActiveTab('queue')}
                                 className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
@@ -162,11 +260,234 @@ export default function EmployeeDashboard() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search order ID or items..."
+                                placeholder="Search dishes or order ID..."
                                 className="w-56 pl-9 pr-4 py-1.5 bg-[#18181b] border border-[#3f3f46] rounded-xl text-xs text-white placeholder-[#71717a] focus:outline-none focus:border-[#f59e0b]"
                             />
                         </div>
                     </div>
+
+                    {/* TAB 0: CASHIER POS WALK-IN REGISTER */}
+                    {activeTab === 'pos' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                            
+                            {/* Left Column (2/3): Interactive Menu Grid */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-base font-bold text-white font-domine">Walk-In Menu Catalog</h3>
+                                        <p className="text-xs text-[#a1a1aa]">Tap any sizzling dish to add directly to customer register ticket</p>
+                                    </div>
+
+                                    {/* Category Filter Chips */}
+                                    <div className="flex items-center gap-1.5 overflow-x-auto">
+                                        {['All', 'Sizzling Rice Meals', 'Authentic Filipino Cuisine', 'Barkada Platters', 'Drinks & Extra Rice'].map((cat) => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => setCategoryFilter(cat)}
+                                                className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
+                                                    categoryFilter === cat
+                                                        ? 'bg-[#f59e0b] text-[#3f2000] font-black'
+                                                        : 'bg-[#202024] border border-[#333338] text-[#a1a1aa] hover:text-white'
+                                                }`}
+                                            >
+                                                {cat === 'All' ? 'All Items' : cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    {filteredProducts.map((product) => {
+                                        const cartItem = posCart.find(i => i.id === product.id);
+                                        return (
+                                            <button
+                                                key={product.id}
+                                                onClick={() => addToPosCart(product)}
+                                                className="p-3 rounded-2xl bg-[#202024] border border-[#333338] hover:border-[#f59e0b] shadow-lg text-left space-y-2 group transition-all relative overflow-hidden active:scale-95"
+                                            >
+                                                {cartItem && (
+                                                    <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#f59e0b] text-[#3f2000] font-mono font-black text-xs flex items-center justify-center shadow-md">
+                                                        {cartItem.quantity}
+                                                    </span>
+                                                )}
+
+                                                <div className="h-28 w-full rounded-xl overflow-hidden bg-[#18181b] border border-[#3f3f46]">
+                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                </div>
+
+                                                <div>
+                                                    <h4 className="text-xs font-bold text-white font-domine line-clamp-1 group-hover:text-[#fbbf24] transition-colors">{product.name}</h4>
+                                                    <div className="flex items-center justify-between pt-1">
+                                                        <span className="font-mono font-black text-xs text-[#fbbf24]">₱ {product.price.toFixed(2)}</span>
+                                                        <span className="text-[10px] text-[#71717a] font-mono">{product.stock} left</span>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Right Column (1/3): Walk-In Order Ticket Panel */}
+                            <div className="p-6 rounded-3xl bg-[#202024] border border-[#333338] shadow-2xl space-y-5 sticky top-28">
+                                <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
+                                    <div className="flex items-center gap-2">
+                                        <Receipt className="w-5 h-5 text-[#f59e0b]" />
+                                        <h3 className="font-domine font-bold text-white text-base">Walk-In POS Ticket</h3>
+                                    </div>
+                                    <span className="text-xs font-mono text-[#fbbf24] bg-[#18181b] px-2.5 py-1 rounded-lg border border-[#3f3f46]">
+                                        {posCart.reduce((sum, i) => sum + i.quantity, 0)} items
+                                    </span>
+                                </div>
+
+                                {/* Order Type & Customer Inputs */}
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPosOrderType('Dine-In')}
+                                            className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                                                posOrderType === 'Dine-In' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                            }`}
+                                        >
+                                            <Utensils className="w-3.5 h-3.5" /> Dine-In
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setPosOrderType('Pick-Up')}
+                                            className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                                                posOrderType === 'Pick-Up' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                            }`}
+                                        >
+                                            <ShoppingBag className="w-3.5 h-3.5" /> Takeout
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Customer Name</label>
+                                            <input
+                                                type="text"
+                                                value={posCustomerName}
+                                                onChange={(e) => setPosCustomerName(e.target.value)}
+                                                className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                            />
+                                        </div>
+
+                                        {posOrderType === 'Dine-In' && (
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Table #</label>
+                                                <input
+                                                    type="text"
+                                                    value={posTableNumber}
+                                                    onChange={(e) => setPosTableNumber(e.target.value)}
+                                                    className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono text-center"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Cart Items List */}
+                                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                    {posCart.length > 0 ? (
+                                        posCart.map((item) => (
+                                            <div key={item.id} className="p-2.5 rounded-2xl bg-[#18181b] border border-[#3f3f46] flex items-center justify-between gap-2 text-xs">
+                                                <div className="flex-1 truncate">
+                                                    <div className="font-bold text-white truncate">{item.name}</div>
+                                                    <div className="text-[11px] font-mono text-[#a1a1aa]">₱{item.price.toFixed(2)} x {item.quantity}</div>
+                                                </div>
+
+                                                <div className="flex items-center gap-1">
+                                                    <button onClick={() => updatePosQuantity(item.id, -1)} className="w-6 h-6 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white flex items-center justify-center text-xs font-bold">-</button>
+                                                    <span className="font-mono font-bold text-white px-1">{item.quantity}</span>
+                                                    <button onClick={() => updatePosQuantity(item.id, 1)} className="w-6 h-6 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white flex items-center justify-center text-xs font-bold">+</button>
+                                                    <button onClick={() => removePosItem(item.id)} className="p-1 text-rose-400 hover:text-rose-300 ml-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-6 text-center text-xs text-[#71717a] border border-dashed border-[#3f3f46] rounded-2xl">
+                                            Tap dishes on the left catalog to start building order
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Payment Method & Change Calculation */}
+                                {posCart.length > 0 && (
+                                    <form onSubmit={handleCheckoutWalkInOrder} className="space-y-4 pt-3 border-t border-[#333338]">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Payment Method</label>
+                                            <div className="grid grid-cols-3 gap-1.5">
+                                                {(['Cash', 'GCash', 'Maya / Card'] as const).map((method) => (
+                                                    <button
+                                                        key={method}
+                                                        type="button"
+                                                        onClick={() => setPosPaymentMethod(method)}
+                                                        className={`py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                                                            posPaymentMethod === method
+                                                                ? 'bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]'
+                                                                : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                                        }`}
+                                                    >
+                                                        {method}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {posPaymentMethod === 'Cash' && (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Amount Tendered (₱)</label>
+                                                    <input
+                                                        type="number"
+                                                        required
+                                                        value={cashTendered}
+                                                        onChange={(e) => setCashTendered(e.target.value)}
+                                                        placeholder={posCartTotal.toString()}
+                                                        className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Change Due (₱)</label>
+                                                    <div className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs font-mono font-bold text-emerald-400">
+                                                        ₱ {posChangeAmount.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-1 pt-1">
+                                            <div className="flex justify-between text-xs text-[#a1a1aa]">
+                                                <span>Subtotal</span>
+                                                <span className="font-mono">₱{(posCartTotal * 0.88).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-xs text-[#a1a1aa]">
+                                                <span>12% VAT</span>
+                                                <span className="font-mono">₱{(posCartTotal * 0.12).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-base font-black text-white pt-2 border-t border-[#333338]">
+                                                <span>Grand Total</span>
+                                                <span className="font-mono text-[#fbbf24]">₱{posCartTotal.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={posCart.length === 0 || (posPaymentMethod === 'Cash' && posTenderedAmount < posCartTotal)}
+                                            className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed btn-bevel flex items-center justify-center gap-2"
+                                        >
+                                            <Printer className="w-4 h-4" />
+                                            <span>Complete Order & Print Receipt</span>
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+
+                        </div>
+                    )}
 
                     {/* TAB 1: INTERACTIVE ORDER QUEUE */}
                     {activeTab === 'queue' && (
@@ -334,6 +655,52 @@ export default function EmployeeDashboard() {
 
                 </div>
             </div>
+
+            {/* PRINTABLE CUSTOMER WALK-IN RECEIPT MODAL */}
+            {showReceiptModal && (
+                <div id="printable-pos-receipt" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+                    <div className="w-full max-w-sm rounded-3xl bg-[#141416] text-[#f4f4f5] border-2 border-[#f59e0b] p-6 shadow-2xl space-y-4 text-center animate-in fade-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-[#333338]">
+                            <span className="font-domine font-black text-[#fbbf24] text-sm">SADDLE RANCH ROADHOUSE</span>
+                            <button onClick={() => setShowReceiptModal(null)} className="text-[#a1a1aa] hover:text-white no-print">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <div className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-widest">OFFICIAL CASHIER RECEIPT</div>
+                            <h3 className="text-2xl font-black font-domine text-[#fbbf24] mt-0.5">{showReceiptModal.id}</h3>
+                            <div className="text-xs text-[#a1a1aa] font-mono">{showReceiptModal.location} • {showReceiptModal.customer}</div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#202024] border border-[#333338] text-xs text-left space-y-2 font-mono">
+                            <div className="text-amber-400 font-bold border-b border-[#333338] pb-1">Items Summary:</div>
+                            <div className="text-[#a1a1aa] leading-relaxed">{showReceiptModal.itemsSummary}</div>
+                            
+                            <div className="pt-2 border-t border-[#333338] space-y-1">
+                                <div className="flex justify-between text-[#a1a1aa]">
+                                    <span>Payment Mode:</span>
+                                    <span className="text-white font-bold">{showReceiptModal.payment}</span>
+                                </div>
+                                <div className="flex justify-between text-sm font-bold text-white pt-1">
+                                    <span>Total Paid:</span>
+                                    <span className="text-[#fbbf24]">₱{showReceiptModal.amount.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-2 flex gap-2 no-print">
+                            <button
+                                onClick={() => window.print()}
+                                className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl btn-bevel"
+                            >
+                                <Printer className="w-4 h-4" />
+                                <span>Print Thermal Customer Receipt</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
