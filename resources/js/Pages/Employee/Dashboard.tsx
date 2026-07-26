@@ -72,7 +72,7 @@ export default function EmployeeDashboard() {
     const [posCustomerName, setPosCustomerName] = useState('Walk-In Guest');
     const [posTableNumber, setPosTableNumber] = useState('01');
     const [posOrderType, setPosOrderType] = useState<'Dine-In' | 'Pick-Up'>('Dine-In');
-    const [posPaymentMethod, setPosPaymentMethod] = useState<'Cash' | 'GCash' | 'Maya / Card'>('Cash');
+    const [posPaymentMethod, setPosPaymentMethod] = useState<'Cash' | 'GCash'>('Cash');
     const [cashTendered, setCashTendered] = useState<string>('');
     const [showReceiptModal, setShowReceiptModal] = useState<OrderItem | null>(null);
 
@@ -221,7 +221,7 @@ export default function EmployeeDashboard() {
                                 }`}
                             >
                                 <Receipt className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span>POS Touch Register</span>
+                                <span>Register</span>
                             </button>
 
                             <button
@@ -274,12 +274,7 @@ export default function EmployeeDashboard() {
                             
                             {/* Left Column (7/12 Width): High-Resolution Touch Menu Catalog */}
                             <div className="lg:col-span-7 space-y-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#202024] border border-[#333338]">
-                                    <div>
-                                        <h3 className="text-base font-black text-white font-domine">Walk-In Menu Catalog</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Touch dish tile to increment cart quantity</p>
-                                    </div>
-
+                                <div className="p-4 rounded-2xl bg-[#202024] border border-[#333338]">
                                     {/* Touch Category Filter Chips */}
                                     <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                         {['All', 'Sizzling Rice Meals', 'Authentic Filipino Cuisine', 'Barkada Platters', 'Drinks & Extra Rice'].map((cat) => (
@@ -306,17 +301,17 @@ export default function EmployeeDashboard() {
                                             <button
                                                 key={product.id}
                                                 onClick={() => addToPosCart(product)}
-                                                className={`p-4 rounded-3xl bg-[#202024] border shadow-xl text-left space-y-3 group transition-all relative overflow-hidden active:scale-95 flex flex-col justify-between ${
+                                                className={`p-4 rounded-3xl bg-[#202024] border shadow-xl text-left space-y-3 group transition-all relative active:scale-95 flex flex-col justify-between ${
                                                     cartItem ? 'border-[#f59e0b] ring-2 ring-[#f59e0b]/40' : 'border-[#333338] hover:border-[#3f3f46]'
                                                 }`}
                                             >
                                                 {cartItem && (
-                                                    <span className="absolute top-3 right-3 w-8 h-8 rounded-xl bg-[#f59e0b] text-[#3f2000] font-mono font-black text-sm flex items-center justify-center shadow-lg border border-[#fbbf24]">
+                                                    <span className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-[#f59e0b] text-[#3f2000] font-mono font-black text-sm flex items-center justify-center shadow-2xl border border-[#fbbf24] z-30">
                                                         {cartItem.quantity}
                                                     </span>
                                                 )}
 
-                                                <div className="h-36 sm:h-40 w-full rounded-2xl overflow-hidden bg-[#18181b] border border-[#3f3f46] relative">
+                                                <div className="h-36 sm:h-40 w-full rounded-2xl overflow-hidden bg-[#18181b] border border-[#3f3f46] relative z-10">
                                                     <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                 </div>
 
@@ -438,8 +433,8 @@ export default function EmployeeDashboard() {
                                     <form onSubmit={handleCheckoutWalkInOrder} className="space-y-4 pt-4 border-t border-[#333338]">
                                         <div>
                                             <label className="block text-xs font-bold text-[#a1a1aa] mb-2">Payment Method</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {(['Cash', 'GCash', 'Maya / Card'] as const).map((method) => (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {(['Cash', 'GCash'] as const).map((method) => (
                                                     <button
                                                         key={method}
                                                         type="button"
@@ -606,7 +601,7 @@ export default function EmployeeDashboard() {
                                                 {o.status === 'preparing' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'ready')}
-                                                        className="px-4 py-2 rounded-xl bg-blue-500 text-white font-black text-xs hover:bg-blue-400 transition-all btn-bevel"
+                                                        className="px-4 py-2 rounded-xl bg-blue-500 text-[#3f2000] font-black text-xs hover:bg-blue-400 transition-all btn-bevel"
                                                     >
                                                         Mark Ready
                                                     </button>
