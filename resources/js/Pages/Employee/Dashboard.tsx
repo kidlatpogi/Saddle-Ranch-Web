@@ -539,8 +539,8 @@ export default function EmployeeDashboard() {
                             <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-3 shadow-lg">
                                 <div className="flex items-center gap-2 overflow-x-auto">
                                     {[
-                                        { id: 'ready', label: '🟦 Ready to Serve / Pick-Up', count: readyCount, color: 'text-blue-400' },
-                                        { id: 'completed', label: '🟩 Completed Orders', count: completedCount, color: 'text-emerald-400' },
+                                        { id: 'ready', label: 'Ready to Serve / Pick-Up', count: readyCount, color: 'text-blue-400' },
+                                        { id: 'completed', label: 'Completed Orders', count: completedCount, color: 'text-emerald-400' },
                                         { id: 'All', label: 'All Orders', count: orders.length, color: 'text-white' },
                                     ].map((chip) => (
                                         <button
@@ -592,8 +592,8 @@ export default function EmployeeDashboard() {
                                                         o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
                                                         'bg-amber-500/20 text-amber-400 border border-amber-500/40'
                                                     }`}>
-                                                        {o.status === 'ready' ? '🟦 Ready to Serve' :
-                                                         o.status === 'completed' ? '🟩 Completed' :
+                                                        {o.status === 'ready' ? 'Ready to Serve' :
+                                                         o.status === 'completed' ? 'Completed' :
                                                          o.status}
                                                     </span>
                                                 </div>

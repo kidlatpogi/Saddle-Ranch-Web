@@ -196,9 +196,9 @@ export default function KitchenDisplaySystem() {
                         <div className="flex items-center gap-2 overflow-x-auto">
                             {[
                                 { id: 'All', label: 'All Active Tickets', count: kdsOrders.length, color: 'text-white' },
-                                { id: 'pending', label: '🟧 1. Pending Kitchen', count: pendingCount, color: 'text-amber-400' },
-                                { id: 'preparing', label: '🟨 2. Preparing (On Grill)', count: preparingCount, color: 'text-yellow-300' },
-                                { id: 'ready', label: '🟦 3. Ready to Serve', count: readyCount, color: 'text-blue-400' },
+                                { id: 'pending', label: '1. Pending Kitchen', count: pendingCount, color: 'text-amber-400' },
+                                { id: 'preparing', label: '2. Preparing (On Grill)', count: preparingCount, color: 'text-yellow-300' },
+                                { id: 'ready', label: '3. Ready to Serve', count: readyCount, color: 'text-blue-400' },
                             ].map((chip) => (
                                 <button
                                     key={chip.id}
@@ -237,7 +237,7 @@ export default function KitchenDisplaySystem() {
                                             : 'bg-[#131b29] border-blue-500/80 shadow-blue-500/20'
                                     }`}
                                 >
-                                    {/* DISTINCT TOP BANNER BY STATUS */}
+                                    {/* DISTINCT TOP BANNER BY STATUS WITHOUT EMOJIS */}
                                     <div className={`px-5 py-2.5 font-black text-xs uppercase tracking-wider flex items-center justify-between ${
                                         order.status === 'pending'
                                             ? 'bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#3f2000]'
@@ -245,14 +245,14 @@ export default function KitchenDisplaySystem() {
                                             ? 'bg-yellow-500/20 text-yellow-300 border-b border-yellow-500/30'
                                             : 'bg-blue-600/20 text-blue-300 border-b border-blue-500/30'
                                     }`}>
-                                        <div className="flex items-center gap-1.5 font-domine">
+                                        <div className="flex items-center gap-2 font-domine">
                                             {order.status === 'pending' && <Flame className="w-4 h-4 flex-shrink-0 animate-bounce" />}
                                             {order.status === 'preparing' && <UtensilsCrossed className="w-4 h-4 flex-shrink-0" />}
                                             {order.status === 'ready' && <Sparkles className="w-4 h-4 flex-shrink-0" />}
                                             <span>
-                                                {order.status === 'pending' ? '🔥 NEW ORDER - NEEDS GRILL' :
-                                                 order.status === 'preparing' ? '🍳 SIZZLING ON GRILL' :
-                                                 '✨ BUMPED & READY AT COUNTER'}
+                                                {order.status === 'pending' ? 'NEW ORDER - NEEDS GRILL' :
+                                                 order.status === 'preparing' ? 'SIZZLING ON GRILL' :
+                                                 'BUMPED & READY AT COUNTER'}
                                             </span>
                                         </div>
 
@@ -297,7 +297,7 @@ export default function KitchenDisplaySystem() {
                                                     </div>
                                                     {item.notes && (
                                                         <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 font-sans italic">
-                                                            ★ Special Request: {item.notes}
+                                                            Note: {item.notes}
                                                         </div>
                                                     )}
                                                 </div>
