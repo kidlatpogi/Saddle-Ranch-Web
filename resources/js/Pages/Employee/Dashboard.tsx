@@ -528,96 +528,147 @@ export default function EmployeeDashboard() {
                         </div>
                     )}
 
-                    {/* TAB 1: INTERACTIVE ORDER QUEUE */}
+                    {/* TAB 1: UNCONFUSING HIGH-VISIBILITY ORDER QUEUE WITH BIG AF BUTTONS */}
                     {activeTab === 'queue' && (
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-[#a1a1aa]">Filter Status:</span>
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) => setStatusFilter(e.target.value)}
-                                        className="bg-[#202024] border border-[#333338] text-xs font-bold text-[#fbbf24] px-3 py-1.5 rounded-xl focus:outline-none cursor-pointer"
-                                    >
-                                        <option value="All" className="bg-[#18181b]">All Statuses</option>
-                                        <option value="pending" className="bg-[#18181b]">Pending Kitchen</option>
-                                        <option value="preparing" className="bg-[#18181b]">Preparing</option>
-                                        <option value="ready" className="bg-[#18181b]">Ready for Serve/Pick-Up</option>
-                                        <option value="completed" className="bg-[#18181b]">Completed</option>
-                                    </select>
+                            {/* FILTER PIPELINE CHIPS */}
+                            <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-3 shadow-lg">
+                                <div className="flex items-center gap-2 overflow-x-auto">
+                                    {[
+                                        { id: 'All', label: 'All Orders', count: orders.length, color: 'text-white' },
+                                        { id: 'pending', label: '1. Pending Kitchen', count: orders.filter(o => o.status === 'pending').length, color: 'text-amber-400' },
+                                        { id: 'preparing', label: '2. Preparing (On Grill)', count: orders.filter(o => o.status === 'preparing').length, color: 'text-amber-300' },
+                                        { id: 'ready', label: '3. Ready to Serve', count: orders.filter(o => o.status === 'ready').length, color: 'text-blue-400' },
+                                        { id: 'completed', label: '4. Completed', count: orders.filter(o => o.status === 'completed').length, color: 'text-emerald-400' },
+                                    ].map((chip) => (
+                                        <button
+                                            key={chip.id}
+                                            onClick={() => setStatusFilter(chip.id)}
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                                                statusFilter === chip.id
+                                                    ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel'
+                                                    : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
+                                            }`}
+                                        >
+                                            <span>{chip.label}</span>
+                                            <span className={`px-2 py-0.5 rounded-full bg-[#141416] text-[11px] font-mono font-black ${chip.color}`}>
+                                                {chip.count}
+                                            </span>
+                                        </button>
+                                    ))}
                                 </div>
 
                                 <div className="text-xs text-[#a1a1aa]">
-                                    Showing <strong className="text-white font-mono">{filteredOrders.length}</strong> live orders
+                                    Showing <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> active tickets
                                 </div>
                             </div>
 
+                            {/* ORDER QUEUE CARDS GRID */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {filteredOrders.map((o) => (
-                                    <div key={o.id} className="p-6 rounded-3xl bg-[#202024] border border-[#333338] shadow-xl space-y-4 flex flex-col justify-between">
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
-                                                <div>
-                                                    <span className="font-mono text-sm font-black text-white">{o.id}</span>
-                                                    <span className="text-xs font-bold text-[#fbbf24] ml-2 font-mono">({o.type} - {o.location})</span>
+                                {filteredOrders.length > 0 ? (
+                                    filteredOrders.map((o) => (
+                                        <div
+                                            key={o.id}
+                                            className={`p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-5 flex flex-col justify-between transition-all ${
+                                                o.status === 'pending' ? 'bg-[#202024] border-amber-500/50' :
+                                                o.status === 'preparing' ? 'bg-[#202024] border-yellow-500/50' :
+                                                o.status === 'ready' ? 'bg-[#1d2636] border-blue-500/60 shadow-blue-500/10' :
+                                                'bg-[#19261f] border-emerald-500/50'
+                                            }`}
+                                        >
+                                            <div className="space-y-4">
+                                                {/* Header Bar */}
+                                                <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="font-mono text-xl font-black text-white tracking-wider">{o.id}</span>
+                                                        <span className="px-3 py-1 rounded-full bg-[#18181b] text-[#fbbf24] text-xs font-mono font-bold border border-[#3f3f46]">
+                                                            [{o.type}: {o.location}]
+                                                        </span>
+                                                    </div>
+
+                                                    <span className={`px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                                        o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                                                        o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse' :
+                                                        o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                                                        'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                                                    }`}>
+                                                        {o.status === 'pending' ? '🟧 Pending Kitchen' :
+                                                         o.status === 'preparing' ? '🟨 Preparing on Grill' :
+                                                         o.status === 'ready' ? '🟦 Ready to Serve' :
+                                                         '🟩 Completed'}
+                                                    </span>
                                                 </div>
 
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                                                    o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                                                    o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                                                    o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                                                    'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                                                }`}>
-                                                    {o.status}
-                                                </span>
-                                            </div>
+                                                {/* Customer & Dished Items List */}
+                                                <div className="space-y-2">
+                                                    <div className="text-xs sm:text-sm font-bold text-white flex justify-between">
+                                                        <span>Customer: <strong className="text-[#fbbf24]">{o.customer}</strong></span>
+                                                        <span className="text-[#a1a1aa] font-mono">{o.phone} • {o.time}</span>
+                                                    </div>
 
-                                            <div className="space-y-1">
-                                                <div className="text-xs font-bold text-white flex justify-between">
-                                                    <span>Customer: {o.customer}</span>
-                                                    <span className="text-[#a1a1aa] text-[11px] font-mono">{o.phone}</span>
+                                                    <div className="p-4 rounded-2xl bg-[#141416] border border-[#3f3f46] space-y-1">
+                                                        <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider">Dishes Ordered:</div>
+                                                        <div className="text-xs sm:text-sm font-mono font-bold text-zinc-100 leading-relaxed">
+                                                            {o.itemsSummary}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs text-[#a1a1aa] font-mono p-2.5 rounded-xl bg-[#18181b] border border-[#3f3f46]">
-                                                    {o.itemsSummary}
+
+                                                <div className="flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
+                                                    <span>Payment: <strong className="text-white">{o.payment}</strong></span>
+                                                    <span className="text-base font-black text-[#fbbf24]">Total: ₱{o.amount.toFixed(2)}</span>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="pt-3 border-t border-[#333338] flex items-center justify-between">
-                                            <div>
-                                                <div className="text-xs text-[#a1a1aa]">Total Amount ({o.payment}):</div>
-                                                <div className="font-mono font-black text-lg text-amber-400">₱{o.amount.toFixed(2)}</div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
+                                            {/* BIG AF TOUCH ACTION BUTTONS */}
+                                            <div className="pt-2">
                                                 {o.status === 'pending' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'preparing')}
-                                                        className="px-4 py-2 rounded-xl bg-amber-500 text-[#3f2000] font-black text-xs hover:bg-[#fbbf24] transition-all btn-bevel"
+                                                        className="w-full py-4 sm:py-5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                                                     >
-                                                        Start Preparing
+                                                        <Flame className="w-5 h-5" />
+                                                        <span>START PREPARING (SEND TO KITCHEN GRILL)</span>
                                                     </button>
                                                 )}
+
                                                 {o.status === 'preparing' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'ready')}
-                                                        className="px-4 py-2 rounded-xl bg-blue-500 text-[#3f2000] font-black text-xs hover:bg-blue-400 transition-all btn-bevel"
+                                                        className="w-full py-4 sm:py-5 rounded-2xl bg-blue-500 hover:bg-blue-400 text-white font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                                                     >
-                                                        Mark Ready
+                                                        <CheckCircle2 className="w-5 h-5" />
+                                                        <span>MARK DISH READY TO SERVE / PICK-UP</span>
                                                     </button>
                                                 )}
+
                                                 {o.status === 'ready' && (
                                                     <button
                                                         onClick={() => updateOrderStatus(o.id, 'completed')}
-                                                        className="px-4 py-2 rounded-xl bg-emerald-500 text-zinc-950 font-black text-xs hover:bg-emerald-400 transition-all btn-bevel"
+                                                        className="w-full py-4 sm:py-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                                                     >
-                                                        Complete Order
+                                                        <Check className="w-5 h-5" />
+                                                        <span>COMPLETE ORDER (HAND OVER TO GUEST)</span>
                                                     </button>
                                                 )}
+
+                                                {o.status === 'completed' && (
+                                                    <div className="w-full py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs text-center flex items-center justify-center gap-2">
+                                                        <CheckCircle2 className="w-4 h-4" />
+                                                        <span>ORDER FULLY FULFILLED & SERVED</span>
+                                                    </div>
+                                                )}
                                             </div>
+
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-2 p-12 rounded-3xl bg-[#202024] border border-[#333338] text-center space-y-2">
+                                        <ListOrdered className="w-10 h-10 text-[#71717a] mx-auto" />
+                                        <div className="text-base font-bold text-white font-domine">No orders found in status "{statusFilter}"</div>
+                                        <p className="text-xs text-[#a1a1aa]">Select "All Orders" or place a new walk-in register order to test pipeline.</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     )}
