@@ -24,7 +24,9 @@ import {
     MapPin,
     Receipt,
     Check,
-    X
+    X,
+    Banknote,
+    RotateCcw
 } from 'lucide-react';
 
 interface OrderItem {
@@ -181,14 +183,14 @@ export default function EmployeeDashboard() {
                         </div>
                         <div>
                             <h1 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight">Saddle Ranch Cashier POS & Employee Terminal</h1>
-                            <p className="text-xs text-[#a1a1aa]">Front-of-House Walk-In Register & Live Kitchen Queue Control</p>
+                            <p className="text-xs text-[#a1a1aa]">Touchscreen Tablet Register & Live Kitchen Queue Control</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <Link
                             href="/employee/kitchen"
-                            className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md btn-bevel"
+                            className="px-4 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md btn-bevel"
                         >
                             <ChefHat className="w-4 h-4" />
                             <span>Kitchen KDS Terminal</span>
@@ -198,7 +200,7 @@ export default function EmployeeDashboard() {
                             href="/logout"
                             method="post"
                             as="button"
-                            className="px-3.5 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-rose-400 flex items-center gap-1.5 text-xs font-bold transition-colors"
+                            className="px-3.5 py-2.5 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-rose-400 flex items-center gap-1.5 text-xs font-bold transition-colors"
                         >
                             <LogOut className="w-4 h-4" />
                             <span>Sign Out</span>
@@ -206,120 +208,123 @@ export default function EmployeeDashboard() {
                     </div>
                 </header>
 
-                {/* Main Content Area */}
-                <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6">
+                {/* Main Content Area - Expanded Width for Tablets */}
+                <div className="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
                     
                     {/* Navigation Tabs Bar */}
                     <div className="p-2 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-4 shadow-lg">
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setActiveTab('pos')}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'pos' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'pos' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
-                                <Receipt className="w-4 h-4" />
-                                <span>POS Walk-In Register</span>
+                                <Receipt className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span>POS Touch Register</span>
                             </button>
 
                             <button
                                 onClick={() => setActiveTab('queue')}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'queue' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'queue' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
-                                <ListOrdered className="w-4 h-4" />
+                                <ListOrdered className="w-4 h-4 sm:w-5 sm:h-5" />
                                 <span>Orders Queue ({orders.length})</span>
                             </button>
 
                             <button
                                 onClick={() => setActiveTab('menu')}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'menu' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'menu' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
-                                <Utensils className="w-4 h-4" />
-                                <span>Menu & Stock Availability</span>
+                                <Utensils className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span>Menu Availability</span>
                             </button>
 
                             <button
                                 onClick={() => setActiveTab('sales')}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
-                                    activeTab === 'sales' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'sales' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
                                 }`}
                             >
-                                <TrendingUp className="w-4 h-4" />
-                                <span>Shift Sales Summary</span>
+                                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span>Shift Sales</span>
                             </button>
                         </div>
 
                         {/* Search Control */}
                         <div className="relative">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#71717a]" />
+                            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717a]" />
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search dishes or order ID..."
-                                className="w-56 pl-9 pr-4 py-1.5 bg-[#18181b] border border-[#3f3f46] rounded-xl text-xs text-white placeholder-[#71717a] focus:outline-none focus:border-[#f59e0b]"
+                                placeholder="Search menu or order..."
+                                className="w-64 pl-10 pr-4 py-2 bg-[#18181b] border border-[#3f3f46] rounded-xl text-xs text-white placeholder-[#71717a] focus:outline-none focus:border-[#f59e0b]"
                             />
                         </div>
                     </div>
 
-                    {/* TAB 0: CASHIER POS WALK-IN REGISTER */}
+                    {/* TAB 0: ERGONOMIC TOUCHSCREEN TABLET POS REGISTER */}
                     {activeTab === 'pos' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                             
-                            {/* Left Column (2/3): Interactive Menu Grid */}
-                            <div className="lg:col-span-2 space-y-4">
-                                <div className="flex items-center justify-between">
+                            {/* Left Column (7/12 Width): High-Resolution Touch Menu Catalog */}
+                            <div className="lg:col-span-7 space-y-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#202024] border border-[#333338]">
                                     <div>
-                                        <h3 className="text-base font-bold text-white font-domine">Walk-In Menu Catalog</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Tap any sizzling dish to add directly to customer register ticket</p>
+                                        <h3 className="text-base font-black text-white font-domine">Walk-In Menu Catalog</h3>
+                                        <p className="text-xs text-[#a1a1aa]">Touch dish tile to increment cart quantity</p>
                                     </div>
 
-                                    {/* Category Filter Chips */}
-                                    <div className="flex items-center gap-1.5 overflow-x-auto">
+                                    {/* Touch Category Filter Chips */}
+                                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                         {['All', 'Sizzling Rice Meals', 'Authentic Filipino Cuisine', 'Barkada Platters', 'Drinks & Extra Rice'].map((cat) => (
                                             <button
                                                 key={cat}
                                                 onClick={() => setCategoryFilter(cat)}
-                                                className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                                                     categoryFilter === cat
-                                                        ? 'bg-[#f59e0b] text-[#3f2000] font-black'
-                                                        : 'bg-[#202024] border border-[#333338] text-[#a1a1aa] hover:text-white'
+                                                        ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow'
+                                                        : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
                                                 }`}
                                             >
-                                                {cat === 'All' ? 'All Items' : cat}
+                                                {cat === 'All' ? 'All Dishes' : cat}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {/* Spacious Dish Touch Cards */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 gap-4">
                                     {filteredProducts.map((product) => {
                                         const cartItem = posCart.find(i => i.id === product.id);
                                         return (
                                             <button
                                                 key={product.id}
                                                 onClick={() => addToPosCart(product)}
-                                                className="p-3 rounded-2xl bg-[#202024] border border-[#333338] hover:border-[#f59e0b] shadow-lg text-left space-y-2 group transition-all relative overflow-hidden active:scale-95"
+                                                className={`p-4 rounded-3xl bg-[#202024] border shadow-xl text-left space-y-3 group transition-all relative overflow-hidden active:scale-95 flex flex-col justify-between ${
+                                                    cartItem ? 'border-[#f59e0b] ring-2 ring-[#f59e0b]/40' : 'border-[#333338] hover:border-[#3f3f46]'
+                                                }`}
                                             >
                                                 {cartItem && (
-                                                    <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#f59e0b] text-[#3f2000] font-mono font-black text-xs flex items-center justify-center shadow-md">
+                                                    <span className="absolute top-3 right-3 w-8 h-8 rounded-xl bg-[#f59e0b] text-[#3f2000] font-mono font-black text-sm flex items-center justify-center shadow-lg border border-[#fbbf24]">
                                                         {cartItem.quantity}
                                                     </span>
                                                 )}
 
-                                                <div className="h-28 w-full rounded-xl overflow-hidden bg-[#18181b] border border-[#3f3f46]">
-                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                <div className="h-36 sm:h-40 w-full rounded-2xl overflow-hidden bg-[#18181b] border border-[#3f3f46] relative">
+                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                 </div>
 
-                                                <div>
-                                                    <h4 className="text-xs font-bold text-white font-domine line-clamp-1 group-hover:text-[#fbbf24] transition-colors">{product.name}</h4>
+                                                <div className="space-y-1">
+                                                    <h4 className="text-sm sm:text-base font-bold text-white font-domine line-clamp-1 group-hover:text-[#fbbf24] transition-colors">{product.name}</h4>
                                                     <div className="flex items-center justify-between pt-1">
-                                                        <span className="font-mono font-black text-xs text-[#fbbf24]">₱ {product.price.toFixed(2)}</span>
-                                                        <span className="text-[10px] text-[#71717a] font-mono">{product.stock} left</span>
+                                                        <span className="font-mono font-black text-sm sm:text-base text-[#fbbf24]">₱ {product.price.toFixed(2)}</span>
+                                                        <span className="text-xs text-[#71717a] font-mono">{product.stock} left</span>
                                                     </div>
                                                 </div>
                                             </button>
@@ -328,104 +333,118 @@ export default function EmployeeDashboard() {
                                 </div>
                             </div>
 
-                            {/* Right Column (1/3): Walk-In Order Ticket Panel */}
-                            <div className="p-6 rounded-3xl bg-[#202024] border border-[#333338] shadow-2xl space-y-5 sticky top-28">
-                                <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
-                                    <div className="flex items-center gap-2">
-                                        <Receipt className="w-5 h-5 text-[#f59e0b]" />
-                                        <h3 className="font-domine font-bold text-white text-base">Walk-In POS Ticket</h3>
+                            {/* Right Column (5/12 Width): Touchscreen Tablet Order Command Ticket */}
+                            <div className="lg:col-span-5 p-6 sm:p-7 rounded-3xl bg-[#202024] border border-[#333338] shadow-2xl space-y-6 sticky top-28">
+                                
+                                <div className="flex items-center justify-between pb-4 border-b border-[#333338]">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-2xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#f59e0b]">
+                                            <Receipt className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-domine font-black text-white text-lg">Walk-In Register Ticket</h3>
+                                            <p className="text-xs text-[#a1a1aa]">Touch Register Terminal</p>
+                                        </div>
                                     </div>
-                                    <span className="text-xs font-mono text-[#fbbf24] bg-[#18181b] px-2.5 py-1 rounded-lg border border-[#3f3f46]">
-                                        {posCart.reduce((sum, i) => sum + i.quantity, 0)} items
-                                    </span>
+
+                                    {posCart.length > 0 && (
+                                        <button
+                                            onClick={() => setPosCart([])}
+                                            className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-bold flex items-center gap-1 transition-all"
+                                        >
+                                            <RotateCcw className="w-3.5 h-3.5" /> Clear Ticket
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Order Type & Customer Inputs */}
                                 <div className="space-y-3">
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <button
                                             type="button"
                                             onClick={() => setPosOrderType('Dine-In')}
-                                            className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                                                posOrderType === 'Dine-In' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                            className={`py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                                                posOrderType === 'Dine-In' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
                                             }`}
                                         >
-                                            <Utensils className="w-3.5 h-3.5" /> Dine-In
+                                            <Utensils className="w-4 h-4" /> Dine-In Order
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => setPosOrderType('Pick-Up')}
-                                            className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                                                posOrderType === 'Pick-Up' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
+                                            className={`py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                                                posOrderType === 'Pick-Up' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg btn-bevel' : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
                                             }`}
                                         >
-                                            <ShoppingBag className="w-3.5 h-3.5" /> Takeout
+                                            <ShoppingBag className="w-4 h-4" /> Takeout Order
                                         </button>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-3 gap-3">
                                         <div className="col-span-2">
-                                            <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Customer Name</label>
+                                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Customer Name</label>
                                             <input
                                                 type="text"
                                                 value={posCustomerName}
                                                 onChange={(e) => setPosCustomerName(e.target.value)}
-                                                className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                                className="w-full px-4 py-2.5 rounded-2xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-bold"
                                             />
                                         </div>
 
                                         {posOrderType === 'Dine-In' && (
                                             <div>
-                                                <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Table #</label>
+                                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Table #</label>
                                                 <input
                                                     type="text"
                                                     value={posTableNumber}
                                                     onChange={(e) => setPosTableNumber(e.target.value)}
-                                                    className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono text-center"
+                                                    className="w-full px-3 py-2.5 rounded-2xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono text-center font-bold"
                                                 />
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Cart Items List */}
-                                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                {/* Cart Items List with Wide Touch Buttons */}
+                                <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                                     {posCart.length > 0 ? (
                                         posCart.map((item) => (
-                                            <div key={item.id} className="p-2.5 rounded-2xl bg-[#18181b] border border-[#3f3f46] flex items-center justify-between gap-2 text-xs">
+                                            <div key={item.id} className="p-3.5 rounded-2xl bg-[#18181b] border border-[#3f3f46] flex items-center justify-between gap-3 text-xs sm:text-sm">
                                                 <div className="flex-1 truncate">
-                                                    <div className="font-bold text-white truncate">{item.name}</div>
-                                                    <div className="text-[11px] font-mono text-[#a1a1aa]">₱{item.price.toFixed(2)} x {item.quantity}</div>
+                                                    <div className="font-bold text-white truncate font-domine">{item.name}</div>
+                                                    <div className="text-xs font-mono text-[#fbbf24]">₱{item.price.toFixed(2)} x {item.quantity} = <strong>₱{(item.price * item.quantity).toFixed(2)}</strong></div>
                                                 </div>
 
-                                                <div className="flex items-center gap-1">
-                                                    <button onClick={() => updatePosQuantity(item.id, -1)} className="w-6 h-6 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white flex items-center justify-center text-xs font-bold">-</button>
-                                                    <span className="font-mono font-bold text-white px-1">{item.quantity}</span>
-                                                    <button onClick={() => updatePosQuantity(item.id, 1)} className="w-6 h-6 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white flex items-center justify-center text-xs font-bold">+</button>
-                                                    <button onClick={() => removePosItem(item.id)} className="p-1 text-rose-400 hover:text-rose-300 ml-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                <div className="flex items-center gap-1.5">
+                                                    <button onClick={() => updatePosQuantity(item.id, -1)} className="w-8 h-8 rounded-xl bg-[#27272a] text-white hover:bg-[#f59e0b] hover:text-[#3f2000] flex items-center justify-center font-black transition-colors">-</button>
+                                                    <span className="font-mono font-bold text-white px-2 text-sm">{item.quantity}</span>
+                                                    <button onClick={() => updatePosQuantity(item.id, 1)} className="w-8 h-8 rounded-xl bg-[#27272a] text-white hover:bg-[#f59e0b] hover:text-[#3f2000] flex items-center justify-center font-black transition-colors">+</button>
+                                                    <button onClick={() => removePosItem(item.id)} className="p-2 text-rose-400 hover:text-rose-300 ml-1"><Trash2 className="w-4 h-4" /></button>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="p-6 text-center text-xs text-[#71717a] border border-dashed border-[#3f3f46] rounded-2xl">
-                                            Tap dishes on the left catalog to start building order
+                                        <div className="p-8 text-center text-xs sm:text-sm text-[#71717a] border border-dashed border-[#3f3f46] rounded-3xl space-y-2">
+                                            <Receipt className="w-8 h-8 text-[#71717a] mx-auto" />
+                                            <div>Ticket is currently empty</div>
+                                            <p className="text-[11px]">Touch dish tiles on catalog to add items</p>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Payment Method & Change Calculation */}
+                                {/* Payment Method & QUICK BILL PRESET NUMPAD */}
                                 {posCart.length > 0 && (
-                                    <form onSubmit={handleCheckoutWalkInOrder} className="space-y-4 pt-3 border-t border-[#333338]">
+                                    <form onSubmit={handleCheckoutWalkInOrder} className="space-y-4 pt-4 border-t border-[#333338]">
                                         <div>
-                                            <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Payment Method</label>
-                                            <div className="grid grid-cols-3 gap-1.5">
+                                            <label className="block text-xs font-bold text-[#a1a1aa] mb-2">Payment Method</label>
+                                            <div className="grid grid-cols-3 gap-2">
                                                 {(['Cash', 'GCash', 'Maya / Card'] as const).map((method) => (
                                                     <button
                                                         key={method}
                                                         type="button"
                                                         onClick={() => setPosPaymentMethod(method)}
-                                                        className={`py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                                                        className={`py-2.5 rounded-2xl text-xs font-bold transition-all ${
                                                             posPaymentMethod === method
                                                                 ? 'bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]'
                                                                 : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa]'
@@ -437,29 +456,53 @@ export default function EmployeeDashboard() {
                                             </div>
                                         </div>
 
+                                        {/* QUICK CASH BILL PRESETS FOR TABLETS */}
                                         {posPaymentMethod === 'Cash' && (
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Amount Tendered (₱)</label>
-                                                    <input
-                                                        type="number"
-                                                        required
-                                                        value={cashTendered}
-                                                        onChange={(e) => setCashTendered(e.target.value)}
-                                                        placeholder={posCartTotal.toString()}
-                                                        className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
-                                                    />
+                                            <div className="space-y-2 bg-[#18181b] p-3.5 rounded-2xl border border-[#3f3f46]">
+                                                <div className="text-[11px] font-bold text-[#a1a1aa] uppercase tracking-wider">Quick Cash Bill Presets</div>
+                                                <div className="grid grid-cols-5 gap-1.5">
+                                                    {[100, 200, 500, 1000].map((bill) => (
+                                                        <button
+                                                            key={bill}
+                                                            type="button"
+                                                            onClick={() => setCashTendered(bill.toString())}
+                                                            className="py-1.5 rounded-xl bg-[#27272a] text-xs font-mono font-bold text-white hover:bg-[#f59e0b] hover:text-[#3f2000] border border-[#3f3f46]"
+                                                        >
+                                                            ₱{bill}
+                                                        </button>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setCashTendered(posCartTotal.toString())}
+                                                        className="py-1.5 rounded-xl bg-[#f59e0b]/20 text-xs font-mono font-bold text-[#fbbf24] border border-[#f59e0b]/40"
+                                                    >
+                                                        Exact
+                                                    </button>
                                                 </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Change Due (₱)</label>
-                                                    <div className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs font-mono font-bold text-emerald-400">
-                                                        ₱ {posChangeAmount.toFixed(2)}
+
+                                                <div className="grid grid-cols-2 gap-3 pt-2">
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Tendered (₱)</label>
+                                                        <input
+                                                            type="number"
+                                                            required
+                                                            value={cashTendered}
+                                                            onChange={(e) => setCashTendered(e.target.value)}
+                                                            placeholder={posCartTotal.toString()}
+                                                            className="w-full px-3.5 py-2 rounded-xl bg-[#141416] border border-[#3f3f46] text-sm text-white font-mono font-bold"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Change (₱)</label>
+                                                        <div className="w-full px-3.5 py-2 rounded-xl bg-[#141416] border border-[#3f3f46] text-sm font-mono font-black text-emerald-400">
+                                                            ₱ {posChangeAmount.toFixed(2)}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
 
-                                        <div className="space-y-1 pt-1">
+                                        <div className="space-y-1.5 pt-2">
                                             <div className="flex justify-between text-xs text-[#a1a1aa]">
                                                 <span>Subtotal</span>
                                                 <span className="font-mono">₱{(posCartTotal * 0.88).toFixed(2)}</span>
@@ -468,19 +511,20 @@ export default function EmployeeDashboard() {
                                                 <span>12% VAT</span>
                                                 <span className="font-mono">₱{(posCartTotal * 0.12).toFixed(2)}</span>
                                             </div>
-                                            <div className="flex justify-between text-base font-black text-white pt-2 border-t border-[#333338]">
+                                            <div className="flex justify-between text-lg font-black text-white pt-2 border-t border-[#333338]">
                                                 <span>Grand Total</span>
                                                 <span className="font-mono text-[#fbbf24]">₱{posCartTotal.toFixed(2)}</span>
                                             </div>
                                         </div>
 
+                                        {/* Large Touch Action Button */}
                                         <button
                                             type="submit"
                                             disabled={posCart.length === 0 || (posPaymentMethod === 'Cash' && posTenderedAmount < posCartTotal)}
-                                            className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed btn-bevel flex items-center justify-center gap-2"
+                                            className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed btn-bevel flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                                         >
-                                            <Printer className="w-4 h-4" />
-                                            <span>Complete Order & Print Receipt</span>
+                                            <Printer className="w-5 h-5" />
+                                            <span>COMPLETE ORDER & PRINT RECEIPT</span>
                                         </button>
                                     </form>
                                 )}
