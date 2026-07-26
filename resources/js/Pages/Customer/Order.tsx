@@ -595,7 +595,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                         </div>
 
-                        {/* DESKTOP ONLY Cart Form with Cart Items Pagination when > 5 items */}
+                        {/* DESKTOP ONLY Cart Form with Payment Method Selector */}
                         <div className="hidden lg:block lg:col-span-5 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
@@ -820,6 +820,37 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </div>
                                     )}
 
+                                    {/* Payment Method Selector Section */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {orderType === 'delivery' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPaymentMethod('Cash on Delivery')}
+                                                    className="col-span-2 py-2.5 rounded-xl text-xs font-black border transition-all btn-bevel bg-[#f59e0b]/20 border-[#f59e0b] text-white"
+                                                >
+                                                    Cash on Delivery
+                                                </button>
+                                            ) : (
+                                                ['Cash (Pick-Up)', 'GCash'].map((method) => (
+                                                    <button
+                                                        key={method}
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod(method)}
+                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all btn-bevel ${
+                                                            paymentMethod === method
+                                                                ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                                : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                        }`}
+                                                    >
+                                                        {method}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <div className="pt-2 flex justify-between text-base font-black text-white">
                                         <span>Total Amount</span>
                                         <span className="text-[#ffc174] font-mono">₱{subtotal.toFixed(2)}</span>
@@ -1020,6 +1051,37 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Payment Method Selector Section in Mobile Drawer */}
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {orderType === 'delivery' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setPaymentMethod('Cash on Delivery')}
+                                                className="col-span-2 py-2 rounded-xl text-xs font-black border transition-all btn-bevel bg-[#f59e0b]/20 border-[#f59e0b] text-white"
+                                            >
+                                                Cash on Delivery
+                                            </button>
+                                        ) : (
+                                            ['Cash (Pick-Up)', 'GCash'].map((method) => (
+                                                <button
+                                                    key={method}
+                                                    type="button"
+                                                    onClick={() => setPaymentMethod(method)}
+                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${
+                                                        paymentMethod === method
+                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                    }`}
+                                                >
+                                                    {method}
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
 
                                 <div className="pt-2 flex items-center justify-between text-sm font-black">
                                     <span className="text-[#d8c3ad]">Total Amount</span>
