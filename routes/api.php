@@ -48,18 +48,30 @@ Route::prefix('v1')->group(function () {
         ]);
     });
 
-    // List active products
+    // List active products with full absolute image URL formatting
     Route::get('/products', function () {
-        $products = Product::where('is_active', true)->get();
+        $products = Product::where('is_active', true)->get()->map(function ($product) {
+            if ($product->image_path && !str_starts_with($product->image_path, 'http')) {
+                $product->image_path = url($product->image_path);
+            }
+            return $product;
+        });
+
         return response()->json([
             'status' => 'success',
             'data' => $products,
         ]);
     });
 
-    // List active promo banners
+    // List active promo banners with full absolute image URL formatting
     Route::get('/banners', function () {
-        $banners = PromoBanner::where('is_active', true)->orderBy('display_order')->get();
+        $banners = PromoBanner::where('is_active', true)->orderBy('display_order')->get()->map(function ($banner) {
+            if ($banner->image_path && !str_starts_with($banner->image_path, 'http')) {
+                $banner->image_path = url($banner->image_path);
+            }
+            return $banner;
+        });
+
         return response()->json([
             'status' => 'success',
             'data' => $banners,
