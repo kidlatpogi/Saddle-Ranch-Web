@@ -100,17 +100,34 @@ html, body {
   pointer-events: none;
 }
 
-/* Precise Print Media Rules for Table QR Badge Printing */
+/* Precise Print Media Rules for 80mm Thermal Receipts and Table QR Cards */
 @media print {
   body * {
     visibility: hidden;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  #printable-qr-modal, #printable-qr-modal * {
+  #printable-qr-modal, #printable-qr-modal *,
+  #printable-pos-receipt, #printable-pos-receipt *,
+  #printable-qr-card, #printable-qr-card * {
     visibility: visible;
   }
-  #printable-qr-modal {
+  #printable-pos-receipt {
+    position: fixed;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 80mm;
+    max-width: 80mm;
+    padding: 10px;
+    margin: 0;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 9999;
+  }
+  #printable-qr-card {
     position: fixed;
     left: 50%;
     top: 50%;
