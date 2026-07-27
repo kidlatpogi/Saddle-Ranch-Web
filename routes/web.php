@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
@@ -13,15 +14,14 @@ Route::get('/order', [OrderController::class, 'order'])->name('order');
 Route::get('/dine-in', [OrderController::class, 'dineIn'])->name('dine-in');
 Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 
+// Public/API fallback routes for order updates & cancellations
+Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus'])->name('orders.update-status');
+Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel'])->name('orders.cancel');
+
 // Protected Employee & Admin Routes
 Route::middleware(['auth', 'role:admin,employee'])->group(function () {
-    Route::get('/employee/dashboard', function () {
-        return Inertia::render('Employee/Dashboard');
-    })->name('employee.dashboard');
-
-    Route::get('/employee/kitchen', function () {
-        return Inertia::render('Employee/KDS');
-    })->name('employee.kitchen');
+    Route::get('/employee/dashboard', [EmployeeController::class, 'dashboard'])->name('employee.dashboard');
+    Route::get('/employee/kitchen', [EmployeeController::class, 'kitchen'])->name('employee.kitchen');
 });
 
 // Protected Admin Route

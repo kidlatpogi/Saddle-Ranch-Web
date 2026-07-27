@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -132,5 +135,21 @@ class OrderController extends Controller
                 'order' => $createdOrder->load('orderItems.product'),
             ],
         ]);
+    }
+
+    /**
+     * Endpoint: PATCH /orders/{id}/status
+     */
+    public function updateStatus(Request $request, int $id): JsonResponse
+    {
+        return (new EmployeeController())->updateStatus($request, $id);
+    }
+
+    /**
+     * Security Endpoint: POST /orders/{id}/cancel
+     */
+    public function cancel(Request $request, int $id): JsonResponse
+    {
+        return (new EmployeeController())->cancel($request, $id);
     }
 }

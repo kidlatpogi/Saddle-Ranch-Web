@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeController;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -14,6 +15,11 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('v1')->group(function () {
+    // Live KDS Data Endpoint (Polling API & Cook Summary)
+    Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
+    Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
+    Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
+
     // Auth Login for Flutter Mobile App
     Route::post('/auth/login', function (Request $request) {
         $request->validate([
@@ -87,7 +93,7 @@ Route::prefix('v1')->group(function () {
             ];
         }
 
-        $orderNumber = 'SR-' . strtoupper(uniqid());
+        $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
 
         $order = Order::create([
             'order_number' => $orderNumber,

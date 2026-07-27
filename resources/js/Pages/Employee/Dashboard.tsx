@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { 
     ListOrdered, 
@@ -26,21 +26,32 @@ import {
     Check,
     X,
     Banknote,
-    RotateCcw
+    RotateCcw,
+    ShieldAlert,
+    Lock
 } from 'lucide-react';
 
 interface OrderItem {
-    id: string;
-    type: 'Dine-In' | 'Pick-Up' | 'Delivery';
-    location: string;
-    customer: string;
-    phone: string;
-    amount: number;
-    payment: string;
+    id: string | number;
+    order_number?: string;
+    type?: 'Dine-In' | 'Pick-Up' | 'Delivery' | string;
+    order_type?: string;
+    location?: string;
+    table_number?: string;
+    customer?: string;
+    customer_name?: string;
+    phone?: string;
+    customer_phone?: string;
+    amount?: number;
+    total_amount?: number;
+    payment?: string;
+    payment_method?: string;
     status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-    time: string;
-    itemsCount: number;
-    itemsSummary: string;
+    time?: string;
+    created_at?: string;
+    itemsCount?: number;
+    itemsSummary?: string;
+    order_items?: any[];
 }
 
 interface ProductItem {
@@ -60,13 +71,44 @@ interface PosCartItem {
     quantity: number;
 }
 
-export default function EmployeeDashboard() {
+interface EmployeeDashboardProps {
+    initialOrders?: OrderItem[];
+}
+
+export default function EmployeeDashboard({ initialOrders }: EmployeeDashboardProps) {
     // POS is default active tab for Cashiers!
     const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
-    // Cashier Order Queue defaults to 'ready' (ready to serve)!
-    const [statusFilter, setStatusFilter] = useState('ready');
+    const [statusFilter, setStatusFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState('All');
+
+    // Live State Orders Dataset
+    const [orders, setOrders] = useState<OrderItem[]>(initialOrders || [
+        { id: 'SR-1049', order_number: 'SR-1049', type: 'Dine-In', order_type: 'dine_in', location: 'Table 05', customer: 'Juan Dela Cruz', customer_name: 'Juan Dela Cruz', phone: '09171234567', amount: 640, total_amount: 640, payment: 'GCash', status: 'ready', time: '10 mins ago', itemsCount: 3, itemsSummary: '2x Sizzling Pork Sisig, 1x Red Iced Tea Pitcher' },
+        { id: 'SR-1048', order_number: 'SR-1048', type: 'Pick-Up', order_type: 'pickup', location: 'Counter', customer: 'Marco Reyes', customer_name: 'Marco Reyes', phone: '09189876543', amount: 460, total_amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, itemsSummary: '1x Sizzling T-Bone Steak, 1x Extra Garlic Rice' },
+        { id: 'SR-1047', order_number: 'SR-1047', type: 'Delivery', order_type: 'delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', customer_name: 'Elena Cruz', phone: '09223334444', amount: 890, total_amount: 890, payment: 'Cash on Delivery', status: 'preparing', time: '30 mins ago', itemsCount: 4, itemsSummary: '1x Sizzling Bulalo Steak, 2x Chicken Inasal, 1x Red Iced Tea' },
+        { id: 'SR-1046', order_number: 'SR-1046', type: 'Dine-In', order_type: 'dine_in', location: 'Table 02', customer: 'Seated Guest', customer_name: 'Seated Guest', phone: '09175556666', amount: 360, total_amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, itemsSummary: '2x Sizzling Pork Sisig' },
+    ]);
+
+    // Live Polling Engine
+    const fetchLatestOrders = async () => {
+        try {
+            const res = await fetch('/api/v1/kitchen/orders');
+            if (res.ok) {
+                const json = await res.json();
+                if (json.data && json.data.length > 0) {
+                    setOrders(json.data);
+                }
+            }
+        } catch (e) {
+            // fallback gracefully
+        }
+    };
+
+    useEffect(() => {
+        const interval = setInterval(fetchLatestOrders, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     // POS Walk-In Cart State
     const [posCart, setPosCart] = useState<PosCartItem[]>([]);
@@ -77,13 +119,12 @@ export default function EmployeeDashboard() {
     const [cashTendered, setCashTendered] = useState<string>('');
     const [showReceiptModal, setShowReceiptModal] = useState<OrderItem | null>(null);
 
-    // Live State Orders Dataset
-    const [orders, setOrders] = useState<OrderItem[]>([
-        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'ready', time: '10 mins ago', itemsCount: 3, itemsSummary: '2x Sizzling Pork Sisig, 1x Red Iced Tea Pitcher' },
-        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, itemsSummary: '1x Sizzling T-Bone Steak, 1x Extra Garlic Rice' },
-        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'preparing', time: '30 mins ago', itemsCount: 4, itemsSummary: '1x Sizzling Bulalo Steak, 2x Chicken Inasal, 1x Red Iced Tea' },
-        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, itemsSummary: '2x Sizzling Pork Sisig' },
-    ]);
+    // Security Void Modal State
+    const [cancelModalOrder, setCancelModalOrder] = useState<OrderItem | null>(null);
+    const [cancelPassword, setCancelPassword] = useState('');
+    const [cancelReason, setCancelReason] = useState('');
+    const [cancelError, setCancelError] = useState('');
+    const [cancelLoading, setCancelLoading] = useState(false);
 
     // Live State Products Dataset
     const [products] = useState<ProductItem[]>([
@@ -132,11 +173,15 @@ export default function EmployeeDashboard() {
 
         const newOrder: OrderItem = {
             id: newOrderId,
+            order_number: newOrderId,
             type: posOrderType,
+            order_type: posOrderType.toLowerCase().replace('-', '_'),
             location: posOrderType === 'Dine-In' ? `Table ${posTableNumber}` : 'Counter Pick-Up',
             customer: posCustomerName || 'Walk-In Customer',
+            customer_name: posCustomerName || 'Walk-In Customer',
             phone: 'Walk-In Counter',
             amount: posCartTotal,
+            total_amount: posCartTotal,
             payment: `${posPaymentMethod} (Walk-In POS)`,
             status: 'preparing',
             time: 'Just now',
@@ -153,13 +198,77 @@ export default function EmployeeDashboard() {
         setPosCustomerName('Walk-In Guest');
     };
 
-    const updateOrderStatus = (orderId: string, newStatus: OrderItem['status']) => {
-        setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    // Update Status Endpoint Handler (PATCH /orders/{id}/status)
+    const updateOrderStatus = async (orderId: string | number, newStatus: OrderItem['status']) => {
+        try {
+            const res = await fetch(`/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
+
+            if (res.ok) {
+                setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+            } else {
+                setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+            }
+        } catch (e) {
+            setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        }
+    };
+
+    // Cancellation Handler (POST /orders/{id}/cancel)
+    const handleCancelOrderSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!cancelModalOrder) return;
+
+        setCancelLoading(true);
+        setCancelError('');
+
+        try {
+            const res = await fetch(`/orders/${cancelModalOrder.id}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    password: cancelPassword,
+                    reason: cancelReason,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setOrders(orders.map(o => o.id === cancelModalOrder.id ? { ...o, status: 'cancelled' } : o));
+                setCancelModalOrder(null);
+                setCancelPassword('');
+                setCancelReason('');
+            } else {
+                setCancelError(data.message || 'Invalid authorization password');
+            }
+        } catch (err) {
+            setCancelError('Network error verifying cancellation.');
+        } finally {
+            setCancelLoading(false);
+        }
     };
 
     const filteredOrders = orders.filter(o => {
         if (statusFilter !== 'All' && o.status !== statusFilter) return false;
-        if (searchQuery && !o.id.toLowerCase().includes(searchQuery.toLowerCase()) && !o.customer.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        if (searchQuery) {
+            const num = (o.order_number || o.id || '').toString().toLowerCase();
+            const cust = (o.customer_name || o.customer || '').toLowerCase();
+            if (!num.includes(searchQuery.toLowerCase()) && !cust.includes(searchQuery.toLowerCase())) {
+                return false;
+            }
+        }
         return true;
     });
 
@@ -169,10 +278,13 @@ export default function EmployeeDashboard() {
         return true;
     });
 
-    const shiftRevenue = orders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
+    const shiftRevenue = orders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + (o.amount || o.total_amount || 0), 0);
 
+    const pendingCount = orders.filter(o => o.status === 'pending').length;
+    const preparingCount = orders.filter(o => o.status === 'preparing').length;
     const readyCount = orders.filter(o => o.status === 'ready').length;
     const completedCount = orders.filter(o => o.status === 'completed').length;
+    const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
 
     return (
         <>
@@ -235,7 +347,7 @@ export default function EmployeeDashboard() {
                                 }`}
                             >
                                 <ListOrdered className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span>Ready to Serve Orders ({readyCount})</span>
+                                <span>Orders Queue ({orders.length})</span>
                             </button>
 
                             <button
@@ -532,21 +644,24 @@ export default function EmployeeDashboard() {
                         </div>
                     )}
 
-                    {/* TAB 1: CASHIER FOCUSED READY-TO-SERVE ORDERS QUEUE */}
+                    {/* TAB 1: TABBED ORDER QUEUE VIEW WITH PENDING | PREPARING | READY | COMPLETED | CANCELLED */}
                     {activeTab === 'queue' && (
                         <div className="space-y-6">
-                            {/* FILTER PIPELINE CHIPS */}
+                            {/* TABBED STATUS PIPELINE CHIPS */}
                             <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-3 shadow-lg">
                                 <div className="flex items-center gap-2 overflow-x-auto">
                                     {[
-                                        { id: 'ready', label: 'Ready to Serve / Pick-Up', count: readyCount, color: 'text-blue-400' },
-                                        { id: 'completed', label: 'Completed Orders', count: completedCount, color: 'text-emerald-400' },
                                         { id: 'All', label: 'All Orders', count: orders.length, color: 'text-white' },
+                                        { id: 'pending', label: 'Pending', count: pendingCount, color: 'text-amber-400' },
+                                        { id: 'preparing', label: 'Preparing', count: preparingCount, color: 'text-yellow-300' },
+                                        { id: 'ready', label: 'Ready to Serve', count: readyCount, color: 'text-blue-400' },
+                                        { id: 'completed', label: 'Completed', count: completedCount, color: 'text-emerald-400' },
+                                        { id: 'cancelled', label: 'Cancelled', count: cancelledCount, color: 'text-rose-400' },
                                     ].map((chip) => (
                                         <button
                                             key={chip.id}
                                             onClick={() => setStatusFilter(chip.id)}
-                                            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                                                 statusFilter === chip.id
                                                     ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md'
                                                     : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
@@ -561,101 +676,139 @@ export default function EmployeeDashboard() {
                                 </div>
 
                                 <div className="text-xs text-[#a1a1aa]">
-                                    Cashier Serving Queue: <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> ready tickets
+                                    Order Queue: <strong className="text-[#fbbf24] font-mono text-sm">{filteredOrders.length}</strong> tickets
                                 </div>
                             </div>
 
                             {/* CASHIER ORDER QUEUE CARDS GRID */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                                 {filteredOrders.length > 0 ? (
-                                    filteredOrders.map((o) => (
-                                        <div
-                                            key={o.id}
-                                            className={`p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-5 flex flex-col justify-between transition-all ${
-                                                o.status === 'ready' ? 'bg-[#1b2638] border-blue-500/80 shadow-blue-500/20' :
-                                                o.status === 'completed' ? 'bg-[#19261f] border-emerald-500/50' :
-                                                'bg-[#202024] border-[#333338]'
-                                            }`}
-                                        >
-                                            <div className="space-y-4">
-                                                {/* Header Bar */}
-                                                <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="font-mono text-xl font-black text-white tracking-wider">{o.id}</span>
-                                                        <span className="px-3 py-1 rounded-full bg-[#18181b] text-[#fbbf24] text-xs font-mono font-bold border border-[#3f3f46]">
-                                                            [{o.type}: {o.location}]
-                                                        </span>
-                                                    </div>
+                                    filteredOrders.map((o) => {
+                                        const orderNum = o.order_number || o.id;
+                                        const custName = o.customer_name || o.customer || 'Guest';
+                                        const custPhone = o.customer_phone || o.phone || 'Counter';
+                                        const oType = o.order_type || o.type || 'dine_in';
+                                        const oLoc = o.table_number ? `Table ${o.table_number}` : (o.location || 'Counter');
+                                        const totalVal = o.total_amount || o.amount || 0;
+                                        const payMethod = o.payment_method || o.payment || 'Cash';
+                                        const itemsText = o.itemsSummary || (o.order_items || []).map(i => `${i.quantity}x ${i.product?.name || 'Dish'}`).join(', ');
 
-                                                    <span className={`px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                                                        o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse' :
-                                                        o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
-                                                        'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                                                    }`}>
-                                                        {o.status === 'ready' ? 'Ready to Serve' :
-                                                         o.status === 'completed' ? 'Completed' :
-                                                         o.status}
-                                                    </span>
-                                                </div>
+                                        return (
+                                            <div
+                                                key={o.id}
+                                                className={`p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-5 flex flex-col justify-between transition-all ${
+                                                    o.status === 'pending' ? 'bg-[#1f1a14] border-amber-500/50' :
+                                                    o.status === 'preparing' ? 'bg-[#1e1c18] border-yellow-500/50' :
+                                                    o.status === 'ready' ? 'bg-[#1b2638] border-blue-500/80 shadow-blue-500/20' :
+                                                    o.status === 'completed' ? 'bg-[#19261f] border-emerald-500/50' :
+                                                    'bg-[#261517] border-rose-500/50'
+                                                }`}
+                                            >
+                                                <div className="space-y-4">
+                                                    {/* Header Bar */}
+                                                    <div className="flex items-center justify-between pb-3 border-b border-[#333338]">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="font-mono text-xl font-black text-white tracking-wider">#{orderNum}</span>
+                                                            <span className="px-3 py-1 rounded-full bg-[#18181b] text-[#fbbf24] text-xs font-mono font-bold border border-[#3f3f46]">
+                                                                [{oType.toUpperCase()}: {oLoc}]
+                                                            </span>
+                                                        </div>
 
-                                                {/* Customer & Dished Items List */}
-                                                <div className="space-y-2">
-                                                    <div className="text-xs sm:text-sm font-bold text-white flex justify-between">
-                                                        <span>Customer: <strong className="text-[#fbbf24]">{o.customer}</strong></span>
-                                                        <span className="text-[#a1a1aa] font-mono">{o.phone} • {o.time}</span>
-                                                    </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                                                o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse' :
+                                                                o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                                                                o.status === 'preparing' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40' :
+                                                                o.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' :
+                                                                'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                                                            }`}>
+                                                                {o.status}
+                                                            </span>
 
-                                                    <div className="p-4 rounded-2xl bg-[#141416] border border-[#3f3f46] space-y-1">
-                                                        <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider">Dishes Ready for Customer:</div>
-                                                        <div className="text-xs sm:text-sm font-mono font-bold text-zinc-100 leading-relaxed">
-                                                            {o.itemsSummary}
+                                                            {o.status !== 'cancelled' && o.status !== 'completed' && (
+                                                                <button
+                                                                    onClick={() => setCancelModalOrder(o)}
+                                                                    className="text-xs text-rose-400 hover:text-rose-300 font-bold p-1"
+                                                                    title="Void Order"
+                                                                >
+                                                                    <ShieldAlert className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                <div className="flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
-                                                    <span>Payment: <strong className="text-white">{o.payment}</strong></span>
-                                                    <span className="text-base font-black text-[#fbbf24]">Total Paid: ₱{o.amount.toFixed(2)}</span>
-                                                </div>
-                                            </div>
+                                                    {/* Customer & Dishes Items List */}
+                                                    <div className="space-y-2">
+                                                        <div className="text-xs sm:text-sm font-bold text-white flex justify-between">
+                                                            <span>Customer: <strong className="text-[#fbbf24]">{custName}</strong></span>
+                                                            <span className="text-[#a1a1aa] font-mono">{custPhone}</span>
+                                                        </div>
 
-                                            {/* CASHIER ACTION BUTTON */}
-                                            <div className="pt-2">
-                                                {o.status === 'ready' && (
-                                                    <button
-                                                        onClick={() => updateOrderStatus(o.id, 'completed')}
-                                                        className="w-full px-4 py-4 sm:py-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
-                                                    >
-                                                        <Check className="w-6 h-6 flex-shrink-0" />
-                                                        <span className="text-center">COMPLETE ORDER (HAND OVER TO GUEST)</span>
-                                                    </button>
-                                                )}
-
-                                                {o.status === 'completed' && (
-                                                    <div className="w-full px-4 py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs text-center flex items-center justify-center gap-2">
-                                                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                                                        <span>ORDER FULLY FULFILLED & SERVED</span>
+                                                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#3f3f46] space-y-1">
+                                                            <div className="text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider">Dishes Summary:</div>
+                                                            <div className="text-xs sm:text-sm font-mono font-bold text-zinc-100 leading-relaxed">
+                                                                {itemsText || 'Ordered items list'}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                )}
 
-                                                {o.status !== 'ready' && o.status !== 'completed' && (
-                                                    <button
-                                                        onClick={() => updateOrderStatus(o.id, 'ready')}
-                                                        className="w-full px-4 py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                                                    >
-                                                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                                                        <span>MARK READY FOR SERVE</span>
-                                                    </button>
-                                                )}
+                                                    <div className="flex justify-between items-center text-xs font-mono text-[#a1a1aa]">
+                                                        <span>Payment: <strong className="text-white">{payMethod}</strong></span>
+                                                        <span className="text-base font-black text-[#fbbf24]">Total: ₱{Number(totalVal).toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* CASHIER ACTION BUTTONS */}
+                                                <div className="pt-2 space-y-2">
+                                                    {o.status === 'ready' && (
+                                                        <button
+                                                            onClick={() => updateOrderStatus(o.id, 'completed')}
+                                                            className="w-full px-4 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-sm uppercase tracking-wider transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 cursor-pointer active:scale-95"
+                                                        >
+                                                            <Check className="w-5 h-5 flex-shrink-0" />
+                                                            <span className="text-center">COMPLETE ORDER (HAND OVER)</span>
+                                                        </button>
+                                                    )}
+
+                                                    {(o.status === 'ready' || o.status === 'completed') && (
+                                                        <button
+                                                            onClick={() => setShowReceiptModal(o)}
+                                                            className="w-full py-3 rounded-2xl bg-[#27272a] border border-[#3f3f46] hover:bg-[#3f3f46] text-[#fbbf24] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                                        >
+                                                            <Printer className="w-4 h-4" />
+                                                            <span>Print Thermal Receipt</span>
+                                                        </button>
+                                                    )}
+
+                                                    {o.status === 'pending' && (
+                                                        <button
+                                                            onClick={() => updateOrderStatus(o.id, 'preparing')}
+                                                            className="w-full px-4 py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                                        >
+                                                            <Flame className="w-4 h-4 flex-shrink-0" />
+                                                            <span>Start Preparing</span>
+                                                        </button>
+                                                    )}
+
+                                                    {o.status === 'preparing' && (
+                                                        <button
+                                                            onClick={() => updateOrderStatus(o.id, 'ready')}
+                                                            className="w-full px-4 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                                        >
+                                                            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                                                            <span>Mark Ready to Serve</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+
                                             </div>
-
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 ) : (
                                     <div className="col-span-3 p-12 rounded-3xl bg-[#202024] border border-[#333338] text-center space-y-2">
                                         <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                                        <div className="text-base font-bold text-white font-domine">No orders currently ready for serve</div>
-                                        <p className="text-xs text-[#a1a1aa]">New orders ready from the kitchen grill will appear here automatically.</p>
+                                        <div className="text-base font-bold text-white font-domine">No orders in status "{statusFilter}"</div>
+                                        <p className="text-xs text-[#a1a1aa]">Select another tab or place a new order from /order.</p>
                                     </div>
                                 )}
                             </div>
@@ -753,22 +906,22 @@ export default function EmployeeDashboard() {
 
                         <div>
                             <div className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-widest">OFFICIAL CASHIER RECEIPT</div>
-                            <h3 className="text-2xl font-black font-domine text-[#fbbf24] mt-0.5">{showReceiptModal.id}</h3>
-                            <div className="text-xs text-[#a1a1aa] font-mono">{showReceiptModal.location} • {showReceiptModal.customer}</div>
+                            <h3 className="text-2xl font-black font-domine text-[#fbbf24] mt-0.5">#{showReceiptModal.order_number || showReceiptModal.id}</h3>
+                            <div className="text-xs text-[#a1a1aa] font-mono">{showReceiptModal.location || showReceiptModal.table_number || 'Counter'} • {showReceiptModal.customer_name || showReceiptModal.customer || 'Guest'}</div>
                         </div>
 
                         <div className="p-4 rounded-2xl bg-[#202024] border border-[#333338] text-xs text-left space-y-2 font-mono">
                             <div className="text-amber-400 font-bold border-b border-[#333338] pb-1">Items Summary:</div>
-                            <div className="text-[#a1a1aa] leading-relaxed">{showReceiptModal.itemsSummary}</div>
+                            <div className="text-[#a1a1aa] leading-relaxed">{showReceiptModal.itemsSummary || 'Ordered items list'}</div>
                             
                             <div className="pt-2 border-t border-[#333338] space-y-1">
                                 <div className="flex justify-between text-[#a1a1aa]">
                                     <span>Payment Mode:</span>
-                                    <span className="text-white font-bold">{showReceiptModal.payment}</span>
+                                    <span className="text-white font-bold">{showReceiptModal.payment_method || showReceiptModal.payment || 'Cash'}</span>
                                 </div>
                                 <div className="flex justify-between text-sm font-bold text-white pt-1">
                                     <span>Total Paid:</span>
-                                    <span className="text-[#fbbf24]">₱{showReceiptModal.amount.toFixed(2)}</span>
+                                    <span className="text-[#fbbf24]">₱{Number(showReceiptModal.total_amount || showReceiptModal.amount || 0).toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
@@ -776,12 +929,83 @@ export default function EmployeeDashboard() {
                         <div className="pt-2 flex gap-2 no-print">
                             <button
                                 onClick={() => window.print()}
-                                className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl"
+                                className="w-full py-3.5 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl cursor-pointer"
                             >
                                 <Printer className="w-4 h-4" />
                                 <span>Print Thermal Customer Receipt</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SECURITY MODAL FOR CANCELLED ORDERS */}
+            {cancelModalOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+                    <div className="w-full max-w-md rounded-3xl bg-[#18181b] border-2 border-rose-500/80 p-6 shadow-2xl space-y-5">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#3f3f46]">
+                            <div className="flex items-center gap-2 text-rose-400">
+                                <ShieldAlert className="w-6 h-6" />
+                                <h3 className="font-domine font-black text-white text-lg">Security Password Void</h3>
+                            </div>
+                            <button onClick={() => setCancelModalOrder(null)} className="text-[#a1a1aa] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="text-xs text-[#a1a1aa]">
+                            Authorizing void cancellation for <strong className="text-white font-mono">#{cancelModalOrder.order_number || cancelModalOrder.id}</strong>. Stock quantities will be restored and logged to audit trails.
+                        </div>
+
+                        {cancelError && (
+                            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center gap-2">
+                                <Lock className="w-4 h-4 flex-shrink-0" />
+                                <span>{cancelError}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleCancelOrderSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Reason for Cancellation</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    placeholder="e.g. Customer changed mind / Out of stock"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-rose-500 focus:outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Manager/Employee Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={cancelPassword}
+                                    onChange={(e) => setCancelPassword(e.target.value)}
+                                    placeholder="Enter your account password"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-rose-500 focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCancelModalOrder(null)}
+                                    className="flex-1 py-3 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs"
+                                >
+                                    Dismiss
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={cancelLoading}
+                                    className="flex-1 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50"
+                                >
+                                    {cancelLoading ? 'Verifying...' : 'Authorize Void'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
