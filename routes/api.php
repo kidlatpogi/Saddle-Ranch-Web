@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\EmployeeController;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -19,6 +20,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
+
+    // Voucher Validation for Customer Checkout
+    Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
 
     // Auth Login for Flutter Mobile App
     Route::post('/auth/login', function (Request $request) {
