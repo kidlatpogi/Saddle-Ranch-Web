@@ -138,7 +138,15 @@ class SaddleRanchSystemTest extends TestCase
         $employee = User::where('email', 'cashier@saddleranch.ph')->first();
         $this->actingAs($employee);
 
+        // Admin accesses /admin/dashboard
+        $admin = User::where('email', 'admin@saddleranch.ph')->first();
+        $this->actingAs($admin);
+        $dashboardResp = $this->get('/admin/dashboard');
+        $dashboardResp->assertStatus(200);
+        $dashboardResp->assertInertia(fn ($page) => $page->component('Admin/Dashboard'));
+
         // Non-admin blocked from /admin/*
+        $this->actingAs($employee);
         $adminRouteResp = $this->get('/admin/products');
         $adminRouteResp->assertStatus(403);
 
@@ -158,12 +166,15 @@ class SaddleRanchSystemTest extends TestCase
     public function test_phase_5_mobile_api()
     {
         $loginResp = $this->postJson('/api/v1/auth/login', [
-            'email' => 'cashier@saddleranch.ph',
-            'password' => 'password',
+            'email' => 'mobile@saddleranch.ph',
+            'password' => 'password123',
         ]);
 
         $loginResp->assertStatus(200);
         $loginResp->assertJsonStructure(['token', 'user']);
+        $loginResp->assertJsonPath('user.first_name', 'Juan');
+        $loginResp->assertJsonPath('user.last_name', 'Dela Cruz');
+        $loginResp->assertJsonPath('user.phone_number', '09171234567');
 
         $productsResp = $this->getJson('/api/v1/products');
         $productsResp->assertStatus(200);

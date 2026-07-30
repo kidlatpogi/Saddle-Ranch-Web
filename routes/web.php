@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\EmployeeAccountController;
 use App\Http\Controllers\Admin\ProductManagementController;
@@ -33,7 +34,7 @@ Route::middleware(['auth', 'role:admin,employee,cashier,kitchen'])->group(functi
 
 // Protected Admin Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [SalesAnalyticsController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     
     // Product Management (CRUD)
     Route::get('/admin/products', [ProductManagementController::class, 'index'])->name('admin.products');

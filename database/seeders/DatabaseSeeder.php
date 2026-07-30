@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@saddleranch.ph'],
             [
                 'name' => 'Saddle Ranch Admin',
+                'first_name' => 'Saddle',
+                'last_name' => 'Admin',
                 'password' => Hash::make('password'),
                 'role' => 'admin'
             ]
@@ -33,6 +35,8 @@ class DatabaseSeeder extends Seeder
             ['email' => 'cashier@saddleranch.ph'],
             [
                 'name' => 'Cashier Employee',
+                'first_name' => 'Cashier',
+                'last_name' => 'Employee',
                 'password' => Hash::make('password'),
                 'role' => 'employee'
             ]
@@ -42,7 +46,36 @@ class DatabaseSeeder extends Seeder
             ['email' => 'kitchen@saddleranch.ph'],
             [
                 'name' => 'Kitchen Head Chef',
+                'first_name' => 'Kitchen',
+                'last_name' => 'Chef',
                 'password' => Hash::make('password'),
+                'role' => 'employee'
+            ]
+        );
+
+        // Dedicated Mobile App Customer Login
+        User::updateOrCreate(
+            ['email' => 'mobile@saddleranch.ph'],
+            [
+                'name' => 'Juan Dela Cruz',
+                'first_name' => 'Juan',
+                'last_name' => 'Dela Cruz',
+                'password' => Hash::make('password123'),
+                'address' => '123 Saddle Ranch St., Dasmariñas, Cavite',
+                'phone_number' => '09171234567',
+                'role' => 'employee'
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'customer@saddleranch.ph'],
+            [
+                'name' => 'Maria Santos',
+                'first_name' => 'Maria',
+                'last_name' => 'Santos',
+                'password' => Hash::make('password'),
+                'address' => null, // Nullable address example
+                'phone_number' => null, // Nullable phone number example
                 'role' => 'employee'
             ]
         );
