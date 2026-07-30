@@ -47,6 +47,10 @@ interface ProductItem {
     description: string;
     price: number;
     stock: number;
+    priceBulihan?: number;
+    stockBulihan?: number;
+    priceDasmarinas?: number;
+    stockDasmarinas?: number;
     isActive: boolean;
     image: string;
 }
@@ -495,8 +499,8 @@ export default function AdminDashboard() {
             {/* EYE-CARE ERGONOMIC SOFT CHARCOAL & WARM AMBER DARK THEME */}
             <div className="min-h-screen bg-[#141416] text-[#f4f4f5] flex font-sans selection:bg-[#f59e0b] selection:text-[#3f2000]">
                 
-                {/* Sidebar Navigation */}
-                <aside className="w-64 bg-[#1f1f23] border-r border-[#333338] flex flex-col flex-shrink-0 hidden md:flex shadow-xl">
+                {/* Sidebar Navigation (Fixed Railway Navigation) */}
+                <aside className="w-64 bg-[#1f1f23] border-r border-[#333338] flex flex-col flex-shrink-0 hidden md:flex shadow-xl h-screen sticky top-0">
                     <div className="h-20 px-6 flex items-center gap-3 border-b border-[#333338]">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f59e0b] to-[#b45309] flex items-center justify-center shadow-md shadow-[#f59e0b]/20">
                             <Flame className="w-5 h-5 text-[#3f2000]" />
