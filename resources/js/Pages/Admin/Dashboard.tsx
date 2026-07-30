@@ -114,20 +114,20 @@ export default function AdminDashboard() {
     // Order Queue Status Filter
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
 
-    // Menu Products Dataset
+    // Menu Products Dataset with Branch-Specific Stock & Prices (Bulihan vs Dasmariñas)
     const [products, setProducts] = useState<ProductItem[]>([
-        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino Cuisine', description: 'Crispy pork belly with local spices and egg.', price: 180, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
-        { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', description: 'Tender T-Bone steak with signature gravy.', price: 280, stock: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino Cuisine', description: 'Rich beef shank with simmering bone marrow gravy.', price: 450, stock: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', description: 'Chargrilled Bacolod-style chicken with garlic rice.', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
-        { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', description: 'Chilled house-brewed red iced tea pitcher.', price: 95, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-        { id: 6, name: 'Sizzling Burger Steak Dual', category: 'Sizzling Rice Meals', description: 'Twin thick beef patties smothered in mushroom gravy.', price: 195, stock: 45, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 7, name: 'Sizzling Pork Chop Duo', category: 'Sizzling Rice Meals', description: 'Seared seasoned pork chops with fried garlic & egg.', price: 210, stock: 35, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
-        { id: 8, name: 'Barkada Ribs Feast Platter', category: 'Barkada Platters', description: 'Full rack bbq pork ribs with unli garlic rice & drinks.', price: 890, stock: 12, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 9, name: 'Sizzling Gambas Al Ajillo', category: 'Authentic Filipino Cuisine', description: 'Wild shrimp sautéed in garlic chili olive oil skillet.', price: 320, stock: 20, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
-        { id: 10, name: 'Crispy Pata Deluxe Platter', category: 'Barkada Platters', description: 'Deep fried pork knuckle with chili soy vinegar dip.', price: 750, stock: 10, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 11, name: 'Extra Garlic Butter Rice', category: 'Drinks & Extra Rice', description: 'Steamed jasmine rice tossed in brown butter & garlic.', price: 35, stock: 200, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-        { id: 12, name: 'San Miguel Pale Pilsen Bucket', category: 'Drinks & Extra Rice', description: 'Bucket of 5 ice-cold San Miguel Pale Pilsen bottles.', price: 380, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino Cuisine', description: 'Crispy pork belly with local spices and egg.', price: 180, stock: 55, priceBulihan: 180, stockBulihan: 35, priceDasmarinas: 195, stockDasmarinas: 20, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
+        { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', description: 'Tender T-Bone steak with signature gravy.', price: 280, stock: 40, priceBulihan: 280, stockBulihan: 25, priceDasmarinas: 299, stockDasmarinas: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
+        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino Cuisine', description: 'Rich beef shank with simmering bone marrow gravy.', price: 450, stock: 20, priceBulihan: 450, stockBulihan: 12, priceDasmarinas: 480, stockDasmarinas: 8, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
+        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', description: 'Chargrilled Bacolod-style chicken with garlic rice.', price: 220, stock: 65, priceBulihan: 220, stockBulihan: 40, priceDasmarinas: 235, stockDasmarinas: 25, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
+        { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', description: 'Chilled house-brewed red iced tea pitcher.', price: 95, stock: 180, priceBulihan: 95, stockBulihan: 100, priceDasmarinas: 105, stockDasmarinas: 80, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 6, name: 'Sizzling Burger Steak Dual', category: 'Sizzling Rice Meals', description: 'Twin thick beef patties smothered in mushroom gravy.', price: 195, stock: 50, priceBulihan: 195, stockBulihan: 30, priceDasmarinas: 210, stockDasmarinas: 20, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
+        { id: 7, name: 'Sizzling Pork Chop Duo', category: 'Sizzling Rice Meals', description: 'Seared seasoned pork chops with fried garlic & egg.', price: 210, stock: 46, priceBulihan: 210, stockBulihan: 28, priceDasmarinas: 225, stockDasmarinas: 18, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
+        { id: 8, name: 'Barkada Ribs Feast Platter', category: 'Barkada Platters', description: 'Full rack bbq pork ribs with unli garlic rice & drinks.', price: 890, stock: 16, priceBulihan: 890, stockBulihan: 10, priceDasmarinas: 920, stockDasmarinas: 6, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
+        { id: 9, name: 'Sizzling Gambas Al Ajillo', category: 'Authentic Filipino Cuisine', description: 'Wild shrimp sautéed in garlic chili olive oil skillet.', price: 320, stock: 25, priceBulihan: 320, stockBulihan: 15, priceDasmarinas: 340, stockDasmarinas: 10, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
+        { id: 10, name: 'Crispy Pata Deluxe Platter', category: 'Barkada Platters', description: 'Deep fried pork knuckle with chili soy vinegar dip.', price: 750, stock: 13, priceBulihan: 750, stockBulihan: 8, priceDasmarinas: 785, stockDasmarinas: 5, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
+        { id: 11, name: 'Extra Garlic Butter Rice', category: 'Drinks & Extra Rice', description: 'Steamed jasmine rice tossed in brown butter & garlic.', price: 35, stock: 270, priceBulihan: 35, stockBulihan: 150, priceDasmarinas: 40, stockDasmarinas: 120, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 12, name: 'San Miguel Pale Pilsen Bucket', category: 'Drinks & Extra Rice', description: 'Bucket of 5 ice-cold San Miguel Pale Pilsen bottles.', price: 380, stock: 75, priceBulihan: 380, stockBulihan: 45, priceDasmarinas: 399, stockDasmarinas: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
     ]);
 
     const [orders, setOrders] = useState<OrderItem[]>([
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
 
     // Products Category & Branch Sort Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
-    const [productBranchFilter, setProductBranchFilter] = useState<string>('All');
+    const [productBranchFilter, setProductBranchFilter] = useState<string>('Bulihan');
     const [productPage, setProductPage] = useState<number>(1);
 
     // Slot-based Banner Modal State with Real-Time Preview
@@ -275,7 +275,18 @@ export default function AdminDashboard() {
     };
 
     const updateProductStock = (id: number, delta: number) => {
-        setProducts(products.map(p => p.id === id ? { ...p, stock: Math.max(0, p.stock + delta) } : p));
+        setProducts(products.map(p => {
+            if (p.id !== id) return p;
+            if (productBranchFilter === 'Bulihan') {
+                const currentBulihan = p.stockBulihan ?? Math.floor(p.stock * 0.6);
+                const nextBulihan = Math.max(0, currentBulihan + delta);
+                return { ...p, stockBulihan: nextBulihan, stock: (p.stockDasmarinas ?? Math.floor(p.stock * 0.4)) + nextBulihan };
+            } else {
+                const currentDasma = p.stockDasmarinas ?? Math.floor(p.stock * 0.4);
+                const nextDasma = Math.max(0, currentDasma + delta);
+                return { ...p, stockDasmarinas: nextDasma, stock: (p.stockBulihan ?? Math.floor(p.stock * 0.6)) + nextDasma };
+            }
+        }));
     };
 
     const deleteProduct = (id: number) => {
@@ -844,7 +855,6 @@ export default function AdminDashboard() {
                                                 }}
                                                 className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
                                             >
-                                                <option value="All" className="bg-[#18181b]">All Branches (Bulihan & Dasmariñas)</option>
                                                 <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
                                                 <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
                                             </select>
@@ -856,83 +866,109 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {/* PRODUCTS GRID WITH BRANCH PRICES & STOCKS */}
+                                {/* PRODUCTS GRID WITH BRANCH-SPECIFIC PRICES & STOCKS */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {paginatedProducts.map((p) => (
-                                        <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-4 flex flex-col justify-between">
-                                            <div className="space-y-3">
-                                                <div className="relative h-40 w-full rounded-2xl overflow-hidden border border-[#3f3f46] bg-[#18181b]">
-                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                                                    <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-[#18181b]/90 text-[#fbbf24] font-mono font-black text-xs border border-[#f59e0b]/30">
-                                                        ₱ {p.price.toFixed(2)}
-                                                    </span>
-                                                </div>
-
-                                                <div>
-                                                    <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
-                                                    <h4 className="text-base font-bold text-white font-domine leading-snug">{p.name}</h4>
-                                                    <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">{p.description}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-3 border-t border-[#333338] space-y-3">
-                                                {/* Branch Specific Price & Stock Badges */}
-                                                <div className="space-y-1.5 text-xs font-mono">
-                                                    <div className="flex items-center justify-between p-2 rounded-xl bg-[#18181b] border border-amber-500/20">
-                                                        <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Bulihan:</span>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[#fbbf24] font-black">₱ {(p.priceBulihan ?? p.price).toFixed(2)}</span>
-                                                            <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stockBulihan ?? Math.floor(p.stock * 0.6)}</span>
+                                    {paginatedProducts.map((p) => {
+                                        const currentPrice = productBranchFilter === 'Bulihan' ? (p.priceBulihan ?? p.price) : (p.priceDasmarinas ?? p.price);
+                                        const currentStock = productBranchFilter === 'Bulihan' ? (p.stockBulihan ?? Math.floor(p.stock * 0.6)) : (p.stockDasmarinas ?? Math.floor(p.stock * 0.4));
+                                        
+                                        return (
+                                            <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-4 flex flex-col justify-between">
+                                                <div className="space-y-3">
+                                                    <div className="relative h-40 w-full rounded-2xl overflow-hidden border border-[#3f3f46] bg-[#18181b]">
+                                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                        
+                                                        {/* Dynamic Branch Tag & Price Badge */}
+                                                        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                                                                productBranchFilter === 'Bulihan' 
+                                                                    ? 'bg-amber-500/90 text-zinc-950 border-amber-400' 
+                                                                    : 'bg-blue-600/90 text-white border-blue-400'
+                                                            }`}>
+                                                                {productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'}
+                                                            </span>
+                                                            <span className="px-2.5 py-1 rounded-full bg-[#18181b]/90 text-[#fbbf24] font-mono font-black text-xs border border-[#f59e0b]/30">
+                                                                ₱ {currentPrice.toFixed(2)}
+                                                            </span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-center justify-between p-2 rounded-xl bg-[#18181b] border border-blue-500/20">
-                                                        <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Dasmariñas:</span>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[#fbbf24] font-black">₱ {(p.priceDasmarinas ?? p.price).toFixed(2)}</span>
-                                                            <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stockDasmarinas ?? Math.floor(p.stock * 0.4)}</span>
-                                                        </div>
+                                                    <div>
+                                                        <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
+                                                        <h4 className="text-base font-bold text-white font-domine leading-snug">{p.name}</h4>
+                                                        <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">{p.description}</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center justify-between text-xs">
+                                                <div className="pt-3 border-t border-[#333338] space-y-3">
+                                                    {/* Branch Specific Price & Stock Comparison */}
+                                                    <div className="space-y-1.5 text-xs font-mono">
+                                                        <div className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                                                            productBranchFilter === 'Bulihan'
+                                                                ? 'bg-amber-500/10 border-amber-500/50 shadow-inner'
+                                                                : 'bg-[#18181b] border-[#333338] opacity-60'
+                                                        }`}>
+                                                            <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Bulihan:</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[#fbbf24] font-black">₱ {(p.priceBulihan ?? p.price).toFixed(2)}</span>
+                                                                <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stockBulihan ?? Math.floor(p.stock * 0.6)}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                                                            productBranchFilter === 'Dasma'
+                                                                ? 'bg-blue-500/10 border-blue-500/50 shadow-inner'
+                                                                : 'bg-[#18181b] border-[#333338] opacity-60'
+                                                        }`}>
+                                                            <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Dasmariñas:</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[#fbbf24] font-black">₱ {(p.priceDasmarinas ?? p.price).toFixed(2)}</span>
+                                                                <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stockDasmarinas ?? Math.floor(p.stock * 0.4)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[#a1a1aa] font-bold text-[11px]">
+                                                                {productBranchFilter === 'Bulihan' ? 'Bulihan Stock:' : 'Dasma Stock:'}
+                                                            </span>
+                                                            <div className="flex items-center gap-1 border border-[#3f3f46] rounded-lg p-0.5 bg-[#18181b]">
+                                                                <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#a1a1aa] hover:text-white font-bold">-</button>
+                                                                <span className="font-mono font-bold px-1.5 text-white">{currentStock}</span>
+                                                                <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#a1a1aa] hover:text-white font-bold">+</button>
+                                                            </div>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => toggleProductStatus(p.id)}
+                                                            className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                                p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                                            }`}
+                                                        >
+                                                            {p.isActive ? 'Active' : 'Disabled'}
+                                                        </button>
+                                                    </div>
+
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[#a1a1aa]">Total Stock:</span>
-                                                        <div className="flex items-center gap-1 border border-[#3f3f46] rounded-lg p-0.5 bg-[#18181b]">
-                                                            <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#a1a1aa] hover:text-white">-</button>
-                                                            <span className="font-mono font-bold px-1.5 text-white">{p.stock}</span>
-                                                            <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#a1a1aa] hover:text-white">+</button>
-                                                        </div>
+                                                        <button
+                                                            onClick={() => setEditingProduct(p)}
+                                                            className="flex-1 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#fbbf24] hover:bg-[#3f3f46] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all"
+                                                        >
+                                                            <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                                            <span>Edit Dish</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deleteProduct(p.id)}
+                                                            className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
-
-                                                    <button
-                                                        onClick={() => toggleProductStatus(p.id)}
-                                                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
-                                                            p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                                                        }`}
-                                                    >
-                                                        {p.isActive ? 'Active' : 'Disabled'}
-                                                    </button>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => setEditingProduct(p)}
-                                                        className="flex-1 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#fbbf24] hover:bg-[#3f3f46] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all"
-                                                    >
-                                                        <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                                        <span>Edit Dish</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteProduct(p.id)}
-                                                        className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
                                 {/* 10-ITEM PRODUCTS PAGINATION CONTROLS */}

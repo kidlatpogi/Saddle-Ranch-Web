@@ -36,7 +36,7 @@ interface ProductsProps {
 export default function AdminProducts({ products = [] }: ProductsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Out of Stock'>('All');
-    const [branchFilter, setBranchFilter] = useState<'All' | 'Bulihan' | 'Dasmarinas'>('All');
+    const [branchFilter, setBranchFilter] = useState<'Bulihan' | 'Dasmarinas'>('Bulihan');
     
     // Add/Edit Modal state
     const [showModal, setShowModal] = useState(false);
@@ -178,7 +178,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                             <div className="h-6 w-[1px] bg-[#3f3f46] mx-1 hidden sm:block" />
 
                             <span className="text-xs text-[#a1a1aa] font-bold">Branch View:</span>
-                            {(['All', 'Bulihan', 'Dasmarinas'] as const).map((b) => (
+                            {(['Bulihan', 'Dasmarinas'] as const).map((b) => (
                                 <button
                                     key={b}
                                     onClick={() => setBranchFilter(b)}
@@ -188,7 +188,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                             : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
                                     }`}
                                 >
-                                    {b === 'All' ? 'All Branches' : `${b} Branch`}
+                                    {`${b} Branch`}
                                 </button>
                             ))}
                         </div>
