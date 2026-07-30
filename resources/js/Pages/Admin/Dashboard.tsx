@@ -75,6 +75,7 @@ interface BannerItem {
     title: string;
     subtitle: string;
     tag: string;
+    branch?: 'All' | 'Bulihan' | 'Dasma';
     image: string;
     ctaText?: string;
     isActive: boolean;
@@ -86,6 +87,7 @@ interface VoucherItem {
     discountPercent: number;
     minSpend: number;
     usedCount: number;
+    branch?: 'All' | 'Bulihan' | 'Dasma';
     isActive: boolean;
 }
 
@@ -94,6 +96,7 @@ interface EmployeeItem {
     name: string;
     email: string;
     role: 'Admin' | 'Kitchen Staff' | 'Cashier';
+    branch?: 'Bulihan' | 'Dasma';
     status: 'Active' | 'Inactive';
     createdAt: string;
 }
@@ -104,6 +107,7 @@ interface AuditLogItem {
     user: string;
     role: string;
     action: string;
+    branch?: 'Bulihan' | 'Dasma';
     module: 'Authentication' | 'Order Queue / Sales' | 'Products & Stock' | 'Vouchers' | 'Promo Banners' | 'Employees' | 'Tables & QR';
 }
 
@@ -246,7 +250,7 @@ export default function AdminDashboard() {
     const [auditPage, setAuditPage] = useState<number>(1);
 
     // Sales & Revenue Filters
-    const [salesBranchFilter, setSalesBranchFilter] = useState<string>('All');
+    const [salesBranchFilter, setSalesBranchFilter] = useState<string>('Bulihan');
     const [salesDateRange, setSalesDateRange] = useState<'all' | 'today' | '7days' | 'month'>('all');
     const [salesStartDate, setSalesStartDate] = useState<string>('');
     const [salesEndDate, setSalesEndDate] = useState<string>('');
@@ -579,10 +583,24 @@ export default function AdminDashboard() {
                             <h2 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight capitalize">
                                 {sidebarLinks.find(l => l.id === activeTab)?.label ?? 'Dashboard'}
                             </h2>
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-wide uppercase flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                                Active Server & TiDB Sync
-                            </span>
+
+                            {/* Global Branch View Selector */}
+                            <div className="flex items-center gap-2 bg-[#141416] border border-[#3f3f46] px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
+                                <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                <span className="text-[#a1a1aa] font-bold hidden md:inline">Branch View:</span>
+                                <select
+                                    value={productBranchFilter}
+                                    onChange={(e) => {
+                                        setProductBranchFilter(e.target.value);
+                                        setSalesBranchFilter(e.target.value);
+                                        setProductPage(1);
+                                    }}
+                                    className="bg-transparent text-[#fbbf24] font-black focus:outline-none cursor-pointer"
+                                >
+                                    <option value="Bulihan" className="bg-[#18181b] text-white">Bulihan Branch</option>
+                                    <option value="Dasma" className="bg-[#18181b] text-white">Dasmariñas Branch</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -613,29 +631,59 @@ export default function AdminDashboard() {
                         {/* TAB 1: MAIN DASHBOARD OVERVIEW */}
                         {activeTab === 'dashboard' && (
                             <div className="space-y-8">
+                                {/* BRANCH VIEW TOOLBAR */}
+                                <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                        <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                        <select
+                                            value={productBranchFilter}
+                                            onChange={(e) => {
+                                                setProductBranchFilter(e.target.value);
+                                                setSalesBranchFilter(e.target.value);
+                                            }}
+                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                            <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                        </select>
+                                    </div>
+                                    <div className="text-xs text-[#a1a1aa]">
+                                        Active Branch Context: <strong className="text-[#fbbf24] font-bold">{productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}</strong>
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                                     <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-2">
-                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">Total Sizzling Revenue</div>
-                                        <div className="text-2xl sm:text-3xl font-mono font-black text-[#fbbf24]">₱ {totalRevenue.toFixed(2)}</div>
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">{productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'} Sizzling Revenue</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-[#fbbf24]">
+                                            ₱ {orders.filter(o => o.branch === productBranchFilter).reduce((sum, o) => sum + o.amount, 0).toFixed(2)}
+                                        </div>
                                         <div className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">+18.4% vs yesterday</div>
                                     </div>
 
                                     <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-2">
-                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">Active Orders Queue</div>
-                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">{orders.length} Orders</div>
-                                        <div className="text-[11px] text-amber-400 font-bold">{orders.filter(o => o.status === 'pending').length} Pending Kitchen</div>
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">{productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'} Active Orders</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">
+                                            {orders.filter(o => o.branch === productBranchFilter).length} Orders
+                                        </div>
+                                        <div className="text-[11px] text-amber-400 font-bold">
+                                            {orders.filter(o => o.branch === productBranchFilter && o.status === 'pending').length} Pending Kitchen
+                                        </div>
                                     </div>
 
                                     <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-2">
-                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">Active Menu Items</div>
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">{productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'} Menu Items</div>
                                         <div className="text-2xl sm:text-3xl font-mono font-black text-white">{products.length} Items</div>
                                         <div className="text-[11px] text-emerald-400 font-bold">{products.filter(p => p.isActive).length} Available Today</div>
                                     </div>
 
                                     <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-2">
-                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">Promo Vouchers</div>
-                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">{vouchers.length} Codes</div>
-                                        <div className="text-[11px] text-emerald-400 font-bold">{vouchers.filter(v => v.isActive).length} Active Promos</div>
+                                        <div className="text-xs font-bold uppercase tracking-wider text-[#a1a1aa]">{productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'} Promo Vouchers</div>
+                                        <div className="text-2xl sm:text-3xl font-mono font-black text-white">
+                                            {vouchers.filter(v => !v.branch || v.branch === 'All' || v.branch === productBranchFilter).length} Codes
+                                        </div>
+                                        <div className="text-[11px] text-emerald-400 font-bold">Active Promos Available</div>
                                     </div>
                                 </div>
 
@@ -643,8 +691,8 @@ export default function AdminDashboard() {
                                 <div className="rounded-3xl bg-[#202024] border border-[#333338] shadow-xl p-6 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h3 className="text-base font-bold text-white font-domine">Recent Sizzling Orders</h3>
-                                            <p className="text-xs text-[#a1a1aa]">Real-time orders queue status</p>
+                                            <h3 className="text-base font-bold text-white font-domine">Recent Sizzling Orders ({productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'})</h3>
+                                            <p className="text-xs text-[#a1a1aa]">Real-time orders queue for selected branch</p>
                                         </div>
                                         <button
                                             onClick={() => setActiveTab('orders')}
@@ -668,10 +716,10 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-[#333338] text-zinc-200">
-                                                {orders.map((o) => (
+                                                {orders.filter(o => o.branch === productBranchFilter).map((o) => (
                                                     <tr key={o.id} className="hover:bg-[#27272a]/50 transition-colors">
                                                         <td className="py-3.5 px-4 font-mono font-bold text-white">{o.id}</td>
-                                                        <td className="py-3.5 px-4 font-semibold text-[#fbbf24]">{o.type} ({o.location}) - <span className="text-zinc-400 font-mono">{o.branch}</span></td>
+                                                        <td className="py-3.5 px-4 font-semibold text-[#fbbf24]">{o.type} ({o.location}) - <span className="text-amber-400 font-mono font-bold">{o.branch} Branch</span></td>
                                                         <td className="py-3.5 px-4 text-[#a1a1aa]">{o.customer}</td>
                                                         <td className="py-3.5 px-4 font-mono font-bold text-amber-400">₱{o.amount.toFixed(2)}</td>
                                                         <td className="py-3.5 px-4 text-xs font-medium text-zinc-300">{o.payment}</td>
@@ -694,30 +742,45 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 2: ORDER QUEUE MANAGEMENT WITH STATUS SORT */}
+                        {/* TAB 2: ORDER QUEUE MANAGEMENT WITH BRANCH & STATUS SORT */}
                         {activeTab === 'orders' && (
                             <div className="space-y-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Full Orders Queue Management</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Advance kitchen states, filter by order status, and inspect fulfillment details</p>
+                                        <p className="text-xs text-[#a1a1aa]">Advance kitchen states and filter orders for Bulihan vs Dasmariñas</p>
                                     </div>
 
-                                    {/* STATUS SORT FILTER TOOLBAR */}
-                                    <div className="flex items-center gap-2 bg-[#202024] border border-[#333338] px-3.5 py-2 rounded-xl text-xs shadow-md">
-                                        <Filter className="w-4 h-4 text-[#f59e0b]" />
-                                        <span className="text-[#a1a1aa] font-bold">Status Sort:</span>
-                                        <select
-                                            value={orderStatusFilter}
-                                            onChange={(e) => setOrderStatusFilter(e.target.value)}
-                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="All" className="bg-[#18181b]">All Statuses</option>
-                                            <option value="pending" className="bg-[#18181b]">Pending Kitchen</option>
-                                            <option value="preparing" className="bg-[#18181b]">Preparing</option>
-                                            <option value="ready" className="bg-[#18181b]">Ready for Serve/Pick-Up</option>
-                                            <option value="completed" className="bg-[#18181b]">Completed</option>
-                                        </select>
+                                    {/* BRANCH & STATUS SORT FILTER TOOLBAR */}
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#202024] border border-[#333338] px-3.5 py-2 rounded-xl text-xs shadow-md">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                            <select
+                                                value={productBranchFilter}
+                                                onChange={(e) => setProductBranchFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-[#202024] border border-[#333338] px-3.5 py-2 rounded-xl text-xs shadow-md">
+                                            <Filter className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Status Sort:</span>
+                                            <select
+                                                value={orderStatusFilter}
+                                                onChange={(e) => setOrderStatusFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Statuses</option>
+                                                <option value="pending" className="bg-[#18181b]">Pending Kitchen</option>
+                                                <option value="preparing" className="bg-[#18181b]">Preparing</option>
+                                                <option value="ready" className="bg-[#18181b]">Ready for Serve/Pick-Up</option>
+                                                <option value="completed" className="bg-[#18181b]">Completed</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1006,13 +1069,13 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 4: TABLE AND QR GENERATOR */}
+                        {/* TAB 4: TABLE AND QR GENERATOR WITH BRANCH SORT */}
                         {activeTab === 'tables' && (
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Table QR Code Generator</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Generate, test, print, and delete scannable table QR badges</p>
+                                        <p className="text-xs text-[#a1a1aa]">Generate, test, print, and delete scannable table QR badges for Bulihan and Dasmariñas</p>
                                     </div>
                                     <button
                                         onClick={handleGenerateNewTableQR}
@@ -1023,9 +1086,30 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
+                                {/* BRANCH SORT FILTER TOOLBAR */}
+                                <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                        <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                        <select
+                                            value={productBranchFilter}
+                                            onChange={(e) => setProductBranchFilter(e.target.value)}
+                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                            <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                        </select>
+                                    </div>
+                                    <div className="text-xs text-[#a1a1aa]">
+                                        Tables for <strong className="text-[#fbbf24] font-bold">{productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}</strong>
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                                     {tables.map((tableNum) => {
-                                        const realQrUrl = getRealQrCodeUrl(tableNum);
+                                        const branchPrefix = productBranchFilter === 'Bulihan' ? 'B' : 'D';
+                                        const tableCode = `${branchPrefix}-${tableNum}`;
+                                        const realQrUrl = getRealQrCodeUrl(tableCode);
                                         return (
                                             <div key={tableNum} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg text-center space-y-4 relative group">
                                                 
@@ -1038,18 +1122,24 @@ export default function AdminDashboard() {
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
 
-                                                <div className="w-12 h-12 rounded-full bg-[#f59e0b] text-[#3f2000] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-md">
-                                                    #{tableNum}
+                                                <div className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase inline-block border ${
+                                                    productBranchFilter === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                                }`}>
+                                                    {productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'}
+                                                </div>
+
+                                                <div className="w-14 h-14 rounded-2xl bg-[#f59e0b] text-[#3f2000] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-md">
+                                                    #{tableCode}
                                                 </div>
 
                                                 {/* Real Scannable Barcode Image */}
                                                 <div className="w-32 h-32 mx-auto p-2 bg-white rounded-2xl shadow-inner flex items-center justify-center border-2 border-[#3f3f46]">
-                                                    <img src={realQrUrl} alt={`Table ${tableNum} QR`} className="w-full h-full object-contain" />
+                                                    <img src={realQrUrl} alt={`Table ${tableCode} QR`} className="w-full h-full object-contain" />
                                                 </div>
 
                                                 <div className="space-y-2">
                                                     <button
-                                                        onClick={() => setSelectedPrintTable(tableNum)}
+                                                        onClick={() => setSelectedPrintTable(tableCode)}
                                                         className="w-full py-2 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/30 text-[#fbbf24] font-bold text-xs hover:bg-[#f59e0b] hover:text-[#3f2000] flex items-center justify-center gap-1.5 btn-bevel transition-all"
                                                     >
                                                         <Printer className="w-3.5 h-3.5" />
@@ -1057,11 +1147,11 @@ export default function AdminDashboard() {
                                                     </button>
 
                                                     <button
-                                                        onClick={() => copyTableLink(tableNum)}
+                                                        onClick={() => copyTableLink(tableCode)}
                                                         className="w-full py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-semibold text-[11px] flex items-center justify-center gap-1.5"
                                                     >
                                                         <Copy className="w-3 h-3" />
-                                                        <span>{copiedTable === tableNum ? 'Copied Link!' : 'Copy Link'}</span>
+                                                        <span>{copiedTable === tableCode ? 'Copied Link!' : 'Copy Link'}</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -1232,13 +1322,13 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 6: DISCOUNT VOUCHERS */}
+                        {/* TAB 6: DISCOUNT VOUCHERS WITH BRANCH SORT */}
                         {activeTab === 'vouchers' && (
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Discount Vouchers & Ticket Coupons</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Create and issue physical ticket style promo codes for customer checkout</p>
+                                        <p className="text-xs text-[#a1a1aa]">Create and issue physical ticket style promo codes for Bulihan and Dasmariñas</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddVoucherModal(true)}
@@ -1249,8 +1339,27 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
+                                {/* BRANCH SORT FILTER TOOLBAR */}
+                                <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                        <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                        <select
+                                            value={productBranchFilter}
+                                            onChange={(e) => setProductBranchFilter(e.target.value)}
+                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                            <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                        </select>
+                                    </div>
+                                    <div className="text-xs text-[#a1a1aa]">
+                                        Showing Promos for <strong className="text-[#fbbf24] font-bold">{productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}</strong>
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {vouchers.map((v) => (
+                                    {vouchers.filter(v => !v.branch || v.branch === 'All' || v.branch === productBranchFilter).map((v) => (
                                         <div key={v.id} className="relative rounded-3xl bg-[#202024] border border-[#333338] shadow-xl overflow-hidden flex flex-col justify-between group">
                                             
                                             {/* Top & Bottom Ticket Cutout Punch Notches */}
@@ -1288,10 +1397,12 @@ export default function AdminDashboard() {
                                                     </button>
 
                                                     <div className="space-y-1">
-                                                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider block ${
-                                                            v.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-400'
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider block border ${
+                                                            v.branch === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                                                            v.branch === 'Dasma' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                                            'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                                                         }`}>
-                                                            {v.isActive ? 'Active' : 'Expired'}
+                                                            {v.branch ?? 'All'}
                                                         </span>
                                                         <div className="text-[10px] text-[#71717a] font-mono font-bold">
                                                             {v.usedCount} Redeemed
@@ -1306,13 +1417,13 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 7: EMPLOYEES */}
+                        {/* TAB 7: EMPLOYEES WITH BRANCH SORT */}
                         {activeTab === 'employees' && (
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-white font-domine">Staff & Employee Accounts (Full CRUD)</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Add, edit, deactivate, or delete Cashier and Kitchen staff permissions</p>
+                                        <p className="text-xs text-[#a1a1aa]">Manage Cashier and Kitchen staff accounts for Bulihan and Dasmariñas</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddEmployeeModal(true)}
@@ -1323,12 +1434,32 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
+                                {/* BRANCH SORT FILTER TOOLBAR */}
+                                <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                        <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                        <select
+                                            value={productBranchFilter}
+                                            onChange={(e) => setProductBranchFilter(e.target.value)}
+                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                            <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                        </select>
+                                    </div>
+                                    <div className="text-xs text-[#a1a1aa]">
+                                        Staff Accounts for <strong className="text-[#fbbf24] font-bold">{productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}</strong>
+                                    </div>
+                                </div>
+
                                 <div className="rounded-3xl bg-[#202024] border border-[#333338] shadow-xl p-6 overflow-hidden">
                                     <table className="w-full text-left text-xs">
                                         <thead className="bg-[#18181b] text-[#a1a1aa] uppercase font-bold border-b border-[#333338]">
                                             <tr>
                                                 <th className="py-3.5 px-4">Name</th>
                                                 <th className="py-3.5 px-4">Email</th>
+                                                <th className="py-3.5 px-4">Branch</th>
                                                 <th className="py-3.5 px-4">Role</th>
                                                 <th className="py-3.5 px-4">Status</th>
                                                 <th className="py-3.5 px-4">Created Date</th>
@@ -1336,10 +1467,17 @@ export default function AdminDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-[#333338] text-zinc-200">
-                                            {employees.map((e) => (
+                                            {employees.filter(e => !e.branch || e.branch === productBranchFilter).map((e) => (
                                                 <tr key={e.id} className="hover:bg-[#27272a]/50 transition-colors">
                                                     <td className="py-4 px-4 font-bold text-white text-sm">{e.name}</td>
                                                     <td className="py-4 px-4 font-mono text-[#a1a1aa]">{e.email}</td>
+                                                    <td className="py-4 px-4">
+                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                            e.branch === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                                        }`}>
+                                                            {e.branch ?? productBranchFilter} Branch
+                                                        </span>
+                                                    </td>
                                                     <td className="py-4 px-4">
                                                         <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/15 text-[#fbbf24] text-[10px] font-black uppercase border border-[#f59e0b]/30">
                                                             {e.role}
@@ -1379,16 +1517,29 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* TAB 8: AUDIT LOGS */}
+                        {/* TAB 8: AUDIT LOGS WITH BRANCH SORT */}
                         {activeTab === 'audit' && (
                             <div className="space-y-6">
                                 <div>
                                     <h3 className="text-lg font-bold text-white font-domine">System Audit Logs</h3>
-                                    <p className="text-xs text-[#a1a1aa]">Complete traceability log across Products, Auth, Sales, Vouchers, Banners, Staff & QR</p>
+                                    <p className="text-xs text-[#a1a1aa]">Complete traceability log across Bulihan and Dasmariñas store actions</p>
                                 </div>
 
                                 <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex flex-wrap items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                            <select
+                                                value={productBranchFilter}
+                                                onChange={(e) => setProductBranchFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
+
                                         <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
                                             <Filter className="w-4 h-4 text-[#f59e0b]" />
                                             <span className="text-[#a1a1aa] font-bold">Module:</span>
@@ -1530,9 +1681,8 @@ export default function AdminDashboard() {
                                                 onChange={(e) => setSalesBranchFilter(e.target.value)}
                                                 className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
                                             >
-                                                <option value="All" className="bg-[#18181b]">All Branches (Bulihan & Dasma)</option>
                                                 <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
-                                                <option value="Dasma" className="bg-[#18181b]">Dasma Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
                                             </select>
                                         </div>
 
