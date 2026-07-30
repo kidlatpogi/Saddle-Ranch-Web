@@ -19,12 +19,16 @@ class EmployeeController extends Controller
      */
     public function dashboard(): Response
     {
-        $orders = Order::with('orderItems.product')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $user = auth()->user();
+        $query = Order::with('orderItems.product')->orderBy('created_at', 'desc');
+
+        if ($user && $user->branch && strtolower($user->branch) !== 'all') {
+            $query->where('branch', $user->branch);
+        }
 
         return Inertia::render('Employee/Dashboard', [
-            'initialOrders' => $orders,
+            'initialOrders' => $query->get(),
+            'userBranch' => $user?->branch ?? 'Bulihan',
         ]);
     }
 
@@ -33,7 +37,10 @@ class EmployeeController extends Controller
      */
     public function kitchen(): Response
     {
-        return Inertia::render('Employee/KDS');
+        $user = auth()->user();
+        return Inertia::render('Employee/KDS', [
+            'userBranch' => $user?->branch ?? 'Bulihan',
+        ]);
     }
 
     /**
@@ -42,14 +49,23 @@ class EmployeeController extends Controller
      */
     public function getKitchenOrders(): JsonResponse
     {
-        $orders = Order::with('orderItems.product')
+        $user = auth()->user();
+        $query = Order::with('orderItems.product')
             ->whereIn('status', ['pending', 'preparing', 'ready'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+            ->orderBy('created_at', 'asc');
+
+        if ($user && $user->branch && strtolower($user->branch) !== 'all') {
+            $query->where('branch', $user->branch);
+        }
+
+        $orders = $query->get();
 
         // Cook summary aggregator: calculate total quantities per active product in pending or preparing status
-        $summary = OrderItem::whereHas('order', function ($query) {
-                $query->whereIn('status', ['pending', 'preparing']);
+        $summary = OrderItem::whereHas('order', function ($q) use ($user) {
+                $q->whereIn('status', ['pending', 'preparing']);
+                if ($user && $user->branch && strtolower($user->branch) !== 'all') {
+                    $q->where('branch', $user->branch);
+                }
             })
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->select('products.name as product_name', DB::raw('SUM(order_items.quantity) as total_quantity'))
@@ -60,6 +76,7 @@ class EmployeeController extends Controller
             'status' => 'success',
             'data' => $orders,
             'summary' => $summary,
+            'branch' => $user?->branch ?? 'All',
         ]);
     }
 

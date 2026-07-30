@@ -96,7 +96,7 @@ interface EmployeeItem {
     name: string;
     email: string;
     role: 'Admin' | 'Kitchen Staff' | 'Cashier';
-    branch?: 'Bulihan' | 'Dasma';
+    branch?: 'All' | 'Bulihan' | 'Dasma';
     status: 'Active' | 'Inactive';
     createdAt: string;
 }
@@ -185,9 +185,11 @@ export default function AdminDashboard() {
     ]);
 
     const [employees, setEmployees] = useState<EmployeeItem[]>([
-        { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', status: 'Active', createdAt: '2026-01-15' },
-        { id: 2, name: 'Cashier Employee', email: 'cashier@saddleranch.ph', role: 'Cashier', status: 'Active', createdAt: '2026-03-10' },
-        { id: 3, name: 'Kitchen Head Chef', email: 'kitchen@saddleranch.ph', role: 'Kitchen Staff', status: 'Active', createdAt: '2026-05-20' }
+        { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', branch: 'All', status: 'Active', createdAt: '2026-01-15' },
+        { id: 2, name: 'Bulihan Branch Cashier', email: 'cashier.bulihan@saddleranch.ph', role: 'Cashier', branch: 'Bulihan', status: 'Active', createdAt: '2026-03-10' },
+        { id: 3, name: 'Bulihan Kitchen Head Chef', email: 'kitchen.bulihan@saddleranch.ph', role: 'Kitchen Staff', branch: 'Bulihan', status: 'Active', createdAt: '2026-05-20' },
+        { id: 4, name: 'Dasmariñas Branch Cashier', email: 'cashier.dasmarinas@saddleranch.ph', role: 'Cashier', branch: 'Dasma', status: 'Active', createdAt: '2026-06-01' },
+        { id: 5, name: 'Dasmariñas Kitchen Head Chef', email: 'kitchen.dasmarinas@saddleranch.ph', role: 'Kitchen Staff', branch: 'Dasma', status: 'Active', createdAt: '2026-06-05' }
     ]);
 
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
@@ -239,6 +241,7 @@ export default function AdminDashboard() {
     const [newEmpName, setNewEmpName] = useState('');
     const [newEmpEmail, setNewEmpEmail] = useState('');
     const [newEmpRole, setNewEmpRole] = useState<'Admin' | 'Kitchen Staff' | 'Cashier'>('Cashier');
+    const [newEmpBranch, setNewEmpBranch] = useState<'Bulihan' | 'Dasma'>('Bulihan');
 
     const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
 
@@ -418,6 +421,7 @@ export default function AdminDashboard() {
             name: newEmpName || 'Staff Member',
             email: newEmpEmail,
             role: newEmpRole,
+            branch: newEmpBranch,
             status: 'Active',
             createdAt: new Date().toISOString().split('T')[0]
         };
@@ -2215,17 +2219,31 @@ export default function AdminDashboard() {
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Account Role *</label>
-                            <select
-                                value={newEmpRole}
-                                onChange={(e) => setNewEmpRole(e.target.value as any)}
-                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            >
-                                <option value="Cashier">Cashier</option>
-                                <option value="Kitchen Staff">Kitchen Staff</option>
-                                <option value="Admin">Admin</option>
-                            </select>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Account Role *</label>
+                                <select
+                                    value={newEmpRole}
+                                    onChange={(e) => setNewEmpRole(e.target.value as any)}
+                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                >
+                                    <option value="Cashier">Cashier</option>
+                                    <option value="Kitchen Staff">Kitchen Staff</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Branch Assignment *</label>
+                                <select
+                                    value={newEmpBranch}
+                                    onChange={(e) => setNewEmpBranch(e.target.value as any)}
+                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-bold"
+                                >
+                                    <option value="Bulihan">Bulihan Branch</option>
+                                    <option value="Dasma">Dasmariñas Branch</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="flex gap-2 pt-2">
@@ -2267,6 +2285,19 @@ export default function AdminDashboard() {
                                 onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Branch Assignment</label>
+                            <select
+                                value={editingEmployee.branch || 'Bulihan'}
+                                onChange={(e) => setEditingEmployee({ ...editingEmployee, branch: e.target.value as any })}
+                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-bold"
+                            >
+                                <option value="Bulihan">Bulihan Branch</option>
+                                <option value="Dasma">Dasmariñas Branch</option>
+                                <option value="All">All Branches</option>
+                            </select>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">

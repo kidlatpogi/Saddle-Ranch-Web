@@ -57,7 +57,11 @@ interface CookSummaryItem {
     total_quantity: number;
 }
 
-export default function KitchenDisplaySystem() {
+interface KDSProps {
+    userBranch?: string;
+}
+
+export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProps) {
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
     const [statusFilter, setStatusFilter] = useState<string>('All');
     const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -98,23 +102,22 @@ export default function KitchenDisplaySystem() {
             gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
             osc1.connect(gain1);
             gain1.connect(ctx.destination);
-            osc1.start();
-            osc1.stop(ctx.currentTime + 0.5);
 
-            setTimeout(() => {
-                const osc2 = ctx.createOscillator();
-                const gain2 = ctx.createGain();
-                osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(1320, ctx.currentTime);
-                gain2.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-                osc2.connect(gain2);
-                gain2.connect(ctx.destination);
-                osc2.start();
-                osc2.stop(ctx.currentTime + 0.6);
-            }, 120);
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(1760, ctx.currentTime + 0.1);
+            gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.1);
+            gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+
+            osc1.start(ctx.currentTime);
+            osc1.stop(ctx.currentTime + 0.5);
+            osc2.start(ctx.currentTime + 0.1);
+            osc2.stop(ctx.currentTime + 0.6);
         } catch (e) {
-            console.error('Audio play error:', e);
+            console.warn('Web Audio Playback failed:', e);
         }
     };
 
@@ -205,6 +208,14 @@ export default function KitchenDisplaySystem() {
     const handleCancelOrderSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!cancelModalOrder) return;
+        if (!cancelPassword) {
+            setCancelError('Authorization password is required.');
+            return;
+        }
+        if (!cancelReason.trim()) {
+            setCancelError('Cancellation reason is required.');
+            return;
+        }
 
         setCancelLoading(true);
         setCancelError('');
@@ -285,8 +296,12 @@ export default function KitchenDisplaySystem() {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-lg font-black font-domine text-white tracking-tight">Saddle Ranch KDS Terminal</h1>
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold uppercase border border-emerald-500/30">
-                                    LIVE TOUCH DISPLAY
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${
+                                    userBranch === 'Dasma' || userBranch === 'Dasmariñas'
+                                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                        : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                }`}>
+                                    {userBranch === 'Dasma' ? 'Dasmariñas Branch' : `${userBranch} Branch`} KDS
                                 </span>
                             </div>
                             <p className="text-xs text-[#a1a1aa]">Dedicated Grill & Cook Screen • <span className="font-mono text-[#fbbf24] font-bold">{currentTime}</span></p>

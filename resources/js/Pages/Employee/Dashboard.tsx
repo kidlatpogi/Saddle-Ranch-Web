@@ -73,9 +73,10 @@ interface PosCartItem {
 
 interface EmployeeDashboardProps {
     initialOrders?: OrderItem[];
+    userBranch?: string;
 }
 
-export default function EmployeeDashboard({ initialOrders }: EmployeeDashboardProps) {
+export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan' }: EmployeeDashboardProps) {
     // POS is default active tab for Cashiers!
     const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
@@ -298,7 +299,16 @@ export default function EmployeeDashboard({ initialOrders }: EmployeeDashboardPr
                             <Flame className="w-6 h-6 text-[#3f2000]" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight">Saddle Ranch Cashier POS & Employee Terminal</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-lg font-black font-domine text-[#fbbf24] tracking-tight">Saddle Ranch Cashier POS</h1>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${
+                                    userBranch === 'Dasma' || userBranch === 'Dasmariñas'
+                                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                        : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                }`}>
+                                    {userBranch === 'Dasma' ? 'Dasmariñas Branch' : `${userBranch} Branch`} Cashier
+                                </span>
+                            </div>
                             <p className="text-xs text-[#a1a1aa]">Touchscreen Tablet Register & Live Ready-Order Serve Control</p>
                         </div>
                     </div>

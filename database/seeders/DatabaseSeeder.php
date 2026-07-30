@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin & Employee Accounts
+        // Admin Account
         User::updateOrCreate(
             ['email' => 'admin@saddleranch.ph'],
             [
@@ -27,10 +27,62 @@ class DatabaseSeeder extends Seeder
                 'first_name' => 'Saddle',
                 'last_name' => 'Admin',
                 'password' => Hash::make('password'),
-                'role' => 'admin'
+                'role' => 'admin',
+                'branch' => 'all',
             ]
         );
 
+        // Bulihan Branch Cashier & Kitchen Accounts
+        User::updateOrCreate(
+            ['email' => 'cashier.bulihan@saddleranch.ph'],
+            [
+                'name' => 'Bulihan Branch Cashier',
+                'first_name' => 'Bulihan',
+                'last_name' => 'Cashier',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'branch' => 'Bulihan',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'kitchen.bulihan@saddleranch.ph'],
+            [
+                'name' => 'Bulihan Kitchen Head Chef',
+                'first_name' => 'Bulihan',
+                'last_name' => 'Kitchen',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'branch' => 'Bulihan',
+            ]
+        );
+
+        // Dasmariñas Branch Cashier & Kitchen Accounts
+        User::updateOrCreate(
+            ['email' => 'cashier.dasmarinas@saddleranch.ph'],
+            [
+                'name' => 'Dasmariñas Branch Cashier',
+                'first_name' => 'Dasmariñas',
+                'last_name' => 'Cashier',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'branch' => 'Dasma',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'kitchen.dasmarinas@saddleranch.ph'],
+            [
+                'name' => 'Dasmariñas Kitchen Head Chef',
+                'first_name' => 'Dasmariñas',
+                'last_name' => 'Kitchen',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+                'branch' => 'Dasma',
+            ]
+        );
+
+        // Legacy / Alias Employee Accounts
         User::updateOrCreate(
             ['email' => 'cashier@saddleranch.ph'],
             [
@@ -38,7 +90,8 @@ class DatabaseSeeder extends Seeder
                 'first_name' => 'Cashier',
                 'last_name' => 'Employee',
                 'password' => Hash::make('password'),
-                'role' => 'employee'
+                'role' => 'employee',
+                'branch' => 'Bulihan',
             ]
         );
 
@@ -49,7 +102,8 @@ class DatabaseSeeder extends Seeder
                 'first_name' => 'Kitchen',
                 'last_name' => 'Chef',
                 'password' => Hash::make('password'),
-                'role' => 'employee'
+                'role' => 'employee',
+                'branch' => 'Bulihan',
             ]
         );
 
