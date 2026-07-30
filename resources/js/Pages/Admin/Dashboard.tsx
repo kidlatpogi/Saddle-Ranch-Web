@@ -211,8 +211,9 @@ export default function AdminDashboard() {
 
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
 
-    // Products Category Sort Filter & 10-Item Pagination
+    // Products Category & Branch Sort Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
+    const [productBranchFilter, setProductBranchFilter] = useState<string>('All');
     const [productPage, setProductPage] = useState<number>(1);
 
     // Slot-based Banner Modal State with Real-Time Preview
@@ -431,9 +432,11 @@ export default function AdminDashboard() {
         return true;
     });
 
-    // Filtered Products by Category & Search
+    // Filtered Products by Category, Branch & Search
     const filteredProducts = products.filter(p => {
         if (productCategoryFilter !== 'All' && p.category !== productCategoryFilter) return false;
+        if (productBranchFilter === 'Bulihan' && (p.stockBulihan !== undefined && p.stockBulihan <= 0)) return false;
+        if (productBranchFilter === 'Dasma' && (p.stockDasmarinas !== undefined && p.stockDasmarinas <= 0)) return false;
         if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         return true;
     });
@@ -834,11 +837,10 @@ export default function AdminDashboard() {
                                             <MapPin className="w-4 h-4 text-[#f59e0b]" />
                                             <span className="text-[#a1a1aa] font-bold">Branch View:</span>
                                             <select
-                                                value={productCategoryFilter === 'Bulihan' ? 'Bulihan' : productCategoryFilter === 'Dasma' ? 'Dasma' : 'All'}
+                                                value={productBranchFilter}
                                                 onChange={(e) => {
-                                                    if (e.target.value === 'Bulihan') setSalesBranchFilter('Bulihan');
-                                                    else if (e.target.value === 'Dasma') setSalesBranchFilter('Dasma');
-                                                    else setSalesBranchFilter('All');
+                                                    setProductBranchFilter(e.target.value);
+                                                    setProductPage(1);
                                                 }}
                                                 className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
                                             >
