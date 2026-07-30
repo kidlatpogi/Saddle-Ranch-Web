@@ -161,9 +161,9 @@ export default function AdminDashboard() {
         },
         3: {
             slot: 3,
-            title: 'Free Unli-Rice & Soup',
-            subtitle: 'Free unlimited garlic rice & hot bulalo soup refill on all sizzling meals.',
-            tag: 'UNLIMITED REFILLS',
+            title: 'Unlimited Rice & Soup',
+            subtitle: 'Unli rice & soup at selected products for both branches — exclusive offer for only ₱79 at Dasmariñas Branch!',
+            tag: 'DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP',
             image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
             isActive: true
         },
@@ -584,23 +584,25 @@ export default function AdminDashboard() {
                                 {sidebarLinks.find(l => l.id === activeTab)?.label ?? 'Dashboard'}
                             </h2>
 
-                            {/* Global Branch View Selector */}
-                            <div className="flex items-center gap-2 bg-[#141416] border border-[#3f3f46] px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
-                                <MapPin className="w-4 h-4 text-[#f59e0b]" />
-                                <span className="text-[#a1a1aa] font-bold hidden md:inline">Branch View:</span>
-                                <select
-                                    value={productBranchFilter}
-                                    onChange={(e) => {
-                                        setProductBranchFilter(e.target.value);
-                                        setSalesBranchFilter(e.target.value);
-                                        setProductPage(1);
-                                    }}
-                                    className="bg-transparent text-[#fbbf24] font-black focus:outline-none cursor-pointer"
-                                >
-                                    <option value="Bulihan" className="bg-[#18181b] text-white">Bulihan Branch</option>
-                                    <option value="Dasma" className="bg-[#18181b] text-white">Dasmariñas Branch</option>
-                                </select>
-                            </div>
+                            {/* Global Branch View Selector (Removed on Promo Banners Tab) */}
+                            {activeTab !== 'banners' && (
+                                <div className="flex items-center gap-2 bg-[#141416] border border-[#3f3f46] px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
+                                    <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                    <span className="text-[#a1a1aa] font-bold hidden md:inline">Branch View:</span>
+                                    <select
+                                        value={productBranchFilter}
+                                        onChange={(e) => {
+                                            setProductBranchFilter(e.target.value);
+                                            setSalesBranchFilter(e.target.value);
+                                            setProductPage(1);
+                                        }}
+                                        className="bg-transparent text-[#fbbf24] font-black focus:outline-none cursor-pointer"
+                                    >
+                                        <option value="Bulihan" className="bg-[#18181b] text-white">Bulihan Branch</option>
+                                        <option value="Dasma" className="bg-[#18181b] text-white">Dasmariñas Branch</option>
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3">

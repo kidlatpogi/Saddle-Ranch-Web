@@ -344,7 +344,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             </div>
                         </div>
 
-                        {/* Card 3: Square Card - Free Unli-Rice & Soup */}
+                        {/* Card 3: Square Card - Dasmariñas ₱79 Unlimited Rice & Soup */}
                         <div className="relative min-h-[160px] sm:min-h-[180px] md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
@@ -354,11 +354,11 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 />
                             </div>
                             <div className="relative z-10 p-4 sm:p-5 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent">
-                                <span className="font-mono text-[9px] sm:text-[10px] text-emerald-400 bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1.5 inline-block font-bold">
-                                    UNLIMITED REFILLS
+                                <span className="font-mono text-[9px] sm:text-[10px] text-[#f59e0b] bg-[#31281f] px-2 py-0.5 rounded border border-[#534434] mb-1.5 inline-block font-bold">
+                                    DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP
                                 </span>
-                                <h3 className="font-domine text-base sm:text-lg font-bold text-[#f0e0d1]">Free Unli-Rice & Soup</h3>
-                                <p className="font-sans text-[11px] sm:text-xs text-[#d8c3ad] mt-0.5">Free unlimited garlic rice & hot bulalo soup refill on all sizzling meals.</p>
+                                <h3 className="font-domine text-base sm:text-lg font-bold text-[#f0e0d1]">Unlimited Rice & Soup</h3>
+                                <p className="font-sans text-[11px] sm:text-xs text-[#d8c3ad] mt-0.5">Unli rice & soup at selected products for both branches — special offer for only ₱79 at Dasmariñas Branch!</p>
                             </div>
                         </div>
 
