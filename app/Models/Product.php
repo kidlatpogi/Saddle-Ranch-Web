@@ -14,8 +14,12 @@ class Product extends Model
         'name',
         'description',
         'price',
+        'price_bulihan',
+        'price_dasmarinas',
         'image_path',
         'stock_quantity',
+        'stock_bulihan',
+        'stock_dasmarinas',
         'is_active',
     ];
 
@@ -23,7 +27,11 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'price_bulihan' => 'decimal:2',
+            'price_dasmarinas' => 'decimal:2',
             'stock_quantity' => 'integer',
+            'stock_bulihan' => 'integer',
+            'stock_dasmarinas' => 'integer',
             'is_active' => 'boolean',
         ];
     }

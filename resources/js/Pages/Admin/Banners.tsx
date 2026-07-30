@@ -13,6 +13,7 @@ import {
 interface BannerItem {
     id: number;
     title: string;
+    branch?: 'all' | 'bulihan' | 'dasmarinas';
     display_order: number;
     is_active: boolean;
     image_path?: string;
@@ -28,6 +29,7 @@ export default function AdminBanners({ banners = [] }: BannersProps) {
 
     const { data, setData, post, processing, reset } = useForm({
         title: '',
+        branch: 'all',
         display_order: '1',
         is_active: true,
         image: null as File | null,

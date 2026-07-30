@@ -36,6 +36,15 @@ class SaddleRanchSystemTest extends TestCase
         $this->assertDatabaseHas('vouchers', ['code' => 'SADDLE10']);
         $this->assertDatabaseHas('promo_banners', ['title' => 'Weekend Sizzling Specials']);
 
+        $sisig = Product::where('name', 'Sizzling Pork Sisig')->first();
+        $this->assertEquals(180.00, $sisig->price_bulihan);
+        $this->assertEquals(195.00, $sisig->price_dasmarinas);
+        $this->assertEquals(30, $sisig->stock_bulihan);
+        $this->assertEquals(20, $sisig->stock_dasmarinas);
+
+        $this->assertDatabaseHas('vouchers', ['code' => 'BULIHANFREE', 'branch' => 'bulihan']);
+        $this->assertDatabaseHas('vouchers', ['code' => 'DASMAFEAST', 'branch' => 'dasmarinas']);
+
         $user = User::where('email', 'admin@saddleranch.ph')->first();
         $this->assertNotNull($user->orders);
         $this->assertNotNull($user->auditLogs);

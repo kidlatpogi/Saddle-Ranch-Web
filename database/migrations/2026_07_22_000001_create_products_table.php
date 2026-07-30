@@ -16,8 +16,12 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2);
+            $table->decimal('price_bulihan', 8, 2)->nullable();
+            $table->decimal('price_dasmarinas', 8, 2)->nullable();
             $table->string('image_path')->nullable();
             $table->integer('stock_quantity')->default(0);
+            $table->integer('stock_bulihan')->default(0);
+            $table->integer('stock_dasmarinas')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -34,7 +34,11 @@ class ProductManagementController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'price_bulihan' => 'nullable|numeric|min:0',
+            'price_dasmarinas' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
+            'stock_bulihan' => 'nullable|integer|min:0',
+            'stock_dasmarinas' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -49,7 +53,11 @@ class ProductManagementController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
+            'price_bulihan' => $validated['price_bulihan'] ?? $validated['price'],
+            'price_dasmarinas' => $validated['price_dasmarinas'] ?? $validated['price'],
             'stock_quantity' => $validated['stock_quantity'],
+            'stock_bulihan' => $validated['stock_bulihan'] ?? $validated['stock_quantity'],
+            'stock_dasmarinas' => $validated['stock_dasmarinas'] ?? $validated['stock_quantity'],
             'is_active' => $validated['is_active'] ?? true,
             'image_path' => $imagePath ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
         ]);
@@ -57,7 +65,7 @@ class ProductManagementController extends Controller
         // Audit Log Trigger
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "Created Product '{$product->name}' with price ₱{$product->price} and stock {$product->stock_quantity}",
+            'action' => "Created Product '{$product->name}' with Bulihan Price ₱{$product->price_bulihan} (Stock: {$product->stock_bulihan}) & Dasmariñas Price ₱{$product->price_dasmarinas} (Stock: {$product->stock_dasmarinas})",
             'ip_address' => $request->ip(),
             'payload' => [
                 'product_id' => $product->id,
@@ -81,7 +89,11 @@ class ProductManagementController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'price_bulihan' => 'nullable|numeric|min:0',
+            'price_dasmarinas' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
+            'stock_bulihan' => 'nullable|integer|min:0',
+            'stock_dasmarinas' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -102,7 +114,11 @@ class ProductManagementController extends Controller
         $product->name = $validated['name'];
         $product->description = $validated['description'] ?? null;
         $product->price = $validated['price'];
+        $product->price_bulihan = $validated['price_bulihan'] ?? $validated['price'];
+        $product->price_dasmarinas = $validated['price_dasmarinas'] ?? $validated['price'];
         $product->stock_quantity = $validated['stock_quantity'];
+        $product->stock_bulihan = $validated['stock_bulihan'] ?? $validated['stock_quantity'];
+        $product->stock_dasmarinas = $validated['stock_dasmarinas'] ?? $validated['stock_quantity'];
         $product->is_active = $validated['is_active'] ?? $product->is_active;
         $product->save();
 

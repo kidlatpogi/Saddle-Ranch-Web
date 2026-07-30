@@ -17,6 +17,7 @@ return new class extends Migration
             $table->enum('discount_type', ['fixed', 'percentage']);
             $table->decimal('value', 8, 2);
             $table->decimal('min_spend', 8, 2)->default(0.00);
+            $table->string('branch')->default('all');
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });

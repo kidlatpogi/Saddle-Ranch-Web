@@ -20,7 +20,11 @@ interface ProductItem {
     name: string;
     description?: string;
     price: number;
+    price_bulihan?: number;
+    price_dasmarinas?: number;
     stock_quantity: number;
+    stock_bulihan?: number;
+    stock_dasmarinas?: number;
     is_active: boolean;
     image_path?: string;
 }
@@ -32,6 +36,7 @@ interface ProductsProps {
 export default function AdminProducts({ products = [] }: ProductsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Out of Stock'>('All');
+    const [branchFilter, setBranchFilter] = useState<'All' | 'Bulihan' | 'Dasmarinas'>('All');
     
     // Add/Edit Modal state
     const [showModal, setShowModal] = useState(false);
@@ -42,7 +47,11 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
         name: '',
         description: '',
         price: '',
+        price_bulihan: '',
+        price_dasmarinas: '',
         stock_quantity: '50',
+        stock_bulihan: '30',
+        stock_dasmarinas: '20',
         is_active: true,
         image: null as File | null,
     });
@@ -61,7 +70,11 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
             name: product.name,
             description: product.description || '',
             price: product.price.toString(),
+            price_bulihan: (product.price_bulihan ?? product.price).toString(),
+            price_dasmarinas: (product.price_dasmarinas ?? product.price).toString(),
             stock_quantity: product.stock_quantity.toString(),
+            stock_bulihan: (product.stock_bulihan ?? Math.floor(product.stock_quantity * 0.6)).toString(),
+            stock_dasmarinas: (product.stock_dasmarinas ?? Math.floor(product.stock_quantity * 0.4)).toString(),
             is_active: product.is_active,
             image: null,
         });
@@ -102,6 +115,8 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
     const filteredProducts = products.filter(p => {
         if (statusFilter === 'Active' && !p.is_active) return false;
         if (statusFilter === 'Out of Stock' && p.stock_quantity > 0) return false;
+        if (branchFilter === 'Bulihan' && (p.stock_bulihan !== undefined && p.stock_bulihan <= 0)) return false;
+        if (branchFilter === 'Dasmarinas' && (p.stock_dasmarinas !== undefined && p.stock_dasmarinas <= 0)) return false;
         if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         return true;
     });
@@ -145,7 +160,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                 <main className="max-w-[1600px] w-full mx-auto p-6 space-y-6 flex-1">
                     {/* Controls Bar */}
                     <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-4 shadow-lg">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             {(['All', 'Active', 'Out of Stock'] as const).map((chip) => (
                                 <button
                                     key={chip}
@@ -157,6 +172,23 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                     }`}
                                 >
                                     {chip}
+                                </button>
+                            ))}
+
+                            <div className="h-6 w-[1px] bg-[#3f3f46] mx-1 hidden sm:block" />
+
+                            <span className="text-xs text-[#a1a1aa] font-bold">Branch View:</span>
+                            {(['All', 'Bulihan', 'Dasmarinas'] as const).map((b) => (
+                                <button
+                                    key={b}
+                                    onClick={() => setBranchFilter(b)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                        branchFilter === b
+                                            ? 'bg-[#fbbf24]/20 border border-[#f59e0b] text-[#fbbf24]'
+                                            : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
+                                    }`}
+                                >
+                                    {b === 'All' ? 'All Branches' : `${b} Branch`}
                                 </button>
                             ))}
                         </div>
@@ -194,13 +226,22 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                 </div>
 
                                 <div className="space-y-3 pt-3 border-t border-[#333338]">
-                                    <div className="flex items-center justify-between text-xs font-mono">
-                                        <span className="text-[#fbbf24] font-black text-base">₱ {Number(p.price).toFixed(2)}</span>
-                                        <span className={`px-2.5 py-0.5 rounded-full font-bold ${
-                                            p.stock_quantity === 0 ? 'bg-rose-500/20 text-rose-400' : 'bg-[#141416] text-[#a1a1aa]'
-                                        }`}>
-                                            Stock: {p.stock_quantity}
-                                        </span>
+                                    <div className="space-y-1.5 text-xs font-mono">
+                                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#141416] border border-amber-500/20">
+                                            <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Bulihan:</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[#fbbf24] font-black">₱ {Number(p.price_bulihan ?? p.price).toFixed(2)}</span>
+                                                <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stock_bulihan ?? Math.floor(p.stock_quantity * 0.6)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#141416] border border-blue-500/20">
+                                            <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Dasmariñas:</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[#fbbf24] font-black">₱ {Number(p.price_dasmarinas ?? p.price).toFixed(2)}</span>
+                                                <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stock_dasmarinas ?? Math.floor(p.stock_quantity * 0.4)}</span>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 pt-1">
@@ -232,7 +273,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
             {/* ADD / EDIT PRODUCT MODAL */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-                    <div className="w-full max-w-lg rounded-3xl bg-[#18181b] border border-[#3f3f46] p-6 shadow-2xl space-y-5">
+                    <div className="w-full max-w-xl rounded-3xl bg-[#18181b] border border-[#3f3f46] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between pb-3 border-b border-[#3f3f46]">
                             <h3 className="font-domine font-black text-white text-lg">
                                 {editingProduct ? 'Edit Product Details' : 'Add New Product'}
@@ -266,9 +307,10 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Default Base Price & Stock */}
+                            <div className="grid grid-cols-2 gap-4 p-3 rounded-2xl bg-[#141416] border border-[#333338]">
                                 <div>
-                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Price (₱)</label>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Base Price (₱)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -276,20 +318,76 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                         value={data.price}
                                         onChange={(e) => setData('price', e.target.value)}
                                         placeholder="180.00"
-                                        className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Stock Quantity</label>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Total Stock</label>
                                     <input
                                         type="number"
                                         required
                                         value={data.stock_quantity}
                                         onChange={(e) => setData('stock_quantity', e.target.value)}
                                         placeholder="50"
-                                        className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Bulihan Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-amber-500/30 space-y-2">
+                                <span className="text-xs font-black text-[#fbbf24] uppercase tracking-wider block">Bulihan Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={data.price_bulihan}
+                                            onChange={(e) => setData('price_bulihan', e.target.value)}
+                                            placeholder="180.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Stock</label>
+                                        <input
+                                            type="number"
+                                            value={data.stock_bulihan}
+                                            onChange={(e) => setData('stock_bulihan', e.target.value)}
+                                            placeholder="30"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dasmarinas Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-blue-500/30 space-y-2">
+                                <span className="text-xs font-black text-blue-400 uppercase tracking-wider block">Dasmariñas Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={data.price_dasmarinas}
+                                            onChange={(e) => setData('price_dasmarinas', e.target.value)}
+                                            placeholder="195.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Stock</label>
+                                        <input
+                                            type="number"
+                                            value={data.stock_dasmarinas}
+                                            onChange={(e) => setData('stock_dasmarinas', e.target.value)}
+                                            placeholder="20"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

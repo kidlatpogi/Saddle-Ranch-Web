@@ -29,6 +29,7 @@ class VoucherController extends Controller
             'discount_type' => 'required|in:percentage,fixed',
             'value' => 'required|numeric|min:0',
             'min_spend' => 'nullable|numeric|min:0',
+            'branch' => 'nullable|string|in:all,bulihan,dasmarinas',
             'expires_at' => 'nullable|date',
         ]);
 
@@ -37,12 +38,13 @@ class VoucherController extends Controller
             'discount_type' => $validated['discount_type'],
             'value' => $validated['value'],
             'min_spend' => $validated['min_spend'] ?? 0,
+            'branch' => $validated['branch'] ?? 'all',
             'expires_at' => $validated['expires_at'] ?? null,
         ]);
 
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "Created Voucher Code '{$voucher->code}' ({$voucher->discount_type} ₱{$voucher->value})",
+            'action' => "Created Voucher Code '{$voucher->code}' ({$voucher->discount_type} ₱{$voucher->value}, Branch: {$voucher->branch})",
             'ip_address' => $request->ip(),
             'payload' => ['voucher_id' => $voucher->id, 'code' => $voucher->code],
         ]);

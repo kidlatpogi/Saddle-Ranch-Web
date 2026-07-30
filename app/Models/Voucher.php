@@ -14,6 +14,7 @@ class Voucher extends Model
         'discount_type',
         'value',
         'min_spend',
+        'branch',
         'expires_at',
     ];
 

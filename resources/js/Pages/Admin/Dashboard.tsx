@@ -804,25 +804,45 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                {/* CATEGORY FILTER TOOLBAR */}
+                                {/* CATEGORY & BRANCH FILTER TOOLBAR */}
                                 <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
-                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
-                                        <Filter className="w-4 h-4 text-[#f59e0b]" />
-                                        <span className="text-[#a1a1aa] font-bold">Category Sort:</span>
-                                        <select
-                                            value={productCategoryFilter}
-                                            onChange={(e) => {
-                                                setProductCategoryFilter(e.target.value);
-                                                setProductPage(1);
-                                            }}
-                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="All" className="bg-[#18181b]">All Categories</option>
-                                            <option value="Sizzling Rice Meals" className="bg-[#18181b]">Sizzling Rice Meals</option>
-                                            <option value="Authentic Filipino Cuisine" className="bg-[#18181b]">Authentic Filipino Cuisine</option>
-                                            <option value="Barkada Platters" className="bg-[#18181b]">Barkada Platters</option>
-                                            <option value="Drinks & Extra Rice" className="bg-[#18181b]">Drinks & Extra Rice</option>
-                                        </select>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <Filter className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Category:</span>
+                                            <select
+                                                value={productCategoryFilter}
+                                                onChange={(e) => {
+                                                    setProductCategoryFilter(e.target.value);
+                                                    setProductPage(1);
+                                                }}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Categories</option>
+                                                <option value="Sizzling Rice Meals" className="bg-[#18181b]">Sizzling Rice Meals</option>
+                                                <option value="Authentic Filipino Cuisine" className="bg-[#18181b]">Authentic Filipino Cuisine</option>
+                                                <option value="Barkada Platters" className="bg-[#18181b]">Barkada Platters</option>
+                                                <option value="Drinks & Extra Rice" className="bg-[#18181b]">Drinks & Extra Rice</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                            <select
+                                                value={productCategoryFilter === 'Bulihan' ? 'Bulihan' : productCategoryFilter === 'Dasma' ? 'Dasma' : 'All'}
+                                                onChange={(e) => {
+                                                    if (e.target.value === 'Bulihan') setSalesBranchFilter('Bulihan');
+                                                    else if (e.target.value === 'Dasma') setSalesBranchFilter('Dasma');
+                                                    else setSalesBranchFilter('All');
+                                                }}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Branches (Bulihan & Dasmariñas)</option>
+                                                <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div className="text-xs text-[#a1a1aa]">
@@ -830,7 +850,7 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {/* PRODUCTS GRID */}
+                                {/* PRODUCTS GRID WITH BRANCH PRICES & STOCKS */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {paginatedProducts.map((p) => (
                                         <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-4 flex flex-col justify-between">
@@ -850,9 +870,28 @@ export default function AdminDashboard() {
                                             </div>
 
                                             <div className="pt-3 border-t border-[#333338] space-y-3">
+                                                {/* Branch Specific Price & Stock Badges */}
+                                                <div className="space-y-1.5 text-xs font-mono">
+                                                    <div className="flex items-center justify-between p-2 rounded-xl bg-[#18181b] border border-amber-500/20">
+                                                        <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Bulihan:</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[#fbbf24] font-black">₱ {(p.priceBulihan ?? p.price).toFixed(2)}</span>
+                                                            <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stockBulihan ?? Math.floor(p.stock * 0.6)}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between p-2 rounded-xl bg-[#18181b] border border-blue-500/20">
+                                                        <span className="text-[#a1a1aa] text-[10px] font-bold uppercase">Dasmariñas:</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[#fbbf24] font-black">₱ {(p.priceDasmarinas ?? p.price).toFixed(2)}</span>
+                                                            <span className="px-1.5 py-0.5 rounded bg-[#27272a] text-white text-[10px]">Stk: {p.stockDasmarinas ?? Math.floor(p.stock * 0.4)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div className="flex items-center justify-between text-xs">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[#a1a1aa]">Stock Count:</span>
+                                                        <span className="text-[#a1a1aa]">Total Stock:</span>
                                                         <div className="flex items-center gap-1 border border-[#3f3f46] rounded-lg p-0.5 bg-[#18181b]">
                                                             <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#a1a1aa] hover:text-white">-</button>
                                                             <span className="font-mono font-bold px-1.5 text-white">{p.stock}</span>

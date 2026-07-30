@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('image_path');
+            $table->string('branch')->default('all');
             $table->boolean('is_active')->default(true);
             $table->integer('display_order')->default(0);
             $table->timestamps();

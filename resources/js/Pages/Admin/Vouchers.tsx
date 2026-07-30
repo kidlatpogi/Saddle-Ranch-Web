@@ -17,6 +17,7 @@ interface VoucherItem {
     discount_type: 'percentage' | 'fixed';
     value: number;
     min_spend: number;
+    branch?: 'all' | 'bulihan' | 'dasmarinas';
     expires_at?: string;
 }
 
@@ -32,6 +33,7 @@ export default function AdminVouchers({ vouchers = [] }: VouchersProps) {
         discount_type: 'fixed' as 'fixed' | 'percentage',
         value: '',
         min_spend: '0',
+        branch: 'all',
         expires_at: '',
     });
 
