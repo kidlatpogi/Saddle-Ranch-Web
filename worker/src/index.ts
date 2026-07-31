@@ -3,7 +3,7 @@ export interface Env {
 }
 
 const SADDLE_RANCH_KNOWLEDGE = `
-You are Saddle Ranch AI, an enthusiastic, friendly Western Sizzling Roadhouse assistant for Saddle Ranch in Cavite, Philippines.
+You are the Help Assistant for Saddle Ranch in Cavite, Philippines.
 Key Restaurant Information:
 
 1. LOCATIONS & BRANCHES:
@@ -17,28 +17,28 @@ Key Restaurant Information:
 2. OPERATING HOURS & STATUS:
    - Saddle Ranch Bulihan: Open daily (Monday - Sunday) from 11:00 AM to 11:00 PM.
    - Saddle Ranch Dasmariñas: Open daily (Monday - Sunday) from 10:00 AM to 10:00 PM.
-   - Status: Yes, we are open right now during regular business hours!
+   - Status: Open daily during regular business hours.
 
 3. POPULAR MENU & PRICES:
-   - Sizzling Pork Sisig: ₱180.00 (Crispy pork belly, local spices, fresh egg & chilies)
+   - Sizzling Pork Sisig: ₱180.00 (Crispy pork belly, local spices, egg & chilies)
    - Sizzling Pork T-Bone Steak: ₱250.00 (Juicy T-Bone, signature gravy, java rice, corn & carrots)
-   - Sizzling Porterhouse Steak: ₱320.00 (Premium cut steak on sizzling hot iron skillet)
-   - Sizzling Chicken Steak: ₱190.00 (Tender sizzling grilled chicken breast & gravy)
-   - Sizzling Gambas: ₱220.00 (Spicy garlic shrimp sizzling in butter)
+   - Sizzling Porterhouse Steak: ₱320.00 (Premium cut steak on sizzling hot skillet)
+   - Sizzling Chicken Steak: ₱190.00 (Tender grilled chicken breast & gravy)
+   - Sizzling Gambas: ₱220.00 (Spicy garlic shrimp)
    - Sizzling Pork Liempo: ₱210.00 (Grilled marinated pork belly)
 
 4. DISCOUNTS & SPECIAL PROMOS:
    - Delivery Promo: FREE Delivery around Bulihan Area!
    - Senior Citizen & PWD Discount: 20% discount as mandated by law.
    - Student Promo: 10% discount with valid school ID.
-   - Active Vouchers: Use voucher codes at checkout (e.g. WELCOME10 for 10% off online orders).
+   - Active Vouchers: Use promo codes at checkout (e.g. WELCOME10 for 10% off online orders).
 
 5. ORDERING OPTIONS:
    - Pick-Up / Takeout: Ready in 15 minutes.
    - Home Delivery: Delivered hot to your doorstep.
-   - Dine-In QR Service: Scan Table QR code at restaurant tables for instant order without waiting in line!
+   - Dine-In QR Service: Scan Table QR code at restaurant tables for direct ordering.
 
-Always respond in a warm, welcoming, sizzling roadhouse style. Keep answers concise, helpful, and clear!
+Keep answers concise, professional, clear, and free of emojis.
 `;
 
 export default {
@@ -85,7 +85,7 @@ export default {
           }
         }
 
-        // 2. Intelligent Knowledge Engine Fallback if AI binding is absent or pending execution
+        // 2. Fallback Engine if AI binding is absent
         if (!aiReply) {
           aiReply = generateFallbackReply(userMessage);
         }
@@ -103,7 +103,7 @@ export default {
     }
 
     return new Response(
-      JSON.stringify({ message: "Saddle Ranch AI Cloudflare Worker is running." }),
+      JSON.stringify({ message: "Cloudflare Worker is running." }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   },
@@ -113,24 +113,24 @@ function generateFallbackReply(msg: string): string {
   const query = msg.toLowerCase();
 
   if (query.includes("location") || query.includes("where") || query.includes("address") || query.includes("branch")) {
-    return "🤠 Howdy! Saddle Ranch has two sizzling locations in Cavite:\n\n📍 **Bulihan Branch (Flagship)**: 123 Roadhouse Lane, Barangay Bulihan, Cavite\n📍 **Dasmariñas Branch**: Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite\n\nCome on over for sizzling steaks & fresh sisig!";
+    return "Saddle Ranch has two locations in Cavite:\n\n• **Bulihan Branch**: 123 Roadhouse Lane, Barangay Bulihan, Cavite\n• **Dasmariñas Branch**: Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite";
   }
 
   if (query.includes("open") || query.includes("hour") || query.includes("time") || query.includes("status")) {
-    return "⏰ Yeehaw! We are OPEN daily to serve you sizzling perfection:\n\n• **Bulihan Branch**: Mon - Sun (11:00 AM - 11:00 PM)\n• **Dasmariñas Branch**: Mon - Sun (10:00 AM - 10:00 PM)\n\nOrdering online for pick-up or delivery is also available!";
+    return "We are open daily:\n\n• **Bulihan Branch**: Mon - Sun (11:00 AM - 11:00 PM)\n• **Dasmariñas Branch**: Mon - Sun (10:00 AM - 10:00 PM)";
   }
 
   if (query.includes("price") || query.includes("menu") || query.includes("cost") || query.includes("how much") || query.includes("sisig") || query.includes("steak")) {
-    return "🥩 Check out our fan-favorite sizzling dishes and prices:\n\n• **Sizzling Pork Sisig**: ₱180.00\n• **Sizzling Pork T-Bone Steak**: ₱250.00\n• **Sizzling Porterhouse Steak**: ₱320.00\n• **Sizzling Chicken Steak**: ₱190.00\n• **Sizzling Gambas**: ₱220.00\n• **Sizzling Pork Liempo**: ₱210.00\n\nAll served on a screaming hot iron skillet!";
+    return "Menu dishes and prices:\n\n• **Sizzling Pork Sisig**: ₱180.00\n• **Sizzling Pork T-Bone Steak**: ₱250.00\n• **Sizzling Porterhouse Steak**: ₱320.00\n• **Sizzling Chicken Steak**: ₱190.00\n• **Sizzling Gambas**: ₱220.00\n• **Sizzling Pork Liempo**: ₱210.00";
   }
 
   if (query.includes("discount") || query.includes("promo") || query.includes("voucher") || query.includes("sale") || query.includes("offer") || query.includes("free")) {
-    return "🏷️ Saddle Ranch Promos & Discounts:\n\n🚚 **FREE Delivery** around Bulihan Area!\n🎓 **10% Student Discount** (Present valid ID)\n👵 **20% Senior Citizen & PWD Discount**\n🎟️ Use promo vouchers like `WELCOME10` during online checkout for extra savings!";
+    return "Discounts and promos:\n\n• **FREE Delivery** around Bulihan Area\n• **10% Student Discount** (Present valid ID)\n• **20% Senior Citizen & PWD Discount**\n• Use promo code `WELCOME10` during online checkout for 10% off!";
   }
 
   if (query.includes("order") || query.includes("delivery") || query.includes("takeout") || query.includes("pickup") || query.includes("dine in") || query.includes("qr")) {
-    return "🛒 You can order directly on our website!\n\n1. **Pick-Up (Takeout)** - Ready in 15 mins.\n2. **Home Delivery** - Free delivery around Bulihan.\n3. **Dine-In QR** - Scan table QR code at your table for direct ordering.";
+    return "Ordering options available:\n\n1. **Pick-Up (Takeout)** - Ready in 15 mins.\n2. **Home Delivery** - Free delivery around Bulihan.\n3. **Dine-In QR** - Scan table QR code at your table for direct ordering.";
   }
 
-  return "🤠 Welcome to Saddle Ranch Sizzling House! How can I assist you today? Ask me about our locations, operating hours, menu prices, or special discounts & promos!";
+  return "Welcome! How can I help you today? Ask about our locations, operating hours, menu prices, or special discounts.";
 }

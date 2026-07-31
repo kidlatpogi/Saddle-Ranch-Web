@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Sparkles, X, Send, MapPin, Clock, Utensils, Tag, RefreshCw, MessageSquare, Flame } from 'lucide-react';
+import { MessageSquare, X, Send, MapPin, Clock, Utensils, Tag, RefreshCw } from 'lucide-react';
 
 interface Message {
     id: string;
@@ -16,13 +16,12 @@ export default function AIChatbot() {
         {
             id: 'welcome-1',
             sender: 'bot',
-            text: '🤠 Howdy! Welcome to Saddle Ranch Sizzling House AI Assistant. How can I help you today? Ask me about our locations, prices, opening hours, or special promos!',
+            text: 'Welcome! How can I help you today? Ask about our locations, prices, opening hours, or special promos.',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [hasUnread, setHasUnread] = useState(true);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +32,6 @@ export default function AIChatbot() {
     useEffect(() => {
         if (isOpen) {
             scrollToBottom();
-            setHasUnread(false);
         }
     }, [messages, isOpen]);
 
@@ -53,7 +51,6 @@ export default function AIChatbot() {
         setIsLoading(true);
 
         try {
-            // Attempt to call Cloudflare Worker API
             const response = await fetch(DEFAULT_WORKER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -65,12 +62,10 @@ export default function AIChatbot() {
                 const botReplyText = data.reply || data.message;
                 addBotResponse(botReplyText);
             } else {
-                // Fallback to local intelligent assistant logic if worker dev server is offline
                 const fallbackReply = generateLocalKnowledgeReply(text);
                 addBotResponse(fallbackReply);
             }
         } catch (err) {
-            // Graceful fallback to client-side knowledge engine
             const fallbackReply = generateLocalKnowledgeReply(text);
             addBotResponse(fallbackReply);
         } finally {
@@ -91,21 +86,21 @@ export default function AIChatbot() {
     const generateLocalKnowledgeReply = (msg: string): string => {
         const q = msg.toLowerCase();
         if (q.includes('location') || q.includes('where') || q.includes('address') || q.includes('branch')) {
-            return '🤠 Saddle Ranch has two locations in Cavite:\n\n📍 **Bulihan Branch**: 123 Roadhouse Lane, Barangay Bulihan, Cavite\n📍 **Dasmariñas Branch**: Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite';
+            return 'Saddle Ranch has two locations in Cavite:\n\n• **Bulihan Branch**: 123 Roadhouse Lane, Barangay Bulihan, Cavite\n• **Dasmariñas Branch**: Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite';
         }
         if (q.includes('open') || q.includes('hour') || q.includes('time') || q.includes('status')) {
-            return '⏰ Yeehaw! We are OPEN daily:\n\n• **Bulihan Branch**: Mon - Sun (11:00 AM - 11:00 PM)\n• **Dasmariñas Branch**: Mon - Sun (10:00 AM - 10:00 PM)';
+            return 'We are open daily:\n\n• **Bulihan Branch**: Mon - Sun (11:00 AM - 11:00 PM)\n• **Dasmariñas Branch**: Mon - Sun (10:00 AM - 10:00 PM)';
         }
         if (q.includes('price') || q.includes('menu') || q.includes('cost') || q.includes('sisig') || q.includes('steak')) {
-            return '🥩 Featured Sizzling Specialties & Prices:\n\n• **Sizzling Pork Sisig**: ₱180.00\n• **Sizzling Pork T-Bone Steak**: ₱250.00\n• **Sizzling Porterhouse Steak**: ₱320.00\n• **Sizzling Chicken Steak**: ₱190.00\n• **Sizzling Gambas**: ₱220.00';
+            return 'Featured Menu Specialties & Prices:\n\n• **Sizzling Pork Sisig**: ₱180.00\n• **Sizzling Pork T-Bone Steak**: ₱250.00\n• **Sizzling Porterhouse Steak**: ₱320.00\n• **Sizzling Chicken Steak**: ₱190.00\n• **Sizzling Gambas**: ₱220.00';
         }
         if (q.includes('discount') || q.includes('promo') || q.includes('voucher') || q.includes('free') || q.includes('offer')) {
-            return '🏷️ Saddle Ranch Specials:\n\n🚚 **FREE Delivery** around Bulihan area\n🎓 **10% Student Discount** (With valid student ID)\n👵 **20% Senior & PWD Discount**\n🎟️ Use promo code `WELCOME10` for 10% off online orders!';
+            return 'Discounts and promos:\n\n• **FREE Delivery** around Bulihan area\n• **10% Student Discount** (With valid student ID)\n• **20% Senior & PWD Discount**\n• Use promo code `WELCOME10` for 10% off online orders!';
         }
         if (q.includes('order') || q.includes('delivery') || q.includes('pickup') || q.includes('takeout') || q.includes('dine')) {
-            return '🛒 Order Options available on our website:\n\n1. **Pick-Up / Takeout** (Ready in 15 mins)\n2. **Home Delivery** (Free in Bulihan)\n3. **Dine-In Table QR Scan** (Instant table ordering)';
+            return 'Ordering options available on our website:\n\n1. **Pick-Up / Takeout** (Ready in 15 mins)\n2. **Home Delivery** (Free in Bulihan)\n3. **Dine-In Table QR Scan** (Instant table ordering)';
         }
-        return '🤠 Howdy! I am Saddle Ranch AI. Feel free to ask me about our location, prices, opening hours, discounts, or ordering options!';
+        return 'Welcome! Feel free to ask about our location, prices, opening hours, discounts, or ordering options.';
     };
 
     const handleClearChat = () => {
@@ -113,14 +108,13 @@ export default function AIChatbot() {
             {
                 id: 'welcome-1',
                 sender: 'bot',
-                text: '🤠 Chat cleared! How can Saddle Ranch AI help you today?',
+                text: 'Chat cleared! How can I help you today?',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
         ]);
     };
 
     const formatText = (content: string) => {
-        // Simple helper to parse basic markdown bolding like **text**
         const parts = content.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
@@ -132,51 +126,38 @@ export default function AIChatbot() {
 
     return (
         <div className="fixed bottom-6 left-6 z-50 font-sans">
-            {/* Chatbot Toggle Trigger Button - Fixed Bottom Left */}
+            {/* Toggle Trigger Button - Fixed Bottom Left */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
                     className="relative group flex items-center gap-3 px-4 py-3 bg-[#1F1914] text-[#ffc174] rounded-full border border-[#f59e0b]/50 shadow-2xl hover:bg-[#2A221C] hover:border-[#f59e0b] hover:scale-105 transition-all duration-300 btn-bevel"
-                    aria-label="Open Saddle Ranch AI Assistant"
+                    aria-label="Open Help Assistant"
                 >
                     <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-[#f59e0b] text-[#472a00] font-bold shadow-inner">
-                        <Bot className="w-6 h-6 animate-pulse" />
-                        <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ffc174] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-[#1F1914]"></span>
-                        </span>
+                        <MessageSquare className="w-5 h-5" />
                     </div>
                     <div className="text-left pr-1 hidden sm:block">
-                        <div className="text-xs font-bold uppercase tracking-wider text-[#ffc174] flex items-center gap-1">
-                            <span>Saddle Ranch AI</span>
-                            <Sparkles className="w-3 h-3 text-[#f59e0b]" />
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#ffc174]">
+                            Help Assistant
                         </div>
-                        <div className="text-[10px] text-[#d8c3ad] font-mono">Ask Location, Prices & Hours</div>
+                        <div className="text-[10px] text-[#d8c3ad] font-mono">Location, Prices & Hours</div>
                     </div>
                 </button>
             )}
 
-            {/* Chat Modal / Popup Window */}
+            {/* Chat Window */}
             {isOpen && (
-                <div className="w-[340px] sm:w-[380px] h-[520px] bg-[#16120E] border border-[#534434] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
+                <div className="w-[340px] sm:w-[380px] h-[500px] bg-[#16120E] border border-[#534434] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-[#261E16] via-[#1F1914] to-[#261E16] p-4 border-b border-[#534434] flex items-center justify-between">
+                    <div className="bg-[#1F1914] p-4 border-b border-[#534434] flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="relative flex items-center justify-center w-9 h-9 rounded-full bg-[#f59e0b] text-[#472a00] shadow">
-                                <Flame className="w-5 h-5" />
-                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#16120E]"></span>
+                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#f59e0b] text-[#472a00] font-bold shadow">
+                                <MessageSquare className="w-4 h-4" />
                             </div>
                             <div>
-                                <h3 className="font-domine text-sm font-bold text-[#ffc174] flex items-center gap-1.5">
-                                    Saddle Ranch AI
-                                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30">
-                                        Wrangler Worker
-                                    </span>
+                                <h3 className="font-domine text-sm font-bold text-[#ffc174]">
+                                    Help Assistant
                                 </h3>
-                                <p className="text-[10px] text-[#d8c3ad] font-mono flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                    Cloudflare AI Connected
-                                </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -249,8 +230,7 @@ export default function AIChatbot() {
 
                         {isLoading && (
                             <div className="flex items-center gap-2 bg-[#211B15] text-[#ffc174] border border-[#3D3126] px-3.5 py-2.5 rounded-2xl rounded-bl-none w-max text-xs">
-                                <Bot className="w-3.5 h-3.5 animate-spin text-[#f59e0b]" />
-                                <span>Saddle Ranch AI is thinking...</span>
+                                <span>Thinking...</span>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
