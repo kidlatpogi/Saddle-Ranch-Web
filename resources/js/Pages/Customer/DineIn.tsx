@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
+import AIChatbot from '@/Components/AIChatbot';
 
 interface Product {
     id: number;
@@ -812,6 +813,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
                     </div>
                 )}
+
+                {/* Floating AI Chatbot at Bottom Left */}
+                <AIChatbot />
             </div>
         </>
     );

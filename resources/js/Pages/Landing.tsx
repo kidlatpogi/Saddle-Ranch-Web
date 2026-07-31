@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
+import AIChatbot from '@/Components/AIChatbot';
 
 interface Banner {
     id: number;
@@ -768,6 +769,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
                     </div>
                 )}
+
+                {/* Floating AI Chatbot at Bottom Left */}
+                <AIChatbot />
             </div>
         </>
     );
