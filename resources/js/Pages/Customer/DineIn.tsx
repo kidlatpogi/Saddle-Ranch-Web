@@ -220,6 +220,18 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         };
 
         router.post('/order/checkout', payload, {
+            onSuccess: (page) => {
+                const flashOrder = (page.props.flash as any)?.order;
+                if (flashOrder?.order_number) {
+                    try {
+                        const existing = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+                        const updated = Array.from(new Set([flashOrder.order_number, ...existing]));
+                        localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                        localStorage.setItem('saddle_ranch_last_order', flashOrder.order_number);
+                        window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: flashOrder }));
+                    } catch (e) {}
+                }
+            },
             onError: (errors) => {
                 setIsSubmitting(false);
                 if (errors.items) {

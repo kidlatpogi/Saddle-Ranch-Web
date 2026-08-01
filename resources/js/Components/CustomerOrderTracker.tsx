@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, X, Clock, Flame, CheckCircle2, RefreshCw, ChevronUp, ChevronDown, UtensilsCrossed } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ShoppingBag, Search, X, Clock, Flame, CheckCircle2, RefreshCw, ChevronUp, ChevronDown, UtensilsCrossed, Bell } from 'lucide-react';
 
 interface OrderItem {
     id: number;
@@ -31,11 +31,30 @@ export default function CustomerOrderTracker() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
-    const [lastTrackedOrder, setLastTrackedOrder] = useState<string>('');
+    const [savedOrderNumbers, setSavedOrderNumbers] = useState<string[]>([]);
 
-    // Load saved order numbers from localStorage or perform search
-    const fetchOrders = async (queryText?: string) => {
-        const term = queryText !== undefined ? queryText : searchQuery;
+    // Load stored orders from localStorage
+    const getStoredOrders = useCallback((): string[] => {
+        try {
+            const list: string[] = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+            const last: string | null = localStorage.getItem('saddle_ranch_last_order');
+            const merged = Array.from(new Set([...list, ...(last ? [last] : [])]));
+            return merged.filter(Boolean);
+        } catch {
+            return [];
+        }
+    }, []);
+
+    // Perform query request
+    const fetchOrders = useCallback(async (queryOverride?: string) => {
+        const stored = getStoredOrders();
+        let term = queryOverride !== undefined ? queryOverride : searchQuery;
+
+        // If search input is blank, fallback to all stored customer order numbers
+        if (!term.trim() && stored.length > 0) {
+            term = stored.join(',');
+        }
+
         if (!term.trim()) {
             setOrders([]);
             setSearched(false);
@@ -43,44 +62,62 @@ export default function CustomerOrderTracker() {
         }
 
         setLoading(true);
-        setSearched(true);
         try {
             const res = await fetch(`/api/v1/orders/track?query=${encodeURIComponent(term.trim())}`);
             if (res.ok) {
                 const json = await res.json();
                 setOrders(json.data || []);
+                setSearched(true);
             }
         } catch (err) {
-            console.error('Order tracking fetch error:', err);
+            console.error('Order tracking poll error:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchQuery, getStoredOrders]);
 
-    // Auto-search if customer placed an order stored in localStorage
+    // Initial setup & event listeners
     useEffect(() => {
-        try {
-            const savedOrderNum = localStorage.getItem('saddle_ranch_last_order');
-            if (savedOrderNum) {
-                setLastTrackedOrder(savedOrderNum);
-                setSearchQuery(savedOrderNum);
-                fetchOrders(savedOrderNum);
-            }
-        } catch (e) {
-            // ignore localstorage errors
+        const stored = getStoredOrders();
+        setSavedOrderNumbers(stored);
+        if (stored.length > 0) {
+            setSearchQuery(stored.join(', '));
+            fetchOrders(stored.join(','));
         }
-    }, []);
 
-    // Polling while tracking drawer is open
+        const handleOrderPlaced = (e: any) => {
+            const orderNum = e?.detail?.order_number;
+            if (orderNum) {
+                try {
+                    const current = getStoredOrders();
+                    const updated = Array.from(new Set([orderNum, ...current]));
+                    localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                    localStorage.setItem('saddle_ranch_last_order', orderNum);
+                    setSavedOrderNumbers(updated);
+                    setSearchQuery(updated.join(', '));
+                    fetchOrders(updated.join(','));
+                    setIsOpen(true); // Auto open tracker when new order placed!
+                } catch (err) {}
+            }
+        };
+
+        window.addEventListener('saddle_ranch_order_placed', handleOrderPlaced);
+        window.addEventListener('storage', handleOrderPlaced);
+
+        return () => {
+            window.removeEventListener('saddle_ranch_order_placed', handleOrderPlaced);
+            window.removeEventListener('storage', handleOrderPlaced);
+        };
+    }, [fetchOrders, getStoredOrders]);
+
+    // Near Real-Time Polling Loop (Every 2 Seconds)
     useEffect(() => {
-        if (!isOpen || !searchQuery.trim()) return;
-
         const interval = setInterval(() => {
-            fetchOrders(searchQuery);
-        }, 5000);
+            fetchOrders();
+        }, 2000);
 
         return () => clearInterval(interval);
-    }, [isOpen, searchQuery]);
+    }, [fetchOrders]);
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,7 +142,7 @@ export default function CustomerOrderTracker() {
                 return {
                     label: 'READY FOR PICK-UP',
                     className: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
-                    icon: <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                    icon: <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
                 };
             case 'completed':
                 return {
@@ -128,8 +165,12 @@ export default function CustomerOrderTracker() {
         }
     };
 
+    // Calculate active non-completed orders count for trigger button indicator
+    const activeOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+    const latestActiveOrder = activeOrders[0];
+
     return (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end font-sans">
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (
                 <div className="mb-3 w-80 sm:w-96 rounded-2xl bg-[#1c150e]/95 border-2 border-[#f59e0b]/50 shadow-2xl backdrop-blur-md text-[#f0e0d1] overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
@@ -140,8 +181,11 @@ export default function CustomerOrderTracker() {
                                 <UtensilsCrossed className="w-4 h-4" />
                             </div>
                             <div>
-                                <h3 className="font-domine font-bold text-sm text-[#ffc174] leading-tight">Live Order Tracker</h3>
-                                <p className="text-[11px] text-[#d8c3ad]">Track your sizzling meal in real time</p>
+                                <h3 className="font-domine font-bold text-sm text-[#ffc174] leading-tight flex items-center gap-1.5">
+                                    Live Order Tracker
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+                                </h3>
+                                <p className="text-[11px] text-[#d8c3ad]">Real-time kitchen updates (Polling every 2s)</p>
                             </div>
                         </div>
                         <button
@@ -153,14 +197,14 @@ export default function CustomerOrderTracker() {
                     </div>
 
                     {/* Search Form */}
-                    <div className="p-4 space-y-3 bg-[#121213]/80">
+                    <div className="p-4 space-y-3 bg-[#121213]/90">
                         <form onSubmit={handleSearchSubmit} className="flex gap-2">
                             <div className="relative flex-1">
                                 <input
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Enter Order # (e.g. SR-8492) or Phone #"
+                                    placeholder="Order # (e.g. SR-8492) or Phone #"
                                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#1c150e] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                 />
                                 <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3 top-2.5" />
@@ -175,13 +219,8 @@ export default function CustomerOrderTracker() {
                         </form>
 
                         {/* Order List */}
-                        <div className="max-h-72 overflow-y-auto space-y-3 pt-1">
-                            {loading ? (
-                                <div className="p-6 text-center text-xs text-[#d8c3ad] flex items-center justify-center gap-2">
-                                    <RefreshCw className="w-4 h-4 animate-spin text-[#f59e0b]" />
-                                    <span>Fetching live kitchen status...</span>
-                                </div>
-                            ) : orders.length > 0 ? (
+                        <div className="max-h-80 overflow-y-auto space-y-3 pt-1">
+                            {orders.length > 0 ? (
                                 orders.map((order) => {
                                     const badge = getStatusBadge(order.status);
                                     return (
@@ -235,17 +274,33 @@ export default function CustomerOrderTracker() {
                 </div>
             )}
 
-            {/* FLOATING ACTION BUTTON (BOTTOM-RIGHT) */}
+            {/* FLOATING TRIGGER BUTTON (ALWAYS VISIBLE WITH Z-[9999]) */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="group relative flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#472a00] font-black text-xs uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/40 hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-[#ffc174]/60"
+                className="group relative flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#472a00] font-black text-xs uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/50 hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-[#ffc174]/70"
+                aria-label="See My Orders"
             >
                 <div className="relative">
                     <ShoppingBag className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                    {activeOrders.length > 0 && (
+                        <>
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                        </>
+                    )}
                 </div>
-                <span>See My Orders</span>
+
+                <span>
+                    {latestActiveOrder ? (
+                        <span className="flex items-center gap-1.5">
+                            <span>#{latestActiveOrder.order_number}:</span>
+                            <span className="capitalize">{latestActiveOrder.status}</span>
+                        </span>
+                    ) : (
+                        'See My Orders'
+                    )}
+                </span>
+
                 {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
             </button>
         </div>

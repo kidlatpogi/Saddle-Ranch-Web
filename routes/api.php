@@ -27,6 +27,7 @@ Route::prefix('v1')->group(function () {
     // Customer Order Lookup / Live Status Tracking Endpoint
     Route::get('/orders/track', function (Request $request) {
         $query = trim($request->query('query', ''));
+        
         if (empty($query)) {
             return response()->json([
                 'status' => 'success',
@@ -34,11 +35,15 @@ Route::prefix('v1')->group(function () {
             ]);
         }
 
+        $terms = array_filter(array_map('trim', explode(',', $query)));
+
         $orders = Order::with('orderItems.product')
-            ->where(function ($q) use ($query) {
-                $q->where('order_number', 'LIKE', "%{$query}%")
-                  ->orWhere('customer_phone', 'LIKE', "%{$query}%")
-                  ->orWhere('customer_name', 'LIKE', "%{$query}%");
+            ->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->orWhere('order_number', 'LIKE', "%{$term}%")
+                      ->orWhere('customer_phone', 'LIKE', "%{$term}%")
+                      ->orWhere('customer_name', 'LIKE', "%{$term}%");
+                }
             })
             ->orderBy('created_at', 'desc')
             ->take(10)
