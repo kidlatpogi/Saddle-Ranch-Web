@@ -226,7 +226,7 @@ export default function CustomerOrderTracker() {
                                     : 'bg-[#261e15] text-[#d8c3ad] hover:text-white'
                             }`}
                         >
-                            All Store Orders 🌐
+                            All Store Orders
                         </button>
                     </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import LocationModal from '@/Components/LocationModal';
 import { MessageSquare, X, Send, MapPin, Clock, Utensils, Tag, RefreshCw } from 'lucide-react';
 
 interface Message {
@@ -22,6 +23,18 @@ export default function AIChatbot() {
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [currentBranch, setCurrentBranch] = useState<'Bulihan' | 'Dasma'>(() => (localStorage.getItem('saddle_ranch_branch') as any) || 'Bulihan');
+
+    useEffect(() => {
+        const handleLocUpdate = (e: any) => {
+            if (e.detail) {
+                setCurrentBranch(e.detail.branch);
+            }
+        };
+        window.addEventListener('saddle_ranch_location_updated', handleLocUpdate);
+        return () => window.removeEventListener('saddle_ranch_location_updated', handleLocUpdate);
+    }, []);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -140,7 +153,7 @@ export default function AIChatbot() {
                         <div className="text-xs font-bold uppercase tracking-wider text-[#ffc174]">
                             Help Assistant
                         </div>
-                        <div className="text-[10px] text-[#d8c3ad] font-mono">Location, Prices & Hours</div>
+                        <div className="text-[10px] text-[#f59e0b] font-medium flex items-center gap-1">📍 Ordering: {currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</div>
                     </div>
                 </button>
             )}
@@ -176,6 +189,20 @@ export default function AIChatbot() {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
+                    </div>
+
+                                        {/* Active Branch Bar */}
+                    <div className="bg-[#241c14] px-4 py-2 border-b border-[#3B2F24] flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 text-[#f0e0d1]">
+                            <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                            <span>Ordering from: <strong className="text-[#ffc174] font-bold">{currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</strong></span>
+                        </div>
+                        <button
+                            onClick={() => setIsLocationModalOpen(true)}
+                            className="text-[10px] font-black uppercase tracking-wider bg-[#f59e0b]/20 text-[#f59e0b] hover:bg-[#f59e0b] hover:text-[#472a00] px-2.5 py-0.5 rounded-full border border-[#f59e0b]/40 transition-colors cursor-pointer"
+                        >
+                            Change
+                        </button>
                     </div>
 
                     {/* Quick Suggestion Chips */}
@@ -261,6 +288,7 @@ export default function AIChatbot() {
                     </form>
                 </div>
             )}
+            <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
         </div>
     );
 }

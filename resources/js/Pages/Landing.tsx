@@ -102,7 +102,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             bgColor: '#1c150e',
             textColor: '#f0e0d1',
             links: [
-                { label: 'All Customer Orders 📋', href: '/order', ariaLabel: 'View All Customer Live Orders' },
+                { label: 'All Customer Orders', href: '/order', ariaLabel: 'View All Customer Live Orders' },
                 { label: 'Roadhouse Promos', href: '#promos', ariaLabel: 'Special Roadhouse Promos' },
                 { label: 'Staff Portal', href: '/login', ariaLabel: 'Staff Login Portal' },
             ],
@@ -230,16 +230,6 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
             <div className="font-body text-[#f0e0d1] bg-[#121213] min-h-screen antialiased overflow-x-hidden selection:bg-[#f59e0b] selection:text-[#121213]">
                 
-                
-                {/* FLOATING BRANCH LOCATION BANNER */}
-                <div className="absolute top-28 left-6 sm:left-10 z-30 flex items-center gap-2 bg-[#1c150e]/95 border border-[#f59e0b]/60 px-4 py-2 rounded-full text-xs text-[#f0e0d1] shadow-2xl backdrop-blur-md">
-                    <MapPin className="w-4 h-4 text-[#f59e0b] animate-bounce" />
-                    <span>Ordering from: <strong className="text-[#ffc174] font-bold">{currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</strong> ({currentDistance})</span>
-                    <button onClick={() => setIsLocationModalOpen(true)} className="ml-1 text-[11px] font-bold text-[#f59e0b] underline hover:text-white cursor-pointer">
-                        Change
-                    </button>
-                </div>
-
                 {/* React Bits CardNav Component Integration */}
                 <CardNav
                     logoText="Saddle Ranch"
