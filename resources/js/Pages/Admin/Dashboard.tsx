@@ -114,36 +114,45 @@ interface AuditLogItem {
 
 interface AdminDashboardProps {
     initialOrders?: any[];
+    initialProducts?: any[];
     initialAuditLogs?: any[];
 }
 
-export default function AdminDashboard({ initialOrders, initialAuditLogs }: AdminDashboardProps) {
+export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Order Queue Status Filter
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
 
+    const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+
+    const formatProducts = (rawProds: any[]): ProductItem[] => {
+        if (!rawProds || rawProds.length === 0) return [];
+        return rawProds.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category || 'Sizzling Rice Meals',
+            description: p.description || 'Delicious roadhouse sizzling meal.',
+            price: Number(p.price || 0),
+            stock: Number(p.stock_quantity ?? 50),
+            priceBulihan: Number(p.price_bulihan ?? p.price ?? 0),
+            stockBulihan: Number(p.stock_bulihan ?? p.stock_quantity ?? 50),
+            priceDasmarinas: Number(p.price_dasmarinas ?? p.price ?? 0),
+            stockDasmarinas: Number(p.stock_dasmarinas ?? p.stock_quantity ?? 50),
+            isActive: Boolean(p.is_active),
+            image: p.image_path || defaultImg,
+        }));
+    };
+
     // Menu Products Dataset with Branch-Specific Stock & Prices (Bulihan vs Dasmariñas)
-    const [products, setProducts] = useState<ProductItem[]>([
-        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino Cuisine', description: 'Crispy pork belly with local spices and egg.', price: 180, stock: 55, priceBulihan: 180, stockBulihan: 35, priceDasmarinas: 195, stockDasmarinas: 20, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
-        { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', description: 'Tender T-Bone steak with signature gravy.', price: 280, stock: 40, priceBulihan: 280, stockBulihan: 25, priceDasmarinas: 299, stockDasmarinas: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino Cuisine', description: 'Rich beef shank with simmering bone marrow gravy.', price: 450, stock: 20, priceBulihan: 450, stockBulihan: 12, priceDasmarinas: 480, stockDasmarinas: 8, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', description: 'Chargrilled Bacolod-style chicken with garlic rice.', price: 220, stock: 65, priceBulihan: 220, stockBulihan: 40, priceDasmarinas: 235, stockDasmarinas: 25, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
-        { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', description: 'Chilled house-brewed red iced tea pitcher.', price: 95, stock: 180, priceBulihan: 95, stockBulihan: 100, priceDasmarinas: 105, stockDasmarinas: 80, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-        { id: 6, name: 'Sizzling Burger Steak Dual', category: 'Sizzling Rice Meals', description: 'Twin thick beef patties smothered in mushroom gravy.', price: 195, stock: 50, priceBulihan: 195, stockBulihan: 30, priceDasmarinas: 210, stockDasmarinas: 20, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 7, name: 'Sizzling Pork Chop Duo', category: 'Sizzling Rice Meals', description: 'Seared seasoned pork chops with fried garlic & egg.', price: 210, stock: 46, priceBulihan: 210, stockBulihan: 28, priceDasmarinas: 225, stockDasmarinas: 18, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
-        { id: 8, name: 'Barkada Ribs Feast Platter', category: 'Barkada Platters', description: 'Full rack bbq pork ribs with unli garlic rice & drinks.', price: 890, stock: 16, priceBulihan: 890, stockBulihan: 10, priceDasmarinas: 920, stockDasmarinas: 6, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 9, name: 'Sizzling Gambas Al Ajillo', category: 'Authentic Filipino Cuisine', description: 'Wild shrimp sautéed in garlic chili olive oil skillet.', price: 320, stock: 25, priceBulihan: 320, stockBulihan: 15, priceDasmarinas: 340, stockDasmarinas: 10, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
-        { id: 10, name: 'Crispy Pata Deluxe Platter', category: 'Barkada Platters', description: 'Deep fried pork knuckle with chili soy vinegar dip.', price: 750, stock: 13, priceBulihan: 750, stockBulihan: 8, priceDasmarinas: 785, stockDasmarinas: 5, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 11, name: 'Extra Garlic Butter Rice', category: 'Drinks & Extra Rice', description: 'Steamed jasmine rice tossed in brown butter & garlic.', price: 35, stock: 270, priceBulihan: 35, stockBulihan: 150, priceDasmarinas: 40, stockDasmarinas: 120, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-        { id: 12, name: 'San Miguel Pale Pilsen Bucket', category: 'Drinks & Extra Rice', description: 'Bucket of 5 ice-cold San Miguel Pale Pilsen bottles.', price: 380, stock: 75, priceBulihan: 380, stockBulihan: 45, priceDasmarinas: 399, stockDasmarinas: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-    ]);
+    const [products, setProducts] = useState<ProductItem[]>(formatProducts(initialProducts || []));
 
     const formatOrders = (rawOrders: any[]): OrderItem[] => {
         if (!rawOrders) return [];
         return rawOrders.map((o: any) => ({
             id: o.order_number || o.id?.toString(),
+            order_number: o.order_number || o.id?.toString(),
             type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
             location: o.table_number ? `Table ${o.table_number}` : (o.delivery_address || 'Counter'),
             branch: o.branch ? (o.branch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan') : 'Bulihan',
@@ -167,6 +176,9 @@ export default function AdminDashboard({ initialOrders, initialAuditLogs }: Admi
                 const json = await res.json();
                 if (json.data) {
                     setOrders(formatOrders(json.data));
+                }
+                if (json.products && json.products.length > 0) {
+                    setProducts(formatProducts(json.products));
                 }
             }
         } catch (e) {
@@ -543,10 +555,17 @@ export default function AdminDashboard({ initialOrders, initialAuditLogs }: Admi
     const paginatedAuditLogs = filteredAuditLogs.slice((auditPage - 1) * 10, auditPage * 10);
 
     // Filtered Sales Orders
+    const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+
     const filteredSalesOrders = orders.filter(o => {
         if (salesBranchFilter !== 'All' && o.branch !== salesBranchFilter) return false;
-        if (salesDateRange === 'today' && o.date !== '2026-07-26') return false;
-        if (salesDateRange === '7days' && o.date < '2026-07-20') return false;
+        if (salesDateRange === 'today' && o.date !== todayStr) return false;
+        if (salesDateRange === '7days') {
+            const d7 = new Date();
+            d7.setDate(d7.getDate() - 7);
+            const d7Str = d7.toISOString().split('T')[0];
+            if (o.date < d7Str) return false;
+        }
         if (salesStartDate && o.date < salesStartDate) return false;
         if (salesEndDate && o.date > salesEndDate) return false;
         return true;
@@ -556,6 +575,35 @@ export default function AdminDashboard({ initialOrders, initialAuditLogs }: Admi
     });
 
     const totalRevenue = filteredSalesOrders.filter(o => o.status === 'completed' || o.status === 'ready' || o.status === 'preparing').reduce((acc, o) => acc + o.amount, 0);
+
+    const dailyRevenueBars = React.useMemo(() => {
+        const days = [];
+        let maxVal = 1;
+
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+            const dayOrders = orders.filter(o => {
+                if (o.status !== 'completed') return false;
+                if (salesBranchFilter !== 'All' && o.branch !== salesBranchFilter) return false;
+                return o.date === dateStr;
+            });
+
+            const total = dayOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+            if (total > maxVal) {
+                maxVal = total;
+            }
+            days.push({ day: dayLabel, date: dateStr, amount: total });
+        }
+
+        return days.map(d => ({
+            ...d,
+            height: d.amount > 0 ? `${Math.max(15, Math.round((d.amount / maxVal) * 100))}%` : '8%'
+        }));
+    }, [orders, salesBranchFilter]);
 
     const sidebarLinks = [
         { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -1800,24 +1848,15 @@ export default function AdminDashboard({ initialOrders, initialAuditLogs }: Admi
                                             <div>
                                                 <h4 className="font-domine font-bold text-white text-lg sm:text-xl">Daily Revenue Trend Graph (₱)</h4>
                                                 <p className="text-xs text-[#a1a1aa]">Full-Width 1-Row Overview ({salesBranchFilter === 'All' ? 'Bulihan & Dasma Branches' : `${salesBranchFilter} Branch`})</p>
+                                                <span className="text-xs font-mono font-bold text-[#fbbf24] bg-[#18181b] px-3.5 py-1.5 rounded-xl border border-[#3f3f46]">
+                                                    Live Real-Time Sales Analytics
+                                                </span>
                                             </div>
                                         </div>
-
-                                        <span className="text-xs font-mono font-bold text-[#fbbf24] bg-[#18181b] px-3.5 py-1.5 rounded-xl border border-[#3f3f46]">
-                                            July 2026 Analytics
-                                        </span>
                                     </div>
 
                                     <div className="h-72 sm:h-80 flex items-end justify-between gap-4 sm:gap-6 pt-10 px-4 border-b border-[#333338] relative bg-[#18181b]/50 rounded-2xl p-4">
-                                        {[
-                                            { day: 'Monday (Jul 20)', amount: 18400, height: '52%' },
-                                            { day: 'Tuesday (Jul 21)', amount: 22100, height: '63%' },
-                                            { day: 'Wednesday (Jul 22)', amount: 19800, height: '56%' },
-                                            { day: 'Thursday (Jul 23)', amount: 25600, height: '73%' },
-                                            { day: 'Friday (Jul 24)', amount: 31200, height: '89%' },
-                                            { day: 'Saturday (Jul 25)', amount: 34850, height: '98%' },
-                                            { day: 'Sunday (Jul 26)', amount: 28400, height: '81%' },
-                                        ].map((bar, i) => (
+                                        {dailyRevenueBars.map((bar, i) => (
                                             <div key={i} className="flex-1 flex flex-col items-center gap-2.5 h-full justify-end group cursor-pointer relative z-10">
                                                 <span className="text-xs font-mono font-black text-[#fbbf24] opacity-80 group-hover:opacity-100 transition-all bg-[#18181b] px-2 py-0.5 rounded border border-[#3f3f46]">
                                                     ₱{(bar.amount).toLocaleString()}

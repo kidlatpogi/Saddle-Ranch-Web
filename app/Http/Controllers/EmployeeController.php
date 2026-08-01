@@ -116,6 +116,19 @@ class EmployeeController extends Controller
         $order->status = $newStatus;
         $order->save();
 
+        // Decrement product stock levels when order transitions to 'completed'
+        if ($currentStatus !== 'completed' && $newStatus === 'completed') {
+            $order->load('orderItems.product');
+            foreach ($order->orderItems as $item) {
+                if ($item->product) {
+                    $qty = (int) $item->quantity;
+                    $item->product->decrement('stock_quantity', $qty);
+                    $item->product->decrement('stock_bulihan', $qty);
+                    $item->product->decrement('stock_dasmarinas', $qty);
+                }
+            }
+        }
+
         // Audit Log entry
         AuditLog::create([
             'user_id' => auth()->id(),
