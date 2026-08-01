@@ -21,6 +21,7 @@ import {
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
 import AIChatbot from '@/Components/AIChatbot';
+import LocationModal from '@/Components/LocationModal';
 
 interface Product {
     id: number;
@@ -157,6 +158,22 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [completedOrder, setCompletedOrder] = useState<any>(null);
 
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [currentBranch, setCurrentBranch] = useState<'Bulihan' | 'Dasma'>(() => (localStorage.getItem('saddle_ranch_branch') as any) || 'Bulihan');
+    const [currentLocName, setCurrentLocName] = useState<string>(() => localStorage.getItem('saddle_ranch_location_name') || 'Bulihan, Silang, Cavite');
+    const [currentDistance, setCurrentDistance] = useState<string>(() => localStorage.getItem('saddle_ranch_distance') || '1.2 km away');
+
+    useEffect(() => {
+        const handleLocUpdate = (e: any) => {
+            if (e.detail) {
+                setCurrentBranch(e.detail.branch);
+                setCurrentLocName(e.detail.locationName);
+                setCurrentDistance(e.detail.distance);
+            }
+        };
+        window.addEventListener('saddle_ranch_location_updated', handleLocUpdate);
+        return () => window.removeEventListener('saddle_ranch_location_updated', handleLocUpdate);
+    }, []);
 
     const fallbackProducts: Product[] = [
         {
@@ -1159,6 +1176,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                 {/* Floating AI Chatbot at Bottom Left */}
                 <AIChatbot />
+            <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
             </div>
         </>
     );

@@ -10,20 +10,21 @@ class QrGeneratorController extends Controller
 {
     public function index(): Response
     {
+        $baseUrl = request()->getSchemeAndHttpHost();
         $tables = [];
         for ($i = 1; $i <= 25; $i++) {
             $num = str_pad($i, 2, '0', STR_PAD_LEFT);
             $tables[] = [
                 'table_number' => $num,
                 'label' => "Table {$num}",
-                'qr_url' => url("/dine-in?table={$num}"),
+                'qr_url' => "{$baseUrl}/dine-in?table={$num}",
             ];
         }
 
         $tables[] = [
             'table_number' => 'EXPRESS',
             'label' => 'Express Takeout Counter',
-            'qr_url' => url('/order'),
+            'qr_url' => "{$baseUrl}/order",
         ];
 
         return Inertia::render('Admin/QrGenerator', [

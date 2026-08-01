@@ -34,7 +34,20 @@ Route::prefix('v1')->group(function () {
     // Customer Order Lookup / Live Status Tracking Endpoint
     Route::get('/orders/track', function (Request $request) {
         $query = trim($request->query('query', ''));
+        $showAll = $request->boolean('all') || strtolower($query) === 'all';
         
+        if ($showAll) {
+            $orders = Order::with('orderItems.product')
+                ->orderBy('created_at', 'desc')
+                ->take(30)
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $orders,
+            ]);
+        }
+
         if (empty($query)) {
             return response()->json([
                 'status' => 'success',
@@ -53,7 +66,7 @@ Route::prefix('v1')->group(function () {
                 }
             })
             ->orderBy('created_at', 'desc')
-            ->take(10)
+            ->take(15)
             ->get();
 
         return response()->json([

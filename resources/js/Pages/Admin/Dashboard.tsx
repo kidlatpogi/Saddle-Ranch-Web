@@ -1114,7 +1114,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                                                         <button
                                                             onClick={() => toggleProductStatus(p.id)}
-                                                            className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                            className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                                                                 p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
                                                             }`}
                                                         >
@@ -1581,10 +1581,10 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <td className="py-4 px-4 font-bold text-white text-sm">{e.name}</td>
                                                     <td className="py-4 px-4 font-mono text-[#a1a1aa]">{e.email}</td>
                                                     <td className="py-4 px-4">
-                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                        <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                                                             e.branch === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
                                                         }`}>
-                                                            {e.branch ?? productBranchFilter} Branch
+                                                            {(e.branch ?? productBranchFilter) === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
@@ -1593,7 +1593,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                        <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                                                             e.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
                                                         }`}>
                                                             {e.status}

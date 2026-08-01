@@ -5,6 +5,7 @@ import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 import AIChatbot from '@/Components/AIChatbot';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
+import LocationModal from '@/Components/LocationModal';
 
 interface Banner {
     id: number;
@@ -36,6 +37,27 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
     const { addItem, itemCount } = useCart();
     const [addedProductId, setAddedProductId] = useState<number | null>(null);
     const [scrollY, setScrollY] = useState(0);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [currentBranch, setCurrentBranch] = useState<'Bulihan' | 'Dasma'>(() => (localStorage.getItem('saddle_ranch_branch') as any) || 'Bulihan');
+    const [currentLocName, setCurrentLocName] = useState<string>(() => localStorage.getItem('saddle_ranch_location_name') || 'Bulihan, Silang, Cavite');
+    const [currentDistance, setCurrentDistance] = useState<string>(() => localStorage.getItem('saddle_ranch_distance') || '1.2 km away');
+
+    useEffect(() => {
+        if (!localStorage.getItem('saddle_ranch_branch')) {
+            setIsLocationModalOpen(true);
+        }
+
+        const handleLocUpdate = (e: any) => {
+            if (e.detail) {
+                setCurrentBranch(e.detail.branch);
+                setCurrentLocName(e.detail.locationName);
+                setCurrentDistance(e.detail.distance);
+            }
+        };
+
+        window.addEventListener('saddle_ranch_location_updated', handleLocUpdate);
+        return () => window.removeEventListener('saddle_ranch_location_updated', handleLocUpdate);
+    }, []);
 
     // Parallax Scroll Effect
     useEffect(() => {
@@ -80,6 +102,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             bgColor: '#1c150e',
             textColor: '#f0e0d1',
             links: [
+                { label: 'All Customer Orders 📋', href: '/order', ariaLabel: 'View All Customer Live Orders' },
                 { label: 'Roadhouse Promos', href: '#promos', ariaLabel: 'Special Roadhouse Promos' },
                 { label: 'Staff Portal', href: '/login', ariaLabel: 'Staff Login Portal' },
             ],
@@ -207,6 +230,16 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
             <div className="font-body text-[#f0e0d1] bg-[#121213] min-h-screen antialiased overflow-x-hidden selection:bg-[#f59e0b] selection:text-[#121213]">
                 
+                
+                {/* FLOATING BRANCH LOCATION BANNER */}
+                <div className="absolute top-28 left-6 sm:left-10 z-30 flex items-center gap-2 bg-[#1c150e]/95 border border-[#f59e0b]/60 px-4 py-2 rounded-full text-xs text-[#f0e0d1] shadow-2xl backdrop-blur-md">
+                    <MapPin className="w-4 h-4 text-[#f59e0b] animate-bounce" />
+                    <span>Ordering from: <strong className="text-[#ffc174] font-bold">{currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</strong> ({currentDistance})</span>
+                    <button onClick={() => setIsLocationModalOpen(true)} className="ml-1 text-[11px] font-bold text-[#f59e0b] underline hover:text-white cursor-pointer">
+                        Change
+                    </button>
+                </div>
+
                 {/* React Bits CardNav Component Integration */}
                 <CardNav
                     logoText="Saddle Ranch"
@@ -776,6 +809,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 {/* Floating Order Tracker at Bottom Right */}
                 <CustomerOrderTracker />
+                <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
             </div>
         </>
     );

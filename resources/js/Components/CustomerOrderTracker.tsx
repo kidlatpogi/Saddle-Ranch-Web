@@ -32,6 +32,7 @@ export default function CustomerOrderTracker() {
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
     const [savedOrderNumbers, setSavedOrderNumbers] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 
     // Load stored orders from localStorage
     const getStoredOrders = useCallback((): string[] => {
@@ -45,25 +46,31 @@ export default function CustomerOrderTracker() {
         }
     }, []);
 
-    // Perform query request
-    const fetchOrders = useCallback(async (queryOverride?: string) => {
+        // Perform query request
+    const fetchOrders = useCallback(async (queryOverride?: string, forceAll?: boolean) => {
+        const isAll = forceAll !== undefined ? forceAll : activeTab === 'all';
         const stored = getStoredOrders();
         let term = queryOverride !== undefined ? queryOverride : searchQuery;
 
-        // If search input is blank, fallback to all stored customer order numbers
-        if (!term.trim() && stored.length > 0) {
-            term = stored.join(',');
-        }
-
-        if (!term.trim()) {
-            setOrders([]);
-            setSearched(false);
-            return;
-        }
-
         setLoading(true);
         try {
-            const res = await fetch(`/api/v1/orders/track?query=${encodeURIComponent(term.trim())}`);
+            let url = '/api/v1/orders/track';
+            if (isAll) {
+                url += '?all=1';
+            } else {
+                if (!term.trim() && stored.length > 0) {
+                    term = stored.join(',');
+                }
+                if (!term.trim()) {
+                    setOrders([]);
+                    setSearched(false);
+                    setLoading(false);
+                    return;
+                }
+                url += `?query=${encodeURIComponent(term.trim())}`;
+            }
+
+            const res = await fetch(url);
             if (res.ok) {
                 const json = await res.json();
                 setOrders(json.data || []);
@@ -74,7 +81,7 @@ export default function CustomerOrderTracker() {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, getStoredOrders]);
+    }, [searchQuery, activeTab, getStoredOrders]);
 
     // Initial setup & event listeners
     useEffect(() => {
@@ -102,10 +109,13 @@ export default function CustomerOrderTracker() {
         };
 
         window.addEventListener('saddle_ranch_order_placed', handleOrderPlaced);
+        const handleOpenAll = () => { setActiveTab('all'); setIsOpen(true); fetchOrders('', true); };
+        window.addEventListener('saddle_ranch_open_all_orders', handleOpenAll);
         window.addEventListener('storage', handleOrderPlaced);
 
         return () => {
             window.removeEventListener('saddle_ranch_order_placed', handleOrderPlaced);
+            window.removeEventListener('saddle_ranch_open_all_orders', handleOpenAll);
             window.removeEventListener('storage', handleOrderPlaced);
         };
     }, [fetchOrders, getStoredOrders]);
@@ -193,6 +203,30 @@ export default function CustomerOrderTracker() {
                             className="p-1.5 rounded-lg text-[#d8c3ad] hover:text-white hover:bg-[#31281f] transition-colors"
                         >
                             <X className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                                        {/* Tab Navigation: My Orders vs All Orders */}
+                    <div className="px-4 pt-3 bg-[#1c150e] border-b border-[#31281f] flex items-center gap-2">
+                        <button
+                            onClick={() => { setActiveTab('my'); fetchOrders(undefined, false); }}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-t-lg transition-colors ${
+                                activeTab === 'my'
+                                    ? 'bg-[#f59e0b] text-[#472a00] font-black'
+                                    : 'bg-[#261e15] text-[#d8c3ad] hover:text-white'
+                            }`}
+                        >
+                            My Orders ({savedOrderNumbers.length})
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('all'); fetchOrders('', true); }}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-t-lg transition-colors ${
+                                activeTab === 'all'
+                                    ? 'bg-[#f59e0b] text-[#472a00] font-black'
+                                    : 'bg-[#261e15] text-[#d8c3ad] hover:text-white'
+                            }`}
+                        >
+                            All Store Orders 🌐
                         </button>
                     </div>
 

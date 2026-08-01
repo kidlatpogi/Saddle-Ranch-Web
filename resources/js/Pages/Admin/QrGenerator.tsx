@@ -27,10 +27,20 @@ export default function AdminQrGenerator({ tables = [] }: QrGeneratorProps) {
         qr_url: 'http://localhost:8000/dine-in?table=05',
     });
 
+    const getScannableUrl = (rawUrl: string) => {
+        if (typeof window === 'undefined') return rawUrl;
+        const origin = window.location.origin;
+        if (rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1')) {
+            const urlObj = new URL(rawUrl, origin);
+            return `${origin}${urlObj.pathname}${urlObj.search}`;
+        }
+        return rawUrl;
+    };
+
     const generateQrSvg = (text: string) => {
-        // High visibility inline QR placeholder graphic representation
-        const encoded = encodeURIComponent(text);
-        return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encoded}&color=000000&bgcolor=ffffff`;
+        const scannableUrl = getScannableUrl(text);
+        const encoded = encodeURIComponent(scannableUrl);
+        return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}&color=000000&bgcolor=ffffff`;
     };
 
     return (
