@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, CheckCircle2, X, Compass, ChevronRight, Building2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Navigation, CheckCircle2, X, Compass, Building2, Store } from 'lucide-react';
 
 interface LocationModalProps {
     isOpen: boolean;
@@ -22,16 +22,9 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
 export default function LocationModal({ isOpen, onClose, onSelectBranch }: LocationModalProps) {
     const [loadingGps, setLoadingGps] = useState(false);
     const [gpsError, setGpsError] = useState<string | null>(null);
-    const [customLocation, setCustomLocation] = useState('');
 
     const [selectedBranch, setSelectedBranch] = useState<'Bulihan' | 'Dasma'>(() => {
         return (localStorage.getItem('saddle_ranch_branch') as any) || 'Bulihan';
-    });
-    const [locationName, setLocationName] = useState<string>(() => {
-        return localStorage.getItem('saddle_ranch_location_name') || 'Bulihan, Silang, Cavite';
-    });
-    const [distanceText, setDistanceText] = useState<string>(() => {
-        return localStorage.getItem('saddle_ranch_distance') || '1.2 km away';
     });
 
     if (!isOpen) return null;
@@ -66,14 +59,14 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                 }
 
                 const distStr = `${distance.toFixed(1)} km away`;
-                const locStr = `Current GPS Location (${closest === 'Bulihan' ? 'Silang / Bulihan' : 'Dasmariñas City'})`;
+                const locStr = closest === 'Bulihan' ? 'Bulihan, Silang, Cavite' : 'Dasmariñas City, Cavite';
 
                 saveAndApply(closest, locStr, distStr);
                 setLoadingGps(false);
             },
             (error) => {
                 setLoadingGps(false);
-                setGpsError('Could not retrieve your location. Please choose a preset below.');
+                setGpsError('Could not retrieve GPS location. Please choose a branch below.');
             },
             { timeout: 10000, enableHighAccuracy: true }
         );
@@ -81,8 +74,6 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
 
     const saveAndApply = (branch: 'Bulihan' | 'Dasma', locName: string, dist: string) => {
         setSelectedBranch(branch);
-        setLocationName(locName);
-        setDistanceText(dist);
 
         localStorage.setItem('saddle_ranch_branch', branch);
         localStorage.setItem('saddle_ranch_location_name', locName);
@@ -98,37 +89,29 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
         onClose();
     };
 
-    const presets = [
-        { name: 'Bulihan & Silang Area', branch: 'Bulihan' as const, distance: '1.2 km away' },
-        { name: 'Dasmariñas City Center', branch: 'Dasma' as const, distance: '2.5 km away' },
-        { name: 'Salawag & Paliparan', branch: 'Dasma' as const, distance: '3.8 km away' },
-        { name: 'San Agustin & DBB', branch: 'Dasma' as const, distance: '3.1 km away' },
-        { name: 'General Trias & Carmona Border', branch: 'Bulihan' as const, distance: '4.6 km away' },
-    ];
-
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-lg rounded-3xl bg-[#1c150e] border-2 border-[#f59e0b]/50 shadow-2xl text-[#f0e0d1] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-md rounded-3xl bg-[#1c150e] border-2 border-[#f59e0b]/50 shadow-2xl text-[#f0e0d1] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="p-6 bg-gradient-to-r from-[#261e15] to-[#19120a] border-b border-[#534434] flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-[#f59e0b] text-[#472a00] flex items-center justify-center font-bold shadow-md shadow-[#f59e0b]/20">
-                            <Navigation className="w-5 h-5" />
+                            <Store className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="font-domine font-bold text-lg text-[#ffc174]">Find Closest Roadhouse Branch</h3>
-                            <p className="text-xs text-[#d8c3ad]">Select your location for fast delivery & pickup</p>
+                            <h3 className="font-domine font-bold text-lg text-[#ffc174]">Select Roadhouse Branch</h3>
+                            <p className="text-xs text-[#d8c3ad]">Choose your preferred ordering branch</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-xl text-[#d8c3ad] hover:text-white hover:bg-[#31281f] transition-colors"
+                        className="p-2 rounded-xl text-[#d8c3ad] hover:text-white hover:bg-[#31281f] transition-colors cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                <div className="p-6 space-y-5">
                     {/* Auto GPS Detection Button */}
                     <button
                         onClick={handleUseGps}
@@ -136,7 +119,7 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                         className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:brightness-110 text-[#472a00] font-black text-sm uppercase tracking-wider flex items-center justify-center gap-3 shadow-lg shadow-[#f59e0b]/30 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                     >
                         <Compass className={`w-5 h-5 ${loadingGps ? 'animate-spin' : ''}`} />
-                        <span>{loadingGps ? 'Detecting GPS Coordinates...' : 'Detect Closest Branch (Use GPS)'}</span>
+                        <span>{loadingGps ? 'Finding Closest Branch...' : 'Detect Closest Branch (Use GPS)'}</span>
                     </button>
 
                     {gpsError && (
@@ -147,60 +130,77 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
 
                     <div className="flex items-center gap-3">
                         <div className="h-px bg-[#31281f] flex-1" />
-                        <span className="text-xs text-[#8c7a6b] font-bold uppercase tracking-widest">or select your area</span>
+                        <span className="text-xs text-[#8c7a6b] font-bold uppercase tracking-widest">Select Branch</span>
                         <div className="h-px bg-[#31281f] flex-1" />
                     </div>
 
-                    {/* Presets List */}
-                    <div className="space-y-2.5">
-                        {presets.map((p, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => saveAndApply(p.branch, p.name, p.distance)}
-                                className="w-full p-3.5 rounded-2xl bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-left flex items-center justify-between group transition-all cursor-pointer"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-[#31281f] flex items-center justify-center text-[#f59e0b] group-hover:bg-[#f59e0b] group-hover:text-[#472a00] transition-colors">
-                                        <MapPin className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-sm text-white group-hover:text-[#ffc174] transition-colors">{p.name}</div>
-                                        <div className="text-xs text-[#d8c3ad]">
-                                            Assigned Branch: <span className="font-bold text-[#f59e0b]">{p.branch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</span>
-                                        </div>
-                                    </div>
+                    {/* The 2 Main Branches Cards */}
+                    <div className="grid grid-cols-1 gap-3.5">
+                        {/* Bulihan Branch */}
+                        <button
+                            onClick={() => saveAndApply('Bulihan', 'Bulihan, Silang, Cavite', 'Silang Area')}
+                            className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
+                                selectedBranch === 'Bulihan'
+                                    ? 'bg-[#2b2014] border-[#f59e0b] shadow-md shadow-[#f59e0b]/10'
+                                    : 'bg-[#261e15] border-[#534434] hover:border-[#f59e0b]/60'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3.5">
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold ${
+                                    selectedBranch === 'Bulihan'
+                                        ? 'bg-[#f59e0b] text-[#472a00]'
+                                        : 'bg-[#31281f] text-[#f59e0b] group-hover:bg-[#f59e0b] group-hover:text-[#472a00]'
+                                } transition-colors`}>
+                                    <Building2 className="w-5 h-5" />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono font-bold text-[#8c7a6b] group-hover:text-[#ffc174]">{p.distance}</span>
-                                    <ChevronRight className="w-4 h-4 text-[#8c7a6b] group-hover:translate-x-1 transition-transform" />
+                                <div>
+                                    <div className="font-bold text-base text-white group-hover:text-[#ffc174] flex items-center gap-2">
+                                        <span>Bulihan Branch</span>
+                                        {selectedBranch === 'Bulihan' && (
+                                            <span className="text-[10px] bg-[#f59e0b]/20 text-[#f59e0b] px-2 py-0.5 rounded-full font-black border border-[#f59e0b]/30">Active</span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-[#d8c3ad] flex items-center gap-1 mt-0.5">
+                                        <MapPin className="w-3 h-3 text-[#f59e0b]" />
+                                        <span>Bulihan, Silang, Cavite</span>
+                                    </p>
                                 </div>
-                            </button>
-                        ))}
-                    </div>
+                            </div>
+                            <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Bulihan' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
+                        </button>
 
-                    {/* Manual Location Input */}
-                    <div className="space-y-2 pt-2 border-t border-[#31281f]">
-                        <label className="text-xs font-bold text-[#d8c3ad]">Enter Custom Street / Landmark:</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={customLocation}
-                                onChange={(e) => setCustomLocation(e.target.value)}
-                                placeholder="e.g. Molino-Paliparan Road, Silang"
-                                className="flex-1 px-4 py-2.5 rounded-xl bg-[#261e15] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                            />
-                            <button
-                                onClick={() => {
-                                    if (!customLocation.trim()) return;
-                                    const lower = customLocation.toLowerCase();
-                                    const branch = lower.includes('dasma') || lower.includes('paliparan') || lower.includes('salawag') ? 'Dasma' : 'Bulihan';
-                                    saveAndApply(branch, customLocation.trim(), 'Closest Branch');
-                                }}
-                                className="px-4 py-2.5 rounded-xl bg-[#31281f] hover:bg-[#f59e0b] text-white hover:text-[#472a00] font-bold text-xs transition-colors cursor-pointer"
-                            >
-                                Set
-                            </button>
-                        </div>
+                        {/* Dasmariñas Branch */}
+                        <button
+                            onClick={() => saveAndApply('Dasma', 'Dasmariñas City, Cavite', 'Dasmariñas Area')}
+                            className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
+                                selectedBranch === 'Dasma'
+                                    ? 'bg-[#2b2014] border-[#f59e0b] shadow-md shadow-[#f59e0b]/10'
+                                    : 'bg-[#261e15] border-[#534434] hover:border-[#f59e0b]/60'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3.5">
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold ${
+                                    selectedBranch === 'Dasma'
+                                        ? 'bg-[#f59e0b] text-[#472a00]'
+                                        : 'bg-[#31281f] text-[#f59e0b] group-hover:bg-[#f59e0b] group-hover:text-[#472a00]'
+                                } transition-colors`}>
+                                    <Building2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="font-bold text-base text-white group-hover:text-[#ffc174] flex items-center gap-2">
+                                        <span>Dasmariñas Branch</span>
+                                        {selectedBranch === 'Dasma' && (
+                                            <span className="text-[10px] bg-[#f59e0b]/20 text-[#f59e0b] px-2 py-0.5 rounded-full font-black border border-[#f59e0b]/30">Active</span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-[#d8c3ad] flex items-center gap-1 mt-0.5">
+                                        <MapPin className="w-3 h-3 text-[#f59e0b]" />
+                                        <span>Dasmariñas City, Cavite</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Dasma' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
+                        </button>
                     </div>
                 </div>
             </div>
