@@ -138,7 +138,7 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                     <div className="grid grid-cols-1 gap-3.5">
                         {/* Bulihan Branch */}
                         <button
-                            onClick={() => saveAndApply('Bulihan', 'Bulihan, Silang, Cavite', 'Silang Area')}
+                            onClick={() => saveAndApply('Bulihan', 'block 26 lot 17, Anahaw St, Silang, Cavite', 'Silang Area')}
                             className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
                                 selectedBranch === 'Bulihan'
                                     ? 'bg-[#2b2014] border-[#f59e0b] shadow-md shadow-[#f59e0b]/10'
@@ -161,8 +161,8 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                                         )}
                                     </div>
                                     <p className="text-xs text-[#d8c3ad] flex items-center gap-1 mt-0.5">
-                                        <MapPin className="w-3 h-3 text-[#f59e0b]" />
-                                        <span>Bulihan, Silang, Cavite</span>
+                                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                                        <span>block 26 lot 17, Anahaw St, Silang, Cavite</span>
                                     </p>
                                 </div>
                             </div>
@@ -171,7 +171,7 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
 
                         {/* Dasmariñas Branch */}
                         <button
-                            onClick={() => saveAndApply('Dasma', 'Dasmariñas City, Cavite', 'Dasmariñas Area')}
+                            onClick={() => saveAndApply('Dasma', "8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite", 'Dasmariñas Area')}
                             className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
                                 selectedBranch === 'Dasma'
                                     ? 'bg-[#2b2014] border-[#f59e0b] shadow-md shadow-[#f59e0b]/10'
@@ -194,8 +194,8 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                                         )}
                                     </div>
                                     <p className="text-xs text-[#d8c3ad] flex items-center gap-1 mt-0.5">
-                                        <MapPin className="w-3 h-3 text-[#f59e0b]" />
-                                        <span>Dasmariñas City, Cavite</span>
+                                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                                        <span>8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
                                     </p>
                                 </div>
                             </div>

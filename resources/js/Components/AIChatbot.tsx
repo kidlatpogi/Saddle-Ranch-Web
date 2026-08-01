@@ -86,7 +86,7 @@ export default function AIChatbot() {
     const generateLocalKnowledgeReply = (msg: string): string => {
         const q = msg.toLowerCase();
         if (q.includes('location') || q.includes('where') || q.includes('address') || q.includes('branch')) {
-            return 'Saddle Ranch has two locations in Cavite:\n\n• **Bulihan Branch**: 123 Roadhouse Lane, Barangay Bulihan, Cavite\n• **Dasmariñas Branch**: Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite';
+            return 'Saddle Ranch Roadhouse Locations in Cavite:\n\n📍 **Bulihan Branch**:\nblock 26 lot 17, Anahaw St, Silang, Cavite\n\n📍 **Dasmariñas Branch**:\n8X23+Q75, Governor\'s Dr, San Agustin I, Dasmariñas, 4114 Cavite';
         }
         if (q.includes('open') || q.includes('hour') || q.includes('time') || q.includes('status')) {
             return 'We are open daily:\n\n• **Bulihan Branch**: Mon - Sun (11:00 AM - 11:00 PM)\n• **Dasmariñas Branch**: Mon - Sun (10:00 AM - 10:00 PM)';

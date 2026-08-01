@@ -658,7 +658,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     <div className="space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
                                         <div className="flex items-center gap-3">
                                             <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>123 Roadhouse Lane, Barangay Bulihan, Cavite</span>
+                                            <span>block 26 lot 17, Anahaw St, Silang, Cavite</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
@@ -699,7 +699,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     <div className="space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
                                         <div className="flex items-center gap-3">
                                             <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>Governors Drive, Barangay Sampaloc 1, Dasmariñas City, Cavite</span>
+                                            <span>8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
