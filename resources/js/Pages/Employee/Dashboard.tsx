@@ -84,12 +84,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const [categoryFilter, setCategoryFilter] = useState('All');
 
     // Live State Orders Dataset
-    const [orders, setOrders] = useState<OrderItem[]>(initialOrders || [
-        { id: 'SR-1049', order_number: 'SR-1049', type: 'Dine-In', order_type: 'dine_in', location: 'Table 05', customer: 'Juan Dela Cruz', customer_name: 'Juan Dela Cruz', phone: '09171234567', amount: 640, total_amount: 640, payment: 'GCash', status: 'ready', time: '10 mins ago', itemsCount: 3, itemsSummary: '2x Sizzling Pork Sisig, 1x Red Iced Tea Pitcher' },
-        { id: 'SR-1048', order_number: 'SR-1048', type: 'Pick-Up', order_type: 'pickup', location: 'Counter', customer: 'Marco Reyes', customer_name: 'Marco Reyes', phone: '09189876543', amount: 460, total_amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, itemsSummary: '1x Sizzling T-Bone Steak, 1x Extra Garlic Rice' },
-        { id: 'SR-1047', order_number: 'SR-1047', type: 'Delivery', order_type: 'delivery', location: 'Bulihan Area (Anahaw II)', customer: 'Elena Cruz', customer_name: 'Elena Cruz', phone: '09223334444', amount: 890, total_amount: 890, payment: 'Cash on Delivery', status: 'preparing', time: '30 mins ago', itemsCount: 4, itemsSummary: '1x Sizzling Bulalo Steak, 2x Chicken Inasal, 1x Red Iced Tea' },
-        { id: 'SR-1046', order_number: 'SR-1046', type: 'Dine-In', order_type: 'dine_in', location: 'Table 02', customer: 'Seated Guest', customer_name: 'Seated Guest', phone: '09175556666', amount: 360, total_amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, itemsSummary: '2x Sizzling Pork Sisig' },
-    ]);
+    const [orders, setOrders] = useState<OrderItem[]>(initialOrders || []);
 
     // Live Polling Engine
     const fetchLatestOrders = async () => {

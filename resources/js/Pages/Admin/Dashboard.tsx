@@ -111,7 +111,12 @@ interface AuditLogItem {
     module: 'Authentication' | 'Order Queue / Sales' | 'Products & Stock' | 'Vouchers' | 'Promo Banners' | 'Employees' | 'Tables & QR';
 }
 
-export default function AdminDashboard() {
+interface AdminDashboardProps {
+    initialOrders?: any[];
+    initialAuditLogs?: any[];
+}
+
+export default function AdminDashboard({ initialOrders, initialAuditLogs }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -134,12 +139,25 @@ export default function AdminDashboard() {
         { id: 12, name: 'San Miguel Pale Pilsen Bucket', category: 'Drinks & Extra Rice', description: 'Bucket of 5 ice-cold San Miguel Pale Pilsen bottles.', price: 380, stock: 75, priceBulihan: 380, stockBulihan: 45, priceDasmarinas: 399, stockDasmarinas: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
     ]);
 
-    const [orders, setOrders] = useState<OrderItem[]>([
-        { id: 'SR-1049', type: 'Dine-In', location: 'Table 05', branch: 'Bulihan', customer: 'Juan Dela Cruz', phone: '09171234567', amount: 640, payment: 'GCash', status: 'preparing', time: '10 mins ago', itemsCount: 3, date: '2026-07-26' },
-        { id: 'SR-1048', type: 'Pick-Up', location: 'Counter', branch: 'Dasma', customer: 'Marco Reyes', phone: '09189876543', amount: 460, payment: 'Cash (Pick-Up)', status: 'ready', time: '25 mins ago', itemsCount: 2, date: '2026-07-26' },
-        { id: 'SR-1047', type: 'Delivery', location: 'Bulihan Area (Anahaw II)', branch: 'Bulihan', customer: 'Elena Cruz', phone: '09223334444', amount: 890, payment: 'Cash on Delivery', status: 'pending', time: '30 mins ago', itemsCount: 4, date: '2026-07-25' },
-        { id: 'SR-1046', type: 'Dine-In', location: 'Table 02', branch: 'Dasma', customer: 'Seated Guest', phone: '09175556666', amount: 360, payment: 'GCash', status: 'completed', time: '1 hour ago', itemsCount: 2, date: '2026-07-24' },
-    ]);
+    const formatOrders = (rawOrders: any[]): OrderItem[] => {
+        if (!rawOrders) return [];
+        return rawOrders.map((o: any) => ({
+            id: o.order_number || o.id?.toString(),
+            type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
+            location: o.table_number ? `Table ${o.table_number}` : (o.delivery_address || 'Counter'),
+            branch: o.branch ? (o.branch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan') : 'Bulihan',
+            customer: o.customer_name || 'Guest',
+            phone: o.customer_phone || '',
+            amount: Number(o.total_amount || o.amount || 0),
+            payment: o.payment_method || 'Cash',
+            status: o.status || 'pending',
+            time: o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+            itemsCount: o.order_items ? o.order_items.length : (o.itemsCount || 1),
+            date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        }));
+    };
+
+    const [orders, setOrders] = useState<OrderItem[]>(formatOrders(initialOrders || []));
 
     // 4 PROMO BANNER SLOTS
     const [banners, setBanners] = useState<Record<number, BannerItem>>({
@@ -196,16 +214,19 @@ export default function AdminDashboard() {
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
 
     // Expanded Audit Logs Dataset
-    const [auditLogs] = useState<AuditLogItem[]>([
-        { id: 1, timestamp: '2026-07-26 18:45:10', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated product price for Sizzling Pork Sisig to ₱180.00', module: 'Products & Stock' },
-        { id: 2, timestamp: '2026-07-26 18:30:22', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Marked Order #SR-1048 as Ready (₱460.00)', module: 'Order Queue / Sales' },
-        { id: 3, timestamp: '2026-07-26 17:15:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Created new discount voucher SADDLE10 (10% OFF)', module: 'Vouchers' },
-        { id: 4, timestamp: '2026-07-26 16:00:44', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Logged in to Admin Portal', module: 'Authentication' },
-        { id: 5, timestamp: '2026-07-25 14:10:05', user: 'cashier@saddleranch.ph', role: 'Cashier', action: 'Checked out customer order #SR-1047 (Delivery)', module: 'Order Queue / Sales' },
-        { id: 6, timestamp: '2026-07-25 10:00:00', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Generated Table #08 QR Code Badge', module: 'Tables & QR' },
-        { id: 7, timestamp: '2026-07-24 19:22:11', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Updated Promo Banner Slot #1 (Sisig Saturdays)', module: 'Promo Banners' },
-        { id: 8, timestamp: '2026-07-24 11:05:40', user: 'admin@saddleranch.ph', role: 'Admin', action: 'Added new Kitchen Staff account (kitchen@saddleranch.ph)', module: 'Employees' },
-    ]);
+    const formatAuditLogs = (rawLogs: any[]): AuditLogItem[] => {
+        if (!rawLogs || rawLogs.length === 0) return [];
+        return rawLogs.map((log: any) => ({
+            id: log.id,
+            timestamp: log.created_at ? new Date(log.created_at).toISOString().replace('T', ' ').substring(0, 19) : '',
+            user: log.user ? log.user.email : 'System',
+            role: log.user ? (log.user.role === 'admin' ? 'Admin' : 'Staff') : 'System',
+            action: log.action || '',
+            module: 'Order Queue / Sales',
+        }));
+    };
+
+    const [auditLogs] = useState<AuditLogItem[]>(formatAuditLogs(initialAuditLogs || []));
 
     // Modals & Forms State
     const [showAddProductModal, setShowAddProductModal] = useState(false);
