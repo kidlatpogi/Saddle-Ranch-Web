@@ -107,32 +107,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Dedicated Mobile App Customer Login
-        User::updateOrCreate(
-            ['email' => 'mobile@saddleranch.ph'],
-            [
-                'name' => 'Juan Dela Cruz',
-                'first_name' => 'Juan',
-                'last_name' => 'Dela Cruz',
-                'password' => Hash::make('password123'),
-                'address' => '123 Saddle Ranch St., Dasmariñas, Cavite',
-                'phone_number' => '09171234567',
-                'role' => 'employee'
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'customer@saddleranch.ph'],
-            [
-                'name' => 'Maria Santos',
-                'first_name' => 'Maria',
-                'last_name' => 'Santos',
-                'password' => Hash::make('password'),
-                'address' => null, // Nullable address example
-                'phone_number' => null, // Nullable phone number example
-                'role' => 'employee'
-            ]
-        );
 
         // Initial Products Seeding
         $productsData = [

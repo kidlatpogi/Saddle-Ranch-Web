@@ -305,6 +305,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             return;
         }
 
+        if (customerPhone.trim().length !== 11 || !/^\d{11}$/.test(customerPhone.trim())) {
+            setValidationError('Please enter a valid 11-digit mobile number (e.g. 09171234567).');
+            return;
+        }
+
         if (orderType === 'delivery' && !streetAddress.trim()) {
             setValidationError('Please provide your street address / landmark.');
             return;
@@ -743,8 +748,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             type="tel"
                                             required
                                             value={customerPhone}
-                                            onChange={(e) => setCustomerPhone(e.target.value)}
-                                            placeholder="0917XXXXXXX"
+                                            onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            maxLength={11}
+                                            pattern="[0-9]{11}"
+                                            placeholder="09171234567"
                                             className="w-full px-3.5 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                         />
                                     </div>
@@ -992,8 +999,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             type="tel"
                                             required
                                             value={customerPhone}
-                                            onChange={(e) => setCustomerPhone(e.target.value)}
-                                            placeholder="0917XXXXXXX"
+                                            onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            maxLength={11}
+                                            pattern="[0-9]{11}"
+                                            placeholder="09171234567"
                                             className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                         />
                                     </div>

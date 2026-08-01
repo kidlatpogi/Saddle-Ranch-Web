@@ -59,7 +59,7 @@ class OrderController extends Controller
             'order_type' => 'required|in:dine_in,express_takeout,pickup,delivery',
             'table_number' => 'nullable|required_if:order_type,dine_in,express_takeout|string',
             'customer_name' => 'nullable|required_if:order_type,pickup,delivery|string|max:255',
-            'customer_phone' => 'nullable|required_if:order_type,pickup,delivery|string|max:50',
+            'customer_phone' => 'nullable|required_if:order_type,pickup,delivery|string|regex:/^[0-9]{11}$/',
             'delivery_address' => 'nullable|required_if:order_type,delivery|string',
             'delivery_notes' => 'nullable|string',
             'pickup_time' => 'nullable|string',
@@ -67,6 +67,8 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+        ], [
+            'customer_phone.regex' => 'The mobile number must consist of exactly 11 numeric digits (e.g. 09171234567).',
         ]);
 
         $createdOrder = DB::transaction(function () use ($validated) {

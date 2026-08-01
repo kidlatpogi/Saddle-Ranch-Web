@@ -174,8 +174,18 @@ class SaddleRanchSystemTest extends TestCase
      */
     public function test_phase_5_mobile_api()
     {
+        $user = User::create([
+            'name' => 'Juan Dela Cruz',
+            'first_name' => 'Juan',
+            'last_name' => 'Dela Cruz',
+            'email' => 'testmobile@saddleranch.ph',
+            'password' => Hash::make('password123'),
+            'phone_number' => '09171234567',
+            'role' => 'employee'
+        ]);
+
         $loginResp = $this->postJson('/api/v1/auth/login', [
-            'email' => 'mobile@saddleranch.ph',
+            'email' => 'testmobile@saddleranch.ph',
             'password' => 'password123',
         ]);
 
