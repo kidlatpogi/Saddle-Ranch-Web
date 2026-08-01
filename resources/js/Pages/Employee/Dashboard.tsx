@@ -92,7 +92,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
             const res = await fetch('/api/v1/kitchen/orders');
             if (res.ok) {
                 const json = await res.json();
-                if (json.data && json.data.length > 0) {
+                if (json.data) {
                     setOrders(json.data);
                 }
             }
@@ -102,7 +102,8 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     };
 
     useEffect(() => {
-        const interval = setInterval(fetchLatestOrders, 3000);
+        fetchLatestOrders();
+        const interval = setInterval(fetchLatestOrders, 2000);
         return () => clearInterval(interval);
     }, []);
 

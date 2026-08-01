@@ -160,6 +160,26 @@ export default function AdminDashboard({ initialOrders, initialAuditLogs }: Admi
 
     const [orders, setOrders] = useState<OrderItem[]>(formatOrders(initialOrders || []));
 
+    const fetchLatestOrders = async () => {
+        try {
+            const res = await fetch('/api/v1/admin/orders');
+            if (res.ok) {
+                const json = await res.json();
+                if (json.data) {
+                    setOrders(formatOrders(json.data));
+                }
+            }
+        } catch (e) {
+            // Ignore polling errors
+        }
+    };
+
+    React.useEffect(() => {
+        fetchLatestOrders();
+        const interval = setInterval(fetchLatestOrders, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
     // 4 PROMO BANNER SLOTS
     const [banners, setBanners] = useState<Record<number, BannerItem>>({
         1: {

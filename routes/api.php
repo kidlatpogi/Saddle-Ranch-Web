@@ -18,6 +18,13 @@ Route::get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
     // Live KDS Data Endpoint (Polling API & Cook Summary)
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
+    Route::get('/admin/orders', function () {
+        $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'status' => 'success',
+            'data' => $orders,
+        ]);
+    });
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
 

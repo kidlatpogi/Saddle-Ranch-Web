@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title inertia>{{ config('app.name', 'Saddle Ranch') }}</title>
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Google Fonts: Domine, Work Sans, JetBrains Mono -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
