@@ -24,6 +24,32 @@ Route::prefix('v1')->group(function () {
     // Voucher Validation for Customer Checkout
     Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
 
+    // Customer Order Lookup / Live Status Tracking Endpoint
+    Route::get('/orders/track', function (Request $request) {
+        $query = trim($request->query('query', ''));
+        if (empty($query)) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [],
+            ]);
+        }
+
+        $orders = Order::with('orderItems.product')
+            ->where(function ($q) use ($query) {
+                $q->where('order_number', 'LIKE', "%{$query}%")
+                  ->orWhere('customer_phone', 'LIKE', "%{$query}%")
+                  ->orWhere('customer_name', 'LIKE', "%{$query}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $orders,
+        ]);
+    });
+
     // Auth Login for Flutter Mobile App
     Route::post('/auth/login', function (Request $request) {
         $request->validate([

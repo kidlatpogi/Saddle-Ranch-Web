@@ -334,6 +334,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         };
 
         router.post('/order/checkout', payload, {
+            onSuccess: (page) => {
+                const flashOrder = (page.props.flash as any)?.order;
+                if (flashOrder?.order_number) {
+                    try {
+                        localStorage.setItem('saddle_ranch_last_order', flashOrder.order_number);
+                    } catch (e) {}
+                }
+            },
             onError: (errors) => {
                 setIsSubmitting(false);
                 if (errors.items) {

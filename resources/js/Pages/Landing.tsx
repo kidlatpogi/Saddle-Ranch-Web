@@ -4,6 +4,7 @@ import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Cloc
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 import AIChatbot from '@/Components/AIChatbot';
+import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 
 interface Banner {
     id: number;
@@ -772,6 +773,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 {/* Floating AI Chatbot at Bottom Left */}
                 <AIChatbot />
+
+                {/* Floating Order Tracker at Bottom Right */}
+                <CustomerOrderTracker />
             </div>
         </>
     );
