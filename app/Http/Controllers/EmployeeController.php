@@ -82,15 +82,15 @@ class EmployeeController extends Controller
 
     /**
      * Endpoint: PATCH /orders/{id}/status
-     * Enforces valid state transitions: pending -> preparing -> ready -> completed
+     * Updates order status (pending -> preparing -> ready -> completed)
      */
-    public function updateStatus(Request $request, int $id): JsonResponse
+    public function updateStatus(Request $request, string|int $id): JsonResponse
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,preparing,ready,completed,cancelled',
         ]);
 
-        $order = Order::findOrFail($id);
+        $order = Order::where('id', $id)->orWhere('order_number', $id)->firstOrFail();
         $newStatus = $validated['status'];
         $currentStatus = $order->status;
 
@@ -140,7 +140,7 @@ class EmployeeController extends Controller
      * Security Endpoint: POST /orders/{id}/cancel
      * Requires password & reason. Restores stock, sets cancelled_by_user_id, and logs audit record.
      */
-    public function cancel(Request $request, int $id): JsonResponse
+    public function cancel(Request $request, string|int $id): JsonResponse
     {
         $request->validate([
             'password' => 'required|string',
@@ -155,7 +155,10 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        $order = Order::with('orderItems.product')->findOrFail($id);
+        $order = Order::with('orderItems.product')
+            ->where('id', $id)
+            ->orWhere('order_number', $id)
+            ->firstOrFail();
 
         if ($order->status === 'cancelled') {
             return response()->json([

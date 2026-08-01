@@ -197,7 +197,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     // Update Status Endpoint Handler (PATCH /orders/{id}/status)
     const updateOrderStatus = async (orderId: string | number, newStatus: OrderItem['status']) => {
         try {
-            const res = await fetch(`/orders/${orderId}/status`, {
+            await fetch(`/orders/${orderId}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -206,15 +206,10 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                 },
                 body: JSON.stringify({ status: newStatus }),
             });
-
-            if (res.ok) {
-                setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-            } else {
-                setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-            }
         } catch (e) {
-            setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+            console.error('Failed to update status on server:', e);
         }
+        setOrders(orders.map(o => (o.id === orderId || o.order_number === orderId) ? { ...o, status: newStatus } : o));
     };
 
     // Cancellation Handler (POST /orders/{id}/cancel)

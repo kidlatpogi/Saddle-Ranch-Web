@@ -57,6 +57,7 @@ interface ProductItem {
 
 interface OrderItem {
     id: string;
+    order_number?: string;
     type: 'Dine-In' | 'Pick-Up' | 'Delivery';
     location: string;
     branch: 'Bulihan' | 'Dasma';
@@ -294,8 +295,21 @@ export default function AdminDashboard({ initialOrders, initialAuditLogs }: Admi
     };
 
     // Helpers
-    const updateOrderStatus = (orderId: string, newStatus: OrderItem['status']) => {
-        setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    const updateOrderStatus = async (orderId: string | number, newStatus: OrderItem['status']) => {
+        try {
+            await fetch(`/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
+        } catch (e) {
+            console.error('Failed to update status on server:', e);
+        }
+        setOrders(orders.map(o => (o.id === orderId || o.order_number === orderId) ? { ...o, status: newStatus } : o));
     };
 
     const toggleProductStatus = (id: number) => {
