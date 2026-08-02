@@ -657,7 +657,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                 {/* MOBILE ONLY: Slide-Up Cart Sheet Drawer */}
                 {isBasketSheetOpen && (
-                    <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="block lg:hidden fixed inset-0 z-[99999] flex items-end justify-center p-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
                             
                             <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">

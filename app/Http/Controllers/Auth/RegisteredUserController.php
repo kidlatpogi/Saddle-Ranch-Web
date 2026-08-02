@@ -35,13 +35,30 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone_number' => 'nullable|string|max:30',
+            'address' => 'nullable|string|max:500',
+            'order_number' => 'nullable|string',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone_number' => $request->phone_number ?? null,
+            'address' => $request->address ?? null,
             'password' => Hash::make($request->password),
         ]);
+
+        // Automatically link recent guest order or orders matching phone number
+        if ($request->order_number) {
+            \App\Models\Order::where('order_number', $request->order_number)
+                ->whereNull('user_id')
+                ->update(['user_id' => $user->id]);
+        }
+        if ($user->phone_number) {
+            \App\Models\Order::where('customer_phone', $user->phone_number)
+                ->whereNull('user_id')
+                ->update(['user_id' => $user->id]);
+        }
 
         event(new Registered($user));
 

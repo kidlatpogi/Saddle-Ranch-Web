@@ -19,11 +19,13 @@ class AdminDashboardController extends Controller
         $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
         $products = Product::orderBy('id', 'asc')->get();
         $auditLogs = AuditLog::with('user')->orderBy('created_at', 'desc')->get();
+        $employees = \App\Models\User::whereIn('role', ['admin', 'employee', 'cashier', 'kitchen'])->orderBy('id', 'asc')->get();
 
         return Inertia::render('Admin/Dashboard', [
             'initialOrders' => $orders,
             'initialProducts' => $products,
             'initialAuditLogs' => $auditLogs,
+            'initialEmployees' => $employees,
         ]);
     }
 }

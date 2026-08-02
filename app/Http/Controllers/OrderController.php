@@ -67,11 +67,44 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            // Optional inline account creation
+            'create_account' => 'nullable|boolean',
+            'account_email' => 'nullable|required_if:create_account,true|email|max:255|unique:users,email',
+            'account_password' => 'nullable|required_if:create_account,true|string|min:8',
         ], [
             'customer_phone.regex' => 'The mobile number must consist of exactly 11 numeric digits (e.g. 09171234567).',
+            'account_email.unique' => 'An account with this email already exists. Please sign in or use a different email.',
         ]);
 
-        $createdOrder = DB::transaction(function () use ($validated) {
+        $createdOrder = DB::transaction(function () use ($validated, $request) {
+            $userId = auth()->id();
+
+            // If guest selected optional account creation at checkout
+            if (!$userId && !empty($validated['create_account']) && !empty($validated['account_email']) && !empty($validated['account_password'])) {
+                $user = \App\Models\User::create([
+                    'name' => $validated['customer_name'] ?? 'Customer',
+                    'email' => $validated['account_email'],
+                    'password' => Hash::make($validated['account_password']),
+                    'phone_number' => $validated['customer_phone'] ?? null,
+                    'address' => $validated['delivery_address'] ?? null,
+                ]);
+
+                \Illuminate\Support\Facades\Auth::login($user);
+                $userId = $user->id;
+            } elseif ($userId) {
+                // Update authenticated user's address & phone for convenience
+                $user = auth()->user();
+                if ($user) {
+                    if (!empty($validated['delivery_address'])) {
+                        $user->address = $validated['delivery_address'];
+                    }
+                    if (!empty($validated['customer_phone'])) {
+                        $user->phone_number = $validated['customer_phone'];
+                    }
+                    $user->save();
+                }
+            }
+
             $totalAmount = 0;
             $orderItemsToCreate = [];
 
@@ -102,6 +135,7 @@ class OrderController extends Controller
             $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
 
             $order = Order::create([
+                'user_id' => $userId,
                 'order_number' => $orderNumber,
                 'order_type' => $validated['order_type'],
                 'table_number' => $validated['table_number'] ?? null,

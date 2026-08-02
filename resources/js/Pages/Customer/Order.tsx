@@ -16,12 +16,16 @@ import {
     ChevronRight,
     X,
     Search,
-    Info
+    Info,
+    ShieldCheck,
+    UserCheck,
+    Lock
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
 import AIChatbot from '@/Components/AIChatbot';
 import LocationModal from '@/Components/LocationModal';
+import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 
 interface Product {
     id: number;
@@ -112,7 +116,8 @@ const CAVITE_LOCATIONS: Record<string, string[]> = {
 };
 
 export default function CustomerOrder({ products = [] }: OrderProps) {
-    const { flash } = usePage<PageProps>().props;
+    const { flash, auth } = usePage<PageProps>().props;
+    const currentUser: any = auth?.user;
 
     const queryParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const initialMode = (queryParams.get('mode') === 'delivery' ? 'delivery' : 'pickup') as 'pickup' | 'delivery';
@@ -132,6 +137,27 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
     const [searchQuery, setSearchQuery] = useState('');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
+
+    // Optional Account Creation State
+    const [createAccount, setCreateAccount] = useState(false);
+    const [accountEmail, setAccountEmail] = useState('');
+    const [accountPassword, setAccountPassword] = useState('');
+    const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+
+    // Order Confirmation Quick Register State
+    const [quickEmail, setQuickEmail] = useState('');
+    const [quickPassword, setQuickPassword] = useState('');
+    const [isQuickRegistering, setIsQuickRegistering] = useState(false);
+    const [accountCreatedSuccess, setAccountCreatedSuccess] = useState(false);
+
+    // Auto-fill details for logged in users
+    useEffect(() => {
+        if (currentUser) {
+            if (currentUser.name && !customerName) setCustomerName(currentUser.name);
+            if (currentUser.phone_number && !customerPhone) setCustomerPhone(currentUser.phone_number);
+            if (currentUser.address && !streetAddress) setStreetAddress(currentUser.address);
+        }
+    }, [currentUser]);
 
     // Cart Items Pagination State (> 5 items)
     const [cartPage, setCartPage] = useState(1);
@@ -327,9 +353,15 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             return;
         }
 
-        if (orderType === 'delivery' && !streetAddress.trim()) {
-            setValidationError('Please provide your street address / landmark.');
-            return;
+        if (!currentUser && createAccount) {
+            if (!accountEmail.trim() || !accountPassword.trim()) {
+                setValidationError('Please provide your email address and password (min 8 characters) to create your account.');
+                return;
+            }
+            if (accountPassword.trim().length < 8) {
+                setValidationError('Password must be at least 8 characters long.');
+                return;
+            }
         }
 
         setIsSubmitting(true);
@@ -344,6 +376,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             delivery_address: orderType === 'delivery' ? constructedDeliveryAddress : null,
             delivery_notes: deliveryNotes,
             payment_method: paymentMethod,
+            create_account: !currentUser && createAccount,
+            account_email: !currentUser && createAccount ? accountEmail.trim() : null,
+            account_password: !currentUser && createAccount ? accountPassword.trim() : null,
             items: cart.map((item) => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
@@ -888,6 +923,74 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </div>
                                     </div>
 
+                                    {/* Account & Saved Details Section */}
+                                    {currentUser ? (
+                                        <div className="p-3.5 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
+                                            <div className="flex items-center gap-2">
+                                                <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                                                <span>Signed in as <strong className="text-white font-bold">{currentUser.name}</strong></span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPrivacyModalOpen(true)}
+                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 cursor-pointer"
+                                            >
+                                                <ShieldCheck className="w-3 h-3" /> Privacy Policy
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-3">
+                                            <label className="flex items-start gap-2 text-xs font-semibold text-[#ffc174] cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={createAccount}
+                                                    onChange={(e) => setCreateAccount(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] mt-0.5"
+                                                />
+                                                <span>Save my delivery address & purchase history (Create a free account)</span>
+                                            </label>
+
+                                            {createAccount && (
+                                                <div className="space-y-2.5 pt-1 animate-in fade-in duration-200">
+                                                    <div>
+                                                        <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-1">Email Address *</label>
+                                                        <input
+                                                            type="email"
+                                                            required={createAccount}
+                                                            value={accountEmail}
+                                                            onChange={(e) => setAccountEmail(e.target.value)}
+                                                            placeholder="your.email@example.com"
+                                                            className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-1">Account Password (min 8 characters) *</label>
+                                                        <input
+                                                            type="password"
+                                                            required={createAccount}
+                                                            minLength={8}
+                                                            value={accountPassword}
+                                                            onChange={(e) => setAccountPassword(e.target.value)}
+                                                            placeholder="••••••••"
+                                                            className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-0.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                                    className="hover:underline text-[#f59e0b] flex items-center gap-1 cursor-pointer"
+                                                >
+                                                    <ShieldCheck className="w-3 h-3" /> Privacy & Data Safety Policy
+                                                </button>
+                                                <span className="font-semibold text-emerald-400">100% Optional</span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="pt-2 flex justify-between text-base font-black text-white">
                                         <span>Total Amount</span>
                                         <span className="text-[#ffc174] font-mono">₱{subtotal.toFixed(2)}</span>
@@ -932,7 +1035,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                 {/* MOBILE ONLY: Slide-Up Cart Sheet Drawer */}
                 {isBasketSheetOpen && (
-                    <div className="block lg:hidden fixed inset-0 z-50 flex items-end justify-center p-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="block lg:hidden fixed inset-0 z-[99999] flex items-end justify-center p-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
                             
                             <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
@@ -1141,8 +1244,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                 {/* Order Confirmation Modal */}
                 {completedOrder && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-                        <div className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl text-center space-y-5">
+                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-sm rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl text-center space-y-4 max-h-[90vh] overflow-y-auto">
                             <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center">
                                 <CheckCircle2 className="w-7 h-7" />
                             </div>
@@ -1164,6 +1267,89 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
+                            {/* Optional Account Creation Card for Guests */}
+                            {!currentUser && !accountCreatedSuccess && (
+                                <div className="p-4 rounded-2xl bg-[#121213] border border-[#f59e0b]/40 text-left space-y-3">
+                                    <div className="flex items-center gap-2 text-[#ffc174] font-bold text-xs">
+                                        <UserCheck className="w-4 h-4 text-[#f59e0b] shrink-0" />
+                                        <span>Save Delivery Address & Purchase History?</span>
+                                    </div>
+                                    <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                        Create a free account to automatically save your delivery address, track live order status, and view past orders anytime!
+                                    </p>
+
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (!quickEmail.trim() || !quickPassword.trim()) return;
+                                        setIsQuickRegistering(true);
+                                        router.post('/register', {
+                                            name: completedOrder.customer_name || customerName || 'Customer',
+                                            email: quickEmail,
+                                            password: quickPassword,
+                                            password_confirmation: quickPassword,
+                                            phone_number: completedOrder.customer_phone || customerPhone,
+                                            address: completedOrder.delivery_address || streetAddress,
+                                            order_number: completedOrder.order_number,
+                                        }, {
+                                            onSuccess: () => {
+                                                setIsQuickRegistering(false);
+                                                setAccountCreatedSuccess(true);
+                                            },
+                                            onError: (errs) => {
+                                                setIsQuickRegistering(false);
+                                                const firstMsg = Object.values(errs)[0];
+                                                alert(typeof firstMsg === 'string' ? firstMsg : 'Registration error. Email may already be registered.');
+                                            }
+                                        });
+                                    }} className="space-y-2 pt-1">
+                                        <input
+                                            type="email"
+                                            required
+                                            value={quickEmail}
+                                            onChange={(e) => setQuickEmail(e.target.value)}
+                                            placeholder="Your email address"
+                                            className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                        />
+                                        <input
+                                            type="password"
+                                            required
+                                            minLength={8}
+                                            value={quickPassword}
+                                            onChange={(e) => setQuickPassword(e.target.value)}
+                                            placeholder="Create a password (min 8 chars)"
+                                            className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={isQuickRegistering}
+                                            className="w-full py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider hover:bg-[#ffc174] transition-all btn-bevel cursor-pointer"
+                                        >
+                                            {isQuickRegistering ? 'Creating Account...' : 'Create Free Account & Save Details'}
+                                        </button>
+                                    </form>
+
+                                    <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsPrivacyModalOpen(true)}
+                                            className="hover:underline text-[#f59e0b] flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <ShieldCheck className="w-3 h-3" /> Privacy & Safety Policy
+                                        </button>
+                                        <span className="font-semibold text-emerald-400">100% Optional</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {accountCreatedSuccess && (
+                                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-xs text-center space-y-1">
+                                    <div className="font-bold text-emerald-400 flex items-center justify-center gap-1">
+                                        <CheckCircle2 className="w-4 h-4" /> Account Created Successfully!
+                                    </div>
+                                    <p className="text-[11px] text-emerald-200">Your delivery address and order history are now saved to your account.</p>
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => setCompletedOrder(null)}
                                 className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider hover:bg-[#ffc174] transition-all block btn-bevel"
@@ -1174,9 +1360,12 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     </div>
                 )}
 
-                {/* Floating AI Chatbot at Bottom Left */}
-                <AIChatbot />
-            <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
+                {/* Floating AI Chatbot at Bottom Left (Desktop Only on /order) */}
+                <div className="hidden sm:block">
+                    <AIChatbot />
+                </div>
+                <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
+                <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
             </div>
         </>
     );

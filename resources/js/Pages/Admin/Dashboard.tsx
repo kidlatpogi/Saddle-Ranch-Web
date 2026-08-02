@@ -116,9 +116,10 @@ interface AdminDashboardProps {
     initialOrders?: any[];
     initialProducts?: any[];
     initialAuditLogs?: any[];
+    initialEmployees?: any[];
 }
 
-export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs }: AdminDashboardProps) {
+export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -126,6 +127,29 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
 
     const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+
+    const formatEmployees = (rawEmps: any[]): EmployeeItem[] => {
+        if (!rawEmps || rawEmps.length === 0) {
+            return [
+                { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', branch: 'All', status: 'Active', createdAt: '2026-01-15' },
+                { id: 2, name: 'Bulihan Branch Cashier', email: 'cashier.bulihan@saddleranch.ph', role: 'Cashier', branch: 'Bulihan', status: 'Active', createdAt: '2026-03-10' },
+                { id: 3, name: 'Bulihan Kitchen Head Chef', email: 'kitchen.bulihan@saddleranch.ph', role: 'Kitchen Staff', branch: 'Bulihan', status: 'Active', createdAt: '2026-05-20' },
+                { id: 4, name: 'Dasmariñas Branch Cashier', email: 'cashier.dasmarinas@saddleranch.ph', role: 'Cashier', branch: 'Dasma', status: 'Active', createdAt: '2026-06-01' },
+                { id: 5, name: 'Dasmariñas Kitchen Head Chef', email: 'kitchen.dasmarinas@saddleranch.ph', role: 'Kitchen Staff', branch: 'Dasma', status: 'Active', createdAt: '2026-06-05' }
+            ];
+        }
+        return rawEmps.map((e: any) => ({
+            id: e.id,
+            name: e.name || e.email,
+            email: e.email,
+            role: e.role === 'admin' ? 'Admin' : (e.role === 'kitchen' ? 'Kitchen Staff' : 'Cashier'),
+            branch: e.branch ? (e.branch.toLowerCase().includes('dasma') ? 'Dasma' : (e.branch.toLowerCase().includes('all') ? 'All' : 'Bulihan')) : 'Bulihan',
+            status: 'Active',
+            createdAt: e.created_at ? e.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        }));
+    };
+
+    const [employees, setEmployees] = useState<EmployeeItem[]>(formatEmployees(initialEmployees || []));
 
     const formatProducts = (rawProds: any[]): ProductItem[] => {
         if (!rawProds || rawProds.length === 0) return [];
@@ -233,14 +257,6 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         { id: 1, code: 'SADDLE10', discountPercent: 10, minSpend: 300, usedCount: 42, isActive: true },
         { id: 2, code: 'BULIHANFREE', discountPercent: 15, minSpend: 500, usedCount: 89, isActive: true },
         { id: 3, code: 'WELCOME2026', discountPercent: 20, minSpend: 800, usedCount: 15, isActive: false }
-    ]);
-
-    const [employees, setEmployees] = useState<EmployeeItem[]>([
-        { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', branch: 'All', status: 'Active', createdAt: '2026-01-15' },
-        { id: 2, name: 'Bulihan Branch Cashier', email: 'cashier.bulihan@saddleranch.ph', role: 'Cashier', branch: 'Bulihan', status: 'Active', createdAt: '2026-03-10' },
-        { id: 3, name: 'Bulihan Kitchen Head Chef', email: 'kitchen.bulihan@saddleranch.ph', role: 'Kitchen Staff', branch: 'Bulihan', status: 'Active', createdAt: '2026-05-20' },
-        { id: 4, name: 'Dasmariñas Branch Cashier', email: 'cashier.dasmarinas@saddleranch.ph', role: 'Cashier', branch: 'Dasma', status: 'Active', createdAt: '2026-06-01' },
-        { id: 5, name: 'Dasmariñas Kitchen Head Chef', email: 'kitchen.dasmarinas@saddleranch.ph', role: 'Kitchen Staff', branch: 'Dasma', status: 'Active', createdAt: '2026-06-05' }
     ]);
 
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
