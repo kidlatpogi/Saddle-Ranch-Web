@@ -19,7 +19,8 @@ import {
     Info,
     ShieldCheck,
     UserCheck,
-    Lock
+    Lock,
+    User
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -437,10 +438,22 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-                                <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <Link
+                                    href={currentUser ? (currentUser.role === 'admin' || currentUser.role === 'employee' || currentUser.role === 'cashier' || currentUser.role === 'kitchen' ? '/employee/dashboard' : '/dashboard') : '/login'}
+                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-sm"
+                                    aria-label={currentUser ? 'Account Dashboard' : 'Account Login'}
+                                    title={currentUser ? `Account (${currentUser.name})` : 'Account / Login'}
+                                >
+                                    <User className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span className="hidden xs:inline">{currentUser ? (currentUser.name ? currentUser.name.split(' ')[0] : 'Account') : 'Account'}</span>
+                                </Link>
+
+                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                    {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                                    <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
+                                </span>
+                            </div>
                         </div>
 
                         {/* Top Bar Row 2 */}

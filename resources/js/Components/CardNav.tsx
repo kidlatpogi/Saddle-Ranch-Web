@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import { ArrowUpRight, ShoppingCart } from 'lucide-react';
+import { ArrowUpRight, ShoppingCart, User } from 'lucide-react';
 
 type CardNavLink = {
   label: string;
@@ -29,6 +29,7 @@ export interface CardNavProps {
   buttonText?: string;
   onButtonClick?: () => void;
   cartItemCount?: number;
+  user?: { id?: number; name?: string; email?: string; role?: string } | null;
 }
 
 const CardNav: React.FC<CardNavProps> = ({
@@ -45,6 +46,7 @@ const CardNav: React.FC<CardNavProps> = ({
   buttonText = 'Order Now',
   onButtonClick,
   cartItemCount = 0,
+  user = null,
 }) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -194,14 +196,14 @@ const CardNav: React.FC<CardNavProps> = ({
 
   return (
     <div
-      className={`card-nav-container fixed left-1/2 -translate-x-1/2 w-[80%] max-w-[1000px] z-[99] top-[1.2em] md:top-[1.5em] ${className}`}
+      className={`card-nav-container fixed left-1/2 -translate-x-1/2 w-[94%] sm:w-[90%] md:w-[80%] max-w-[1000px] z-[99] top-[1.2em] md:top-[1.5em] ${className}`}
     >
       <nav
         ref={navRef}
         className={`card-nav ${isExpanded ? 'open' : ''} block h-[60px] p-0 rounded-xl border border-[#534434] shadow-2xl relative overflow-hidden will-change-[height]`}
         style={{ backgroundColor: baseColor }}
       >
-        <div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 pl-[1.1rem] pr-3 z-[2]">
+        <div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 pl-[0.8rem] xs:pl-[1.1rem] pr-2.5 xs:pr-3 z-[2]">
           <div
             className={`hamburger-menu ${isHamburgerOpen ? 'open' : ''} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] order-2 md:order-none`}
             onClick={toggleMenu}
@@ -233,17 +235,30 @@ const CardNav: React.FC<CardNavProps> = ({
             {logo ? (
               <img src={logo} alt={logoAlt} className="logo h-[32px] object-contain" />
             ) : (
-              <a href="/" className="font-domine text-xl md:text-2xl font-bold text-[#ffc174] tracking-tighter hover:opacity-90 transition-opacity">
+              <a href="/" className="font-domine text-lg xs:text-xl md:text-2xl font-bold text-[#ffc174] tracking-tighter hover:opacity-90 transition-opacity">
                 {logoText}
               </a>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 xs:gap-2">
+            {/* Account / Login Button - Always Visible on Mobile & Desktop */}
+            <a
+              href={user ? (user.role === 'admin' || user.role === 'employee' || user.role === 'cashier' || user.role === 'kitchen' ? '/employee/dashboard' : '/dashboard') : '/login'}
+              onClick={closeMenuImmediately}
+              className="relative h-[38px] xs:h-[42px] px-2.5 xs:px-3 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold shrink-0 shadow-md"
+              aria-label={user ? 'Account Dashboard' : 'Account Login'}
+              title={user ? `Account (${user.name || user.email})` : 'Account / Login'}
+            >
+              <User className="w-4 h-4 text-[#f59e0b]" />
+              <span className="hidden sm:inline">{user ? (user.name ? user.name.split(' ')[0] : 'Account') : 'Account'}</span>
+            </a>
+
+            {/* Cart Button */}
             <a
               href="/order"
               onClick={closeMenuImmediately}
-              className="relative h-[42px] px-4 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-2 text-xs font-bold"
+              className="relative h-[38px] xs:h-[42px] px-2.5 xs:px-3.5 rounded-lg bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#d8c3ad] hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold shrink-0 shadow-md"
               aria-label="View Cart"
             >
               <ShoppingCart className="w-4 h-4 text-[#f59e0b]" />
@@ -255,6 +270,7 @@ const CardNav: React.FC<CardNavProps> = ({
               )}
             </a>
 
+            {/* Order Now CTA Button */}
             <button
               type="button"
               onClick={() => {

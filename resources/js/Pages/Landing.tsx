@@ -28,9 +28,10 @@ interface Product {
 interface LandingProps {
     banners?: Banner[];
     products?: Product[];
+    auth?: { user?: any };
 }
 
-export default function Landing({ banners = [], products = [] }: LandingProps) {
+export default function Landing({ banners = [], products = [], auth }: LandingProps) {
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [selectedMode, setSelectedMode] = useState<'pickup' | 'delivery'>('pickup');
     const [showAllMenu, setShowAllMenu] = useState(false);
@@ -242,6 +243,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     buttonText="Order Now"
                     onButtonClick={() => setIsOrderModalOpen(true)}
                     cartItemCount={itemCount}
+                    user={auth?.user}
                 />
 
                 {/* 1. Hero Section (Strictly 100vh / h-screen with zero pt gap & Parallax Video) */}
@@ -627,10 +629,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl">
-                            <div className="h-28 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden">
+                            <div className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden group">
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    alt="Saddle Ranch Bulihan Storefront Exterior"
+                                    alt="Saddle Ranch Bulihan Google Maps Location"
                                     src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
                                 />
                                 <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10">
@@ -638,6 +640,15 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         ORIGINAL FLAGSHIP BRANCH
                                     </span>
                                 </div>
+                                <a
+                                    href="https://www.google.com/maps/search/?api=1&query=Saddle+Ranch+Block+26+Lot+17+Anahaw+St+Silang+Cavite"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 z-10 bg-[#121213]/90 hover:bg-[#f59e0b] text-[#ffc174] hover:text-[#472a00] border border-[#f59e0b]/50 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+                                >
+                                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    <span>Google Maps ↗</span>
+                                </a>
                             </div>
                             <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
@@ -646,10 +657,15 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
                                     </p>
                                     <div className="space-y-1.5 sm:space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>block 26 lot 17, Anahaw St, Silang, Cavite</span>
-                                        </div>
+                                        <a
+                                            href="https://www.google.com/maps/search/?api=1&query=Saddle+Ranch+Block+26+Lot+17+Anahaw+St+Silang+Cavite"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 sm:gap-3 hover:text-[#f59e0b] transition-colors group/addr"
+                                        >
+                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0 group-hover/addr:scale-110 transition-transform" />
+                                            <span className="underline decoration-[#f59e0b]/40 underline-offset-2">block 26 lot 17, Anahaw St, Silang, Cavite</span>
+                                        </a>
                                         <div className="flex items-center gap-2 sm:gap-3">
                                             <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>Monday - Sunday: 11:00 AM - 11:00 PM</span>
@@ -668,10 +684,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl">
-                            <div className="h-28 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden">
+                            <div className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden group">
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    alt="Saddle Ranch Dasmarinas Storefront Exterior"
+                                    alt="Saddle Ranch Dasmarinas Google Maps Location"
                                     src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=80"
                                 />
                                 <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10">
@@ -679,6 +695,15 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         NEW BRANCH LOCATION
                                     </span>
                                 </div>
+                                <a
+                                    href="https://www.google.com/maps/search/?api=1&query=8X23%2BQ75+Governor%27s+Dr+San+Agustin+I+Dasmari%C3%B1as+Cavite"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 z-10 bg-[#121213]/90 hover:bg-[#f59e0b] text-[#ffc174] hover:text-[#472a00] border border-[#f59e0b]/50 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+                                >
+                                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    <span>Google Maps ↗</span>
+                                </a>
                             </div>
                             <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
@@ -687,10 +712,15 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
                                     </p>
                                     <div className="space-y-1.5 sm:space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
-                                        </div>
+                                        <a
+                                            href="https://www.google.com/maps/search/?api=1&query=8X23%2BQ75+Governor%27s+Dr+San+Agustin+I+Dasmari%C3%B1as+Cavite"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 sm:gap-3 hover:text-[#f59e0b] transition-colors group/addr"
+                                        >
+                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0 group-hover/addr:scale-110 transition-transform" />
+                                            <span className="underline decoration-[#f59e0b]/40 underline-offset-2">8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
+                                        </a>
                                         <div className="flex items-center gap-2 sm:gap-3">
                                             <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>Monday - Sunday: 10:00 AM - 10:00 PM</span>
