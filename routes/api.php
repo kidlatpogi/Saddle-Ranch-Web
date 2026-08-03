@@ -28,6 +28,61 @@ Route::prefix('v1')->group(function () {
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
 
+    // Waiter Call Endpoints for In-House QR Table Service
+    Route::post('/waiter-call', function (Request $request) {
+        $tableNumber = $request->input('table_number', '05');
+        $branch = $request->input('branch', 'Bulihan');
+
+        $calls = \Illuminate\Support\Facades\Cache::get('active_waiter_calls', []);
+        $newCall = [
+            'id' => time() . '_' . rand(100, 999),
+            'table_number' => $tableNumber,
+            'branch' => $branch,
+            'time' => now()->format('h:i A'),
+            'timestamp' => time(),
+        ];
+
+        $filtered = array_filter($calls, function ($c) use ($tableNumber) {
+            return ($c['table_number'] ?? '') !== $tableNumber && (time() - ($c['timestamp'] ?? 0) < 1800);
+        });
+
+        $filtered[] = $newCall;
+        \Illuminate\Support\Facades\Cache::put('active_waiter_calls', array_values($filtered), 1800);
+
+        \App\Models\AuditLog::create([
+            'action' => "WAITER CALL: Table #{$tableNumber} requested assistance at {$branch} Branch",
+            'ip_address' => $request->ip(),
+            'payload' => $newCall,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Waiter call sent for Table #{$tableNumber}",
+            'data' => $newCall,
+        ]);
+    });
+
+    Route::get('/waiter-calls', function () {
+        $calls = \Illuminate\Support\Facades\Cache::get('active_waiter_calls', []);
+        $active = array_values(array_filter($calls, function ($c) {
+            return (time() - ($c['timestamp'] ?? 0)) < 1800;
+        }));
+        return response()->json([
+            'status' => 'success',
+            'data' => $active,
+        ]);
+    });
+
+    Route::post('/waiter-calls/dismiss', function (Request $request) {
+        $tableNumber = $request->input('table_number');
+        $calls = \Illuminate\Support\Facades\Cache::get('active_waiter_calls', []);
+        $updated = array_values(array_filter($calls, function ($c) use ($tableNumber) {
+            return ($c['table_number'] ?? '') !== $tableNumber;
+        }));
+        \Illuminate\Support\Facades\Cache::put('active_waiter_calls', $updated, 1800);
+        return response()->json(['status' => 'success']);
+    });
+
     // Voucher Validation for Customer Checkout
     Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
 

@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
-import AIChatbot from '@/Components/AIChatbot';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 
@@ -237,12 +236,28 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         }
     }, [flash]);
 
-    const handleCallWaiter = () => {
+    const handleCallWaiter = async () => {
         setWaiterCalled(true);
         setShowWaiterToast(true);
+
+        try {
+            await fetch('/api/v1/waiter-call', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNumber,
+                    branch: selectedBranch,
+                }),
+            });
+        } catch (e) {}
+
         setTimeout(() => {
             setShowWaiterToast(false);
-        }, 5000);
+        }, 6000);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -1159,8 +1174,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     isOpen={isPrivacyModalOpen}
                     onClose={() => setIsPrivacyModalOpen(false)}
                 />
-
-                <AIChatbot />
 
             </div>
         </>
