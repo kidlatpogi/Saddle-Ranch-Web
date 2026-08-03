@@ -28,7 +28,8 @@ import {
     Banknote,
     RotateCcw,
     ShieldAlert,
-    Lock
+    Lock,
+    Bell
 } from 'lucide-react';
 
 interface OrderItem {
@@ -101,9 +102,39 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         }
     };
 
+    const [activeWaiterCalls, setActiveWaiterCalls] = useState<any[]>([]);
+
+    const fetchWaiterCalls = async () => {
+        try {
+            const res = await fetch('/api/v1/waiter-calls');
+            if (res.ok) {
+                const json = await res.json();
+                setActiveWaiterCalls(json.data || []);
+            }
+        } catch (e) {}
+    };
+
+    const handleDismissWaiterCall = async (tableNumber: string) => {
+        try {
+            await fetch('/api/v1/waiter-calls/dismiss', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({ table_number: tableNumber }),
+            });
+            setActiveWaiterCalls((prev) => prev.filter((c) => c.table_number !== tableNumber));
+        } catch (e) {}
+    };
+
     useEffect(() => {
         fetchLatestOrders();
-        const interval = setInterval(fetchLatestOrders, 2000);
+        fetchWaiterCalls();
+        const interval = setInterval(() => {
+            fetchLatestOrders();
+            fetchWaiterCalls();
+        }, 2000);
         return () => clearInterval(interval);
     }, []);
 
@@ -384,6 +415,35 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                             />
                         </div>
                     </div>
+
+                    {/* Active Waiter Call Notification Banner */}
+                    {activeWaiterCalls.length > 0 && (
+                        <div className="mb-6 p-4 rounded-2xl bg-amber-500 text-[#3f2000] border-2 border-[#ffc174] shadow-2xl flex flex-wrap items-center justify-between gap-3 animate-pulse">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center shrink-0">
+                                    <Bell className="w-6 h-6 text-[#3f2000] animate-bounce" />
+                                </div>
+                                <div>
+                                    <div className="font-black text-sm uppercase tracking-wider">WAITER ASSISTANCE REQUESTED!</div>
+                                    <div className="text-xs font-bold">
+                                        {activeWaiterCalls.map((c) => `Table #${c.table_number} (${c.branch || 'Bulihan'} Branch)`).join(' • ')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                                {activeWaiterCalls.map((c) => (
+                                    <button
+                                        key={c.id || c.table_number}
+                                        onClick={() => handleDismissWaiterCall(c.table_number)}
+                                        className="px-3.5 py-1.5 rounded-xl bg-[#121213] text-[#ffc174] hover:bg-black font-black text-xs transition-all shadow cursor-pointer border border-[#f59e0b]"
+                                    >
+                                        Acknowledge Table #{c.table_number}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* TAB 0: ERGONOMIC TOUCHSCREEN TABLET POS REGISTER */}
                     {activeTab === 'pos' && (

@@ -48,6 +48,10 @@ Route::prefix('v1')->group(function () {
 
         $filtered[] = $newCall;
         \Illuminate\Support\Facades\Cache::put('active_waiter_calls', array_values($filtered), 1800);
+        \Illuminate\Support\Facades\Cache::put("waiter_status_{$tableNumber}", [
+            'status' => 'pending',
+            'updated_at' => time()
+        ], 600);
 
         \App\Models\AuditLog::create([
             'action' => "WAITER CALL: Table #{$tableNumber} requested assistance at {$branch} Branch",
@@ -59,6 +63,15 @@ Route::prefix('v1')->group(function () {
             'status' => 'success',
             'message' => "Waiter call sent for Table #{$tableNumber}",
             'data' => $newCall,
+        ]);
+    });
+
+    Route::get('/waiter-call/status', function (Request $request) {
+        $tableNumber = $request->query('table_number', '05');
+        $data = \Illuminate\Support\Facades\Cache::get("waiter_status_{$tableNumber}", ['status' => 'idle']);
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
         ]);
     });
 
@@ -80,6 +93,11 @@ Route::prefix('v1')->group(function () {
             return ($c['table_number'] ?? '') !== $tableNumber;
         }));
         \Illuminate\Support\Facades\Cache::put('active_waiter_calls', $updated, 1800);
+        \Illuminate\Support\Facades\Cache::put("waiter_status_{$tableNumber}", [
+            'status' => 'acknowledged',
+            'updated_at' => time()
+        ], 300);
+
         return response()->json(['status' => 'success']);
     });
 

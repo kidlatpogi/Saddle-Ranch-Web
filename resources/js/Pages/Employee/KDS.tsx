@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    Flame, 
-    Clock, 
-    CheckCircle2, 
-    ArrowLeft, 
-    ChefHat, 
-    Volume2, 
+import {
+    Flame,
+    Clock,
+    CheckCircle2,
+    ArrowLeft,
+    ChefHat,
+    Volume2,
     VolumeX,
     Bell,
     Check,
@@ -86,7 +86,7 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
             // Play HTML5 audio file if available
             if (audioRef.current) {
                 audioRef.current.currentTime = 0;
-                audioRef.current.play().catch(() => {});
+                audioRef.current.play().catch(() => { });
             }
 
             // Web Audio dual chime fallback
@@ -174,7 +174,7 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                 const json = await res.json();
                 setActiveWaiterCalls(json.data || []);
             }
-        } catch (e) {}
+        } catch (e) { }
     };
 
     const handleDismissWaiterCall = async (tableNumber: string) => {
@@ -188,7 +188,7 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                 body: JSON.stringify({ table_number: tableNumber }),
             });
             setActiveWaiterCalls((prev) => prev.filter((c) => c.table_number !== tableNumber));
-        } catch (e) {}
+        } catch (e) { }
     };
 
     useEffect(() => {
@@ -311,12 +311,12 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
     return (
         <>
             <Head title="Kitchen Display System (KDS) | Saddle Ranch" />
-            
+
             {/* HTML5 Audio element fallback */}
             <audio ref={audioRef} src="/sounds/new-order.mp3" preload="auto" />
 
             <div className="min-h-screen bg-[#141416] text-[#f4f4f5] font-sans selection:bg-[#f59e0b] selection:text-[#3f2000] flex flex-col">
-                
+
                 {/* KDS Touch Header */}
                 <header className="h-20 bg-[#1f1f23] border-b border-[#333338] px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-md">
                     <div className="flex items-center gap-3">
@@ -326,11 +326,10 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-lg font-black font-domine text-white tracking-tight">Saddle Ranch KDS Terminal</h1>
-                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${
-                                    userBranch === 'Dasma' || userBranch === 'Dasmariñas'
-                                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                                        : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                                }`}>
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${userBranch === 'Dasma' || userBranch === 'Dasmariñas'
+                                    ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                    }`}>
                                     {userBranch === 'Dasma' ? 'Dasmariñas Branch' : `${userBranch} Branch`} KDS
                                 </span>
                             </div>
@@ -351,9 +350,8 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
 
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
-                            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
-                                soundEnabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                            }`}
+                            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${soundEnabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                }`}
                             title={soundEnabled ? 'Audio Chime Enabled' : 'Audio Chime Muted'}
                         >
                             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -371,10 +369,10 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
 
                 {/* KDS Main Area: Grid + Sticky Aggregator Side Panel */}
                 <div className="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 items-start">
-                    
+
                     {/* Main Section: Filters & Order Cards */}
                     <main className="flex-1 w-full space-y-6">
-                        
+
                         {/* PIPELINE FILTER CHIPS */}
                         <div className="p-3 rounded-2xl bg-[#202024] border border-[#333338] flex flex-wrap items-center justify-between gap-3 shadow-lg">
                             <div className="flex items-center gap-2 overflow-x-auto">
@@ -387,11 +385,10 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                                     <button
                                         key={chip.id}
                                         onClick={() => setStatusFilter(chip.id)}
-                                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-                                            statusFilter === chip.id
-                                                ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md'
-                                                : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
-                                        }`}
+                                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${statusFilter === chip.id
+                                            ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-md'
+                                            : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
+                                            }`}
                                     >
                                         <span>{chip.label}</span>
                                         <span className={`px-2 py-0.5 rounded-full bg-[#141416] text-[11px] font-mono font-black ${chip.color}`}>
@@ -415,7 +412,7 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                                         <Bell className="w-6 h-6 text-[#3f2000] animate-bounce" />
                                     </div>
                                     <div>
-                                        <div className="font-black text-sm uppercase tracking-wider">🔔 WAITER ASSISTANCE REQUESTED!</div>
+                                        <div className="font-black text-sm uppercase tracking-wider">WAITER ASSISTANCE REQUESTED!</div>
                                         <div className="text-xs font-bold">
                                             {activeWaiterCalls.map((c) => `Table #${c.table_number} (${c.branch || 'Bulihan'} Branch)`).join(' • ')}
                                         </div>
@@ -442,7 +439,7 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                                 {filteredOrders.map((order) => {
                                     const elapsed = getElapsedMins(order.created_at);
                                     const typeBadge = getOrderTypeBadge(order.order_type, order.table_number);
-                                    
+
                                     // Timer color coding: Green (<10m), Yellow (10-15m), Red Pulse (>15m)
                                     const isRedAlert = elapsed >= 15;
                                     const isYellowAlert = elapsed >= 10 && elapsed < 15;
@@ -450,42 +447,39 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
                                     return (
                                         <div
                                             key={order.id}
-                                            className={`rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden transition-all ${
-                                                isRedAlert
-                                                    ? 'bg-[#261416] border-rose-500 shadow-rose-500/30 animate-pulse'
-                                                    : isYellowAlert
+                                            className={`rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden transition-all ${isRedAlert
+                                                ? 'bg-[#261416] border-rose-500 shadow-rose-500/30 animate-pulse'
+                                                : isYellowAlert
                                                     ? 'bg-[#221e16] border-amber-400/90 shadow-amber-500/20'
                                                     : order.status === 'pending'
-                                                    ? 'bg-[#1e1710] border-[#f59e0b] shadow-[#f59e0b]/20'
-                                                    : order.status === 'preparing'
-                                                    ? 'bg-[#1f1e18] border-yellow-400/80 shadow-yellow-500/10'
-                                                    : 'bg-[#131b29] border-blue-500/80 shadow-blue-500/20'
-                                            }`}
+                                                        ? 'bg-[#1e1710] border-[#f59e0b] shadow-[#f59e0b]/20'
+                                                        : order.status === 'preparing'
+                                                            ? 'bg-[#1f1e18] border-yellow-400/80 shadow-yellow-500/10'
+                                                            : 'bg-[#131b29] border-blue-500/80 shadow-blue-500/20'
+                                                }`}
                                         >
                                             {/* DISTINCT TOP BANNER BY STATUS */}
-                                            <div className={`px-5 py-2.5 font-black text-xs uppercase tracking-wider flex items-center justify-between ${
-                                                order.status === 'pending'
-                                                    ? 'bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#3f2000]'
-                                                    : order.status === 'preparing'
+                                            <div className={`px-5 py-2.5 font-black text-xs uppercase tracking-wider flex items-center justify-between ${order.status === 'pending'
+                                                ? 'bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#3f2000]'
+                                                : order.status === 'preparing'
                                                     ? 'bg-yellow-500/20 text-yellow-300 border-b border-yellow-500/30'
                                                     : 'bg-blue-600/20 text-blue-300 border-b border-blue-500/30'
-                                            }`}>
+                                                }`}>
                                                 <div className="flex items-center gap-2 font-domine">
                                                     {order.status === 'pending' && <Flame className="w-4 h-4 flex-shrink-0 animate-bounce" />}
                                                     {order.status === 'preparing' && <UtensilsCrossed className="w-4 h-4 flex-shrink-0" />}
                                                     {order.status === 'ready' && <Sparkles className="w-4 h-4 flex-shrink-0" />}
                                                     <span>
                                                         {order.status === 'pending' ? 'NEW ORDER - NEEDS GRILL' :
-                                                         order.status === 'preparing' ? 'SIZZLING ON GRILL' :
-                                                         'BUMPED & READY AT COUNTER'}
+                                                            order.status === 'preparing' ? 'SIZZLING ON GRILL' :
+                                                                'BUMPED & READY AT COUNTER'}
                                                     </span>
                                                 </div>
 
-                                                <span className={`px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold ${
-                                                    isRedAlert ? 'bg-rose-500 text-white animate-pulse' :
+                                                <span className={`px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold ${isRedAlert ? 'bg-rose-500 text-white animate-pulse' :
                                                     isYellowAlert ? 'bg-amber-400 text-[#3f2000]' :
-                                                    'bg-[#141416]/80 text-[#a1a1aa]'
-                                                }`}>
+                                                        'bg-[#141416]/80 text-[#a1a1aa]'
+                                                    }`}>
                                                     {elapsed} mins elapsed
                                                 </span>
                                             </div>

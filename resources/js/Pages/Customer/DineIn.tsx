@@ -72,6 +72,28 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     // Call Waiter State
     const [waiterCalled, setWaiterCalled] = useState(false);
     const [showWaiterToast, setShowWaiterToast] = useState(false);
+    const [waiterStatus, setWaiterStatus] = useState<'idle' | 'pending' | 'acknowledged'>('idle');
+
+    useEffect(() => {
+        const pollStatus = async () => {
+            try {
+                const res = await fetch(`/api/v1/waiter-call/status?table_number=${encodeURIComponent(tableNumber)}`);
+                if (res.ok) {
+                    const json = await res.json();
+                    const currentStatus = json.data?.status || 'idle';
+                    setWaiterStatus(currentStatus);
+                    if (currentStatus === 'acknowledged') {
+                        setWaiterCalled(false);
+                        setShowWaiterToast(true);
+                    }
+                }
+            } catch (e) {}
+        };
+
+        pollStatus();
+        const interval = setInterval(pollStatus, 2500);
+        return () => clearInterval(interval);
+    }, [tableNumber]);
 
     // Account Creation State
     const [createAccount, setCreateAccount] = useState(false);
@@ -361,13 +383,21 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <button
                                     onClick={handleCallWaiter}
                                     className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${
-                                        waiterCalled
+                                        waiterStatus === 'acknowledged'
+                                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
+                                            : waiterStatus === 'pending' || waiterCalled
                                             ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
                                             : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
                                     }`}
                                 >
-                                    <BellRing className={`w-3.5 h-3.5 ${waiterCalled ? 'animate-bounce text-[#f59e0b]' : ''}`} />
-                                    <span>{waiterCalled ? 'Waiter Notified' : 'Call Waiter'}</span>
+                                    <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
+                                    <span>
+                                        {waiterStatus === 'acknowledged'
+                                            ? 'Server On The Way! 🏃‍♂️'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                            ? 'Waiter Notified'
+                                            : 'Call Waiter'}
+                                    </span>
                                 </button>
 
                                 {/* Table Badge Pill */}
@@ -413,11 +443,21 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                 {/* Call Waiter Toast Alert */}
                 {showWaiterToast && (
-                    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl bg-amber-500 text-[#472a00] font-bold shadow-2xl flex items-center gap-3 border border-[#ffc174] animate-in slide-in-from-top-4 duration-300">
+                    <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${
+                        waiterStatus === 'acknowledged'
+                            ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-600/30'
+                            : 'bg-amber-500 text-[#472a00] border-[#ffc174]'
+                    }`}>
                         <BellRing className="w-6 h-6 shrink-0 animate-bounce" />
                         <div className="text-xs leading-snug">
-                            <div className="font-black text-sm uppercase">Staff Notified!</div>
-                            <div>Roadhouse server is on their way to Table #{tableNumber}.</div>
+                            <div className="font-black text-sm uppercase">
+                                {waiterStatus === 'acknowledged' ? 'Staff Acknowledged! 🏃‍♂️' : 'Staff Notified!'}
+                            </div>
+                            <div>
+                                {waiterStatus === 'acknowledged'
+                                    ? `A server has acknowledged your request and is heading to Table #${tableNumber} right now!`
+                                    : `Roadhouse server is on their way to Table #${tableNumber}.`}
+                            </div>
                         </div>
                     </div>
                 )}
