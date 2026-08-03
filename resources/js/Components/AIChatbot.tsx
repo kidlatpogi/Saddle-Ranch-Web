@@ -235,7 +235,7 @@ export default function AIChatbot() {
         <>
             {/* Mobile Backdrop Overlay when Assistant is Open */}
             {isOpen && (
-                <div 
+                <div
                     onClick={() => setIsOpen(false)}
                     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9990] sm:hidden animate-in fade-in duration-200"
                 />
@@ -321,11 +321,10 @@ export default function AIChatbot() {
                                         className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                                     >
                                         <div
-                                            className={`max-w-[88%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow ${
-                                                msg.sender === 'user'
-                                                    ? 'bg-[#f59e0b] text-[#472a00] font-semibold rounded-br-none'
-                                                    : 'bg-[#211B15] text-[#f0e0d1] border border-[#3D3126] rounded-bl-none'
-                                            }`}
+                                            className={`max-w-[88%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow ${msg.sender === 'user'
+                                                ? 'bg-[#f59e0b] text-[#472a00] font-semibold rounded-br-none'
+                                                : 'bg-[#211B15] text-[#f0e0d1] border border-[#3D3126] rounded-bl-none'
+                                                }`}
                                         >
                                             <div className="whitespace-pre-wrap">
                                                 {formatText(displayedText)}
@@ -349,7 +348,7 @@ export default function AIChatbot() {
                                             <Sparkles className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '3s' }} />
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <span className="font-semibold text-xs text-[#ffc174]">AI Assistant thinking</span>
+                                            <span className="font-semibold text-xs text-[#ffc174]">Thinking</span>
                                             <span className="flex items-center gap-1 ml-0.5">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b] animate-bounce [animation-delay:-0.3s]" />
                                                 <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b] animate-bounce [animation-delay:-0.15s]" />

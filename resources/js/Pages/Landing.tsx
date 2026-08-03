@@ -310,15 +310,15 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </header>
 
-                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 2. PROMOTIONS & DEALS SECTION */}
                 <section
                     id="promos"
-                    className="py-8 sm:py-12 md:py-16 px-4 w-[80%] max-w-[1440px] mx-auto transition-transform duration-300"
+                    className="py-6 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto transition-transform duration-300"
                     style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.03)}px)` }}
                 >
-                    <div className="text-center mb-8 sm:mb-12">
+                    <div className="text-center mb-6 sm:mb-12">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold inline-block mb-2">
                             Exclusive Roadhouse Specials
                         </span>
@@ -327,10 +327,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </h2>
                     </div>
 
-                    {/* Asymmetric Bento Grid */}
+                    {/* Uniform Responsive Grid (Equal Rectangle Sizes on Mobile View) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                        {/* Card 1: Large Featured Hero Banner */}
-                        <div className="md:col-span-2 md:row-span-2 relative min-h-[280px] sm:min-h-[340px] md:min-h-[380px] lg:min-h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl flex flex-col justify-end">
+                        {/* Card 1: Sisig Saturdays Deal */}
+                        <div className="md:col-span-2 md:row-span-2 relative h-52 sm:h-60 md:h-auto md:min-h-[380px] lg:min-h-[420px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-700 group-hover:scale-105"
@@ -338,21 +338,21 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx"
                                 />
                             </div>
-                            <div className="relative z-10 p-5 sm:p-6 md:p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/90 to-transparent">
-                                <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] mb-2 sm:mb-3 inline-block font-bold shadow">
+                            <div className="relative z-10 p-4 sm:p-5 md:p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/90 to-transparent">
+                                <span className="font-mono text-[9px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] mb-1.5 sm:mb-3 inline-block font-bold shadow">
                                     WEEKEND SPECIAL • 20% OFF
                                 </span>
-                                <h3 className="font-domine text-xl sm:text-3xl md:text-4xl font-bold text-[#ffc174] mb-1.5 sm:mb-2 drop-shadow-md">
+                                <h3 className="font-domine text-lg sm:text-2xl md:text-4xl font-bold text-[#ffc174] mb-1 sm:mb-2 drop-shadow-md">
                                     Sisig Saturdays Deal
                                 </h3>
-                                <p className="font-sans text-xs sm:text-sm md:text-base text-[#d8c3ad] max-w-lg leading-relaxed">
+                                <p className="font-sans text-xs sm:text-sm md:text-base text-[#d8c3ad] max-w-lg leading-relaxed line-clamp-2 md:line-clamp-none">
                                     Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.
                                 </p>
                             </div>
                         </div>
 
-                        {/* Card 2: Square Card - New Arrival */}
-                        <div className="relative min-h-[160px] sm:min-h-[180px] md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                        {/* Card 2: Cowboy Ribeye Special */}
+                        <div className="relative h-52 sm:h-60 md:h-auto md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -365,12 +365,12 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     NEW ARRIVAL
                                 </span>
                                 <h3 className="font-domine text-base sm:text-lg font-bold text-[#ffc174]">Cowboy Ribeye Special</h3>
-                                <p className="font-sans text-[11px] sm:text-xs text-[#d8c3ad] mt-0.5">Bone-in, seared on smoking cast iron.</p>
+                                <p className="font-sans text-xs sm:text-xs text-[#d8c3ad] mt-0.5 line-clamp-2">Bone-in, seared on smoking cast iron.</p>
                             </div>
                         </div>
 
-                        {/* Card 3: Square Card - Dasmariñas ₱79 Unlimited Rice & Soup */}
-                        <div className="relative min-h-[160px] sm:min-h-[180px] md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                        {/* Card 3: Unlimited Rice & Soup */}
+                        <div className="relative h-52 sm:h-60 md:h-auto md:min-h-[190px] lg:min-h-[200px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#1A1A1B] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
                             <div className="absolute inset-0 vignette-overlay">
                                 <img
                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
@@ -383,41 +383,41 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP
                                 </span>
                                 <h3 className="font-domine text-base sm:text-lg font-bold text-[#f0e0d1]">Unlimited Rice & Soup</h3>
-                                <p className="font-sans text-[11px] sm:text-xs text-[#d8c3ad] mt-0.5">Unli rice & soup at selected products for both branches — special offer for only ₱79 at Dasmariñas Branch!</p>
+                                <p className="font-sans text-xs sm:text-xs text-[#d8c3ad] mt-0.5 line-clamp-2">Unli rice & soup at selected products for both branches — special offer for only ₱79 at Dasmariñas Branch!</p>
                             </div>
                         </div>
 
-                        {/* Card 4: Wide Accent Horizontal Banner */}
-                        <div className="md:col-span-3 relative min-h-[150px] sm:min-h-[170px] md:min-h-[180px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl">
-                            <div className="absolute inset-0 flex items-center justify-between">
-                                <div className="w-full md:w-2/3 p-5 sm:p-6 md:p-8 z-10 space-y-1.5 sm:space-y-2">
-                                    <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] inline-block font-bold">
+                        {/* Card 4: Pulutan Happy Hour Specials */}
+                        <div className="md:col-span-3 relative h-52 sm:h-60 md:h-auto md:min-h-[180px] rounded-2xl overflow-hidden raised-layer group hover-heat cursor-pointer bg-[#221a12] border border-[#534434]/60 shadow-xl flex flex-col justify-end">
+                            <div className="absolute inset-0 vignette-overlay">
+                                <img
+                                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
+                                    alt="Happy hour pulutan"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
+                                />
+                            </div>
+                            <div className="relative z-10 p-4 sm:p-5 md:p-8 w-full bg-gradient-to-t from-[#1A1A1B] via-[#1A1A1B]/80 to-transparent flex flex-col justify-between h-full md:h-auto">
+                                <div className="space-y-1 sm:space-y-1.5">
+                                    <span className="font-mono text-[9px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2 py-0.5 sm:px-3 sm:py-1 rounded border border-[#534434] inline-block font-bold">
                                         HAPPY HOUR • 4PM - 7PM DAILY
                                     </span>
-                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174]">Pulutan Happy Hour Specials</h3>
-                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] max-w-xl">
+                                    <h3 className="font-domine text-base sm:text-xl md:text-2xl font-bold text-[#ffc174]">Pulutan Happy Hour Specials</h3>
+                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] max-w-xl line-clamp-2 md:line-clamp-none">
                                         Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.
                                     </p>
-                                    <button onClick={() => setIsOrderModalOpen(true)} className="text-[#f59e0b] font-mono text-[11px] sm:text-xs font-bold flex items-center hover:text-[#ffc174] transition-colors pt-1">
-                                        ORDER PULUTAN NOW <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1.5" />
-                                    </button>
                                 </div>
-                                <div className="hidden md:block w-1/3 h-full vignette-overlay relative">
-                                    <img
-                                        className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500"
-                                        alt="Happy hour pulutan"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl"
-                                    />
-                                </div>
+                                <button onClick={() => setIsOrderModalOpen(true)} className="text-[#f59e0b] font-mono text-[11px] sm:text-xs font-bold flex items-center hover:text-[#ffc174] transition-colors pt-1.5">
+                                    ORDER PULUTAN NOW <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1.5" />
+                                </button>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 3. FEATURED SIZZLING ITEMS SECTION */}
-                <section id="featured-menu" className="py-8 sm:py-12 md:py-16 px-4 w-[80%] max-w-[1440px] mx-auto">
+                <section id="featured-menu" className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 md:mb-14">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Chef's Sizzling Favorites
@@ -520,10 +520,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 4. SIZZLING MENU CATEGORIES */}
-                <section id="categories" className="py-8 sm:py-12 md:py-16 px-4 w-[80%] max-w-[1440px] mx-auto">
+                <section id="categories" className="py-8 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-8 sm:mb-12">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Signature Menu Lineup
@@ -612,96 +612,96 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
                 </section>
 
-                <div className="sizzle-divider w-[80%] max-w-[1440px] mx-auto" />
+                <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
 
                 {/* 5. ROADHOUSE LOCATIONS SECTION */}
-                <section id="locations" className="py-10 sm:py-16 px-4 w-[80%] max-w-[1440px] mx-auto">
-                    <div className="text-center mb-8 sm:mb-12">
+                <section id="locations" className="py-6 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto">
+                    <div className="text-center mb-5 sm:mb-12">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Visit Our Roadhouses
                         </span>
                         <h2 className="font-domine text-2xl sm:text-4xl md:text-5xl text-[#ffc174] font-bold">Our Locations</h2>
-                        <p className="font-sans text-sm sm:text-base text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
+                        <p className="font-sans text-xs sm:text-base text-[#d8c3ad] mt-1">Come experience the smoky hearth and cast-iron sizzle.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-4 sm:space-y-6 hover-heat transition-all shadow-xl">
-                            <div className="h-48 sm:h-56 md:h-60 w-full relative vignette-overlay overflow-hidden">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl">
+                            <div className="h-28 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden">
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
                                     alt="Saddle Ranch Bulihan Storefront Exterior"
                                     src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
                                 />
-                                <div className="absolute top-3 left-3 z-10">
-                                    <span className="font-mono text-[9px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
+                                <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10">
+                                    <span className="font-mono text-[8px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-[#534434] font-bold shadow">
                                         ORIGINAL FLAGSHIP BRANCH
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-4 sm:space-y-6">
+                            <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
-                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Bulihan</h3>
-                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed mb-4">
+                                    <h3 className="font-domine text-lg sm:text-2xl font-bold text-[#ffc174] mb-1 sm:mb-2">Saddle Ranch Bulihan</h3>
+                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-snug sm:leading-relaxed mb-2.5 sm:mb-4 line-clamp-2 sm:line-clamp-none">
                                         Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
                                     </p>
-                                    <div className="space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
-                                        <div className="flex items-center gap-3">
-                                            <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                    <div className="space-y-1.5 sm:space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>block 26 lot 17, Anahaw St, Silang, Cavite</span>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>Monday - Sunday: 11:00 AM - 11:00 PM</span>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>+63 917 123 4567</span>
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3 sm:py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
+                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-2.5 sm:py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
                                     Order from Bulihan Branch
                                 </button>
                             </div>
                         </div>
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between space-y-4 sm:space-y-6 hover-heat transition-all shadow-xl">
-                            <div className="h-48 sm:h-56 md:h-60 w-full relative vignette-overlay overflow-hidden">
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl">
+                            <div className="h-28 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden">
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
                                     alt="Saddle Ranch Dasmarinas Storefront Exterior"
                                     src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=80"
                                 />
-                                <div className="absolute top-3 left-3 z-10">
-                                    <span className="font-mono text-[9px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2.5 py-1 rounded border border-[#534434] font-bold shadow">
+                                <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10">
+                                    <span className="font-mono text-[8px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-[#534434] font-bold shadow">
                                         NEW BRANCH LOCATION
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-4 sm:space-y-6">
+                            <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
-                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174] mb-2">Saddle Ranch Dasmariñas</h3>
-                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed mb-4">
+                                    <h3 className="font-domine text-lg sm:text-2xl font-bold text-[#ffc174] mb-1 sm:mb-2">Saddle Ranch Dasmariñas</h3>
+                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-snug sm:leading-relaxed mb-2.5 sm:mb-4 line-clamp-2 sm:line-clamp-none">
                                         Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
                                     </p>
-                                    <div className="space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
-                                        <div className="flex items-center gap-3">
-                                            <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                    <div className="space-y-1.5 sm:space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>Monday - Sunday: 10:00 AM - 10:00 PM</span>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
                                             <span>+63 918 987 6543</span>
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-3 sm:py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
+                                <button onClick={() => setIsOrderModalOpen(true)} className="w-full py-2.5 sm:py-3.5 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
                                     Order from Dasmariñas Branch
                                 </button>
                             </div>
@@ -711,7 +711,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 {/* Footer */}
                 <footer className="bg-[#140d06] font-sans text-sm w-full border-t border-[#534434]">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 py-12 w-[80%] max-w-[1440px] mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 py-12 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto">
                         <div className="flex flex-col space-y-3">
                             <div className="font-domine text-xl font-bold text-[#ffc174]">Saddle Ranch</div>
                             <p className="text-[#d8c3ad] text-xs">Bulihan & Dasmariñas Branches, Cavite</p>
