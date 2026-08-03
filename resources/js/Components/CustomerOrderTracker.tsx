@@ -180,7 +180,7 @@ export default function CustomerOrderTracker() {
     const latestActiveOrder = activeOrders[0];
 
     return (
-        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans">
+        <div className="fixed bottom-28 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans">
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (
                 <div className="mb-3 w-80 sm:w-96 rounded-2xl bg-[#1c150e]/95 border-2 border-[#f59e0b]/50 shadow-2xl backdrop-blur-md text-[#f0e0d1] overflow-hidden animate-in slide-in-from-bottom-5 duration-200 z-[100000]">
@@ -191,11 +191,9 @@ export default function CustomerOrderTracker() {
                                 <UtensilsCrossed className="w-4 h-4" />
                             </div>
                             <div>
-                                <h3 className="font-domine font-bold text-sm text-[#ffc174] leading-tight flex items-center gap-1.5">
+                                <h3 className="font-domine font-bold text-sm text-[#ffc174] leading-tight">
                                     Live Order Tracker
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
                                 </h3>
-                                <p className="text-[11px] text-[#d8c3ad]">Real-time kitchen updates (Polling every 2s)</p>
                             </div>
                         </div>
                         <button
@@ -317,10 +315,7 @@ export default function CustomerOrderTracker() {
                 <div className="relative">
                     <ShoppingBag className="w-5 h-5" />
                     {activeOrders.length > 0 && (
-                        <>
-                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
-                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full" />
-                        </>
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-[#1c150e]" />
                     )}
                 </div>
 

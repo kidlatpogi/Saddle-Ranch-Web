@@ -388,7 +388,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
                                         Saddle Ranch
                                     </h1>
-                                    <p className="text-[10px] sm:text-xs text-[#d8c3ad] truncate">In-House QR Table Order</p>
+                                    <p className="hidden sm:block text-xs text-[#d8c3ad] truncate">In-House QR Table Order</p>
                                 </div>
                             </div>
 
@@ -430,6 +430,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     Table #{tableNumber}
                                 </span>
                             </div>
+                        </div>
+
+                        {/* Mobile Viewport Dedicated Sub-Header Banner */}
+                        <div className="flex sm:hidden items-center justify-between text-[11px] font-semibold text-[#d8c3ad] px-0.5">
+                            <span className="flex items-center gap-1.5 text-[#ffc174] font-bold">
+                                <QrCode className="w-3.5 h-3.5 text-[#f59e0b]" /> Saddle Ranch In-House QR Table Order
+                            </span>
                         </div>
 
                         {/* Top Bar Row 2 - Search Input */}
