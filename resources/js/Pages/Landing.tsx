@@ -635,17 +635,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             >
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    alt="Google Maps View - Saddle Ranch Bulihan"
-                                    src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80"
+                                    alt="Saddle Ranch Bulihan Storefront Exterior"
+                                    src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
                                 />
-                                <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 flex flex-wrap gap-1.5">
-                                    <span className="font-mono text-[8px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-[#534434] font-bold shadow">
-                                        ORIGINAL FLAGSHIP BRANCH
-                                    </span>
-                                    <span className="font-mono text-[8px] sm:text-[10px] text-white bg-red-600/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded font-bold shadow flex items-center gap-1">
-                                        <MapPin className="w-2.5 h-2.5" /> GOOGLE MAPS LOCATION
-                                    </span>
-                                </div>
                             </a>
                             <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
@@ -696,17 +688,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             >
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    alt="Google Maps View - Saddle Ranch Dasmarinas"
-                                    src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?auto=format&fit=crop&w=1200&q=80"
+                                    alt="Saddle Ranch Dasmariñas Storefront Exterior"
+                                    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80"
                                 />
-                                <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-10 flex flex-wrap gap-1.5">
-                                    <span className="font-mono text-[8px] sm:text-[10px] text-[#f59e0b] bg-[#31281f]/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-[#534434] font-bold shadow">
-                                        NEW BRANCH LOCATION
-                                    </span>
-                                    <span className="font-mono text-[8px] sm:text-[10px] text-white bg-red-600/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded font-bold shadow flex items-center gap-1">
-                                        <MapPin className="w-2.5 h-2.5" /> GOOGLE MAPS LOCATION
-                                    </span>
-                                </div>
                             </a>
                             <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
