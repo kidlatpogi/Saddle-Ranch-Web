@@ -180,7 +180,7 @@ export default function CustomerOrderTracker() {
     const latestActiveOrder = activeOrders[0];
 
     return (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans">
+        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans">
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (
                 <div className="mb-3 w-80 sm:w-96 rounded-2xl bg-[#1c150e]/95 border-2 border-[#f59e0b]/50 shadow-2xl backdrop-blur-md text-[#f0e0d1] overflow-hidden animate-in slide-in-from-bottom-5 duration-200 z-[100000]">
