@@ -495,7 +495,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Menu Catalog Column */}
-                        <div className="lg:col-span-7 space-y-6">
+                        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
 
                             {/* MOBILE VIEW (< md) MATCHING ORDER.TSX 1:1 */}
                             <div className="block md:hidden">
@@ -552,9 +552,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* DESKTOP VIEW (>= md) MATCHING ORDER.TSX 1:1 */}
+                            {/* DESKTOP VIEW (>= md) MATCHING ORDER.TSX 1:1 - 4 Products per Row */}
                             <div className="hidden md:block space-y-6">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                         const isOutOfStock = product.stock_quantity <= 0;
@@ -676,8 +676,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                         </div>
 
-                        {/* DESKTOP CHECKOUT SIDEBAR (`lg:col-span-5`) MATCHING ORDER.TSX 1:1 */}
-                        <div className="hidden lg:block lg:col-span-5">
+                        {/* DESKTOP CHECKOUT SIDEBAR (`lg:col-span-5 xl:col-span-4`) MATCHING ORDER.TSX 1:1 */}
+                        <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
                             <div className="sticky top-28 bg-[#1A1A1B] rounded-2xl border border-[#262627] p-5 shadow-2xl space-y-5">
 
                                 {/* Header */}

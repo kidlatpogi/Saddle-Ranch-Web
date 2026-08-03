@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Flame, Utensils, ShoppingBag, ArrowRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flame, Utensils, ShoppingBag, ArrowRight, ArrowUpRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 import AIChatbot from '@/Components/AIChatbot';
@@ -497,22 +497,14 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         })}
                     </div>
 
-                    {/* View More Button */}
-                    <div className="mt-8 sm:mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <button
-                            onClick={() => setShowAllMenu(!showAllMenu)}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1A1A1B] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold px-8 py-3.5 rounded-lg btn-bevel transition-all text-xs sm:text-sm uppercase tracking-wider shadow-lg"
-                        >
-                            <span>{showAllMenu ? 'Show Less' : `Show More (${allProductsList.length} Total Items)`}</span>
-                            {showAllMenu ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </button>
-
+                    {/* View Full Menu & Order Online Redirect Button */}
+                    <div className="mt-8 sm:mt-12 text-center flex items-center justify-center">
                         <Link
                             href="/order"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#f59e0b] text-[#472a00] font-bold px-8 py-3.5 rounded-lg btn-bevel hover:bg-[#ffc174] transition-all text-xs sm:text-sm uppercase tracking-wider shadow-lg"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black px-8 py-4 rounded-xl btn-bevel transition-all text-xs sm:text-sm uppercase tracking-wider shadow-xl"
                         >
-                            <ShoppingCart className="w-4 h-4" />
-                            <span>Cart {itemCount > 0 ? `(${itemCount})` : ''}</span>
+                            <span>Explore Full Menu & Order Online</span>
+                            <ArrowUpRight className="w-4 h-4" />
                         </Link>
                     </div>
                 </section>

@@ -500,7 +500,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Menu Column */}
-                        <div className="lg:col-span-7 space-y-6">
+                        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
 
                             {/* MOBILE (< md) */}
                             <div className="block md:hidden">
@@ -557,9 +557,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            {/* DESKTOP (>= md) */}
+                            {/* DESKTOP (>= md) - 4 Products per Row */}
                             <div className="hidden md:block space-y-6">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                         const isOutOfStock = product.stock_quantity <= 0;
@@ -676,7 +676,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                         </div>
 
                         {/* DESKTOP ONLY Cart Form with Payment Method Selector */}
-                        <div className="hidden lg:block lg:col-span-5 space-y-6">
+                        <div className="hidden lg:block lg:col-span-5 xl:col-span-4 space-y-6">
                             <form onSubmit={handleSubmit} className="p-6 rounded-3xl bg-[#1A1A1B] border border-[#534434]/60 shadow-2xl space-y-6">
                                 <div className="pb-4 border-b border-[#534434]/50 flex items-center justify-between">
                                     <h3 className="text-lg font-bold text-white flex items-center gap-2 font-domine">
