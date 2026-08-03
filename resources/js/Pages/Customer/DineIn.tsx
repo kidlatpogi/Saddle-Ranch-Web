@@ -80,13 +80,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [accountPassword, setAccountPassword] = useState('');
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
-    // Order Confirmation Quick Register State
-    const [quickEmail, setQuickEmail] = useState('');
-    const [quickPassword, setQuickPassword] = useState('');
-    const [isQuickRegistering, setIsQuickRegistering] = useState(false);
-    const [quickRegisterSuccess, setQuickRegisterSuccess] = useState(false);
-    const [quickRegisterError, setQuickRegisterError] = useState('');
-
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
@@ -324,59 +317,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         });
     };
 
-    const handleQuickRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setQuickRegisterError('');
-
-        if (!quickEmail.trim() || !quickPassword.trim()) {
-            setQuickRegisterError('Please enter your email and a password.');
-            return;
-        }
-
-        if (quickPassword.trim().length < 8) {
-            setQuickRegisterError('Password must be at least 8 characters.');
-            return;
-        }
-
-        setIsQuickRegistering(true);
-
-        try {
-            const res = await fetch('/api/v1/auth/register-quick', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
-                },
-                body: JSON.stringify({
-                    name: completedOrder?.customer_name || `Table ${tableNumber} Guest`,
-                    email: quickEmail.trim(),
-                    password: quickPassword.trim(),
-                    phone_number: completedOrder?.customer_phone || null,
-                }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setQuickRegisterSuccess(true);
-            } else {
-                setQuickRegisterError(data.message || 'Failed to create account. Email may already be registered.');
-            }
-        } catch (err) {
-            setQuickRegisterError('Network error. Please try again.');
-        } finally {
-            setIsQuickRegistering(false);
-        }
-    };
-
     return (
         <>
             <Head title={`Table ${tableNumber} In-House Order | Saddle Ranch`} />
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
                 
-                {/* Header */}
+                {/* Header matching Order.tsx 1:1 */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
                         
@@ -395,17 +342,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                                {/* Branch Selector Pill */}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsLocationModalOpen(true)}
-                                    className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] hover:border-[#f59e0b] text-[11px] font-bold transition-all btn-bevel cursor-pointer"
-                                >
-                                    <Building2 className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                    <span>{selectedBranch} Branch</span>
-                                </button>
-
-                                {/* Call Waiter Button */}
+                                {/* Call Waiter Pill */}
                                 <button
                                     onClick={handleCallWaiter}
                                     className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${
@@ -418,7 +355,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <span>{waiterCalled ? 'Waiter Notified' : 'Call Waiter'}</span>
                                 </button>
 
-                                {/* Table Badge */}
+                                {/* Table Badge Pill */}
                                 <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
                                     <QrCode className="w-3.5 h-3.5" />
                                     Table #{tableNumber}
@@ -426,7 +363,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             </div>
                         </div>
 
-                        {/* Top Bar Row 2 - Search & Category Bar */}
+                        {/* Top Bar Row 2 - Search Input */}
                         <div className="relative w-full">
                             <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
                             <input
@@ -438,7 +375,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             />
                         </div>
 
-                        {/* Top Bar Row 3 - Category Tabs */}
+                        {/* Top Bar Row 3 - Category Navigation Tabs */}
                         <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
@@ -482,7 +419,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         {/* Menu Catalog Column */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* MOBILE VIEW (< md) */}
+                            {/* MOBILE VIEW (< md) MATCHING ORDER.TSX 1:1 */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
@@ -492,59 +429,43 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         const imgUrl = getProductImage(product);
 
                                         return (
-                                            <div key={product.id} className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-lg">
-                                                <div className="h-28 w-full relative vignette-overlay overflow-hidden">
+                                            <div
+                                                key={product.id}
+                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
+                                            >
+                                                <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover opacity-90"
+                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
                                                     />
-                                                    <div className="absolute top-2 right-2 z-10">
-                                                        <span className="px-2 py-0.5 rounded-full bg-[#121213]/90 text-[#ffc174] font-black text-[10px] border border-[#534434]">
-                                                            ₱ {numPrice.toFixed(0)}
-                                                        </span>
+
+                                                    <div className="absolute bottom-1.5 right-1.5 z-10">
+                                                        {cartEntry ? (
+                                                            <button
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                className="w-7 h-7 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center btn-bevel cursor-pointer"
+                                                            >
+                                                                {cartEntry.quantity}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                disabled={isOutOfStock}
+                                                                className="w-7 h-7 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
 
-                                                <div className="p-3 flex-grow flex flex-col justify-between space-y-2">
-                                                    <div>
-                                                        <h3 className="font-bold text-xs text-[#ffc174] line-clamp-1">{product.name}</h3>
-                                                        <p className="text-[10px] text-[#d8c3ad] line-clamp-2 mt-0.5 leading-snug">{product.description}</p>
-                                                    </div>
-
-                                                    <div>
-                                                        {isOutOfStock ? (
-                                                            <span className="block text-center w-full py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[10px] font-bold">
-                                                                Out of Stock
-                                                            </span>
-                                                        ) : cartEntry ? (
-                                                            <div className="flex items-center justify-between bg-[#121213] border border-[#f59e0b] rounded-xl p-1">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
-                                                                    className="w-6 h-6 rounded-lg bg-[#261e15] text-[#f59e0b] flex items-center justify-center font-black"
-                                                                >
-                                                                    <Minus className="w-3 h-3" />
-                                                                </button>
-                                                                <span className="text-xs font-bold text-white px-2">{cartEntry.quantity}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
-                                                                    className="w-6 h-6 rounded-lg bg-[#f59e0b] text-[#472a00] flex items-center justify-center font-black"
-                                                                >
-                                                                    <Plus className="w-3 h-3" />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => addItem(product as CartProduct)}
-                                                                className="w-full py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-[11px] uppercase tracking-wider btn-bevel shadow hover:bg-[#ffc174] transition-all flex items-center justify-center gap-1"
-                                                            >
-                                                                <Plus className="w-3 h-3" />
-                                                                Add
-                                                            </button>
-                                                        )}
+                                                <div className="space-y-1">
+                                                    <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
+                                                        {product.name}
+                                                    </h3>
+                                                    <div className="font-mono text-xs font-black text-[#ffc174]">
+                                                        ₱ {numPrice.toFixed(2)}
                                                     </div>
                                                 </div>
                                             </div>
@@ -553,9 +474,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* DESKTOP VIEW (>= md) */}
-                            <div className="hidden md:block">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* DESKTOP VIEW (>= md) MATCHING ORDER.TSX 1:1 */}
+                            <div className="hidden md:block space-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                         const isOutOfStock = product.stock_quantity <= 0;
@@ -563,45 +484,55 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         const imgUrl = getProductImage(product);
 
                                         return (
-                                            <div key={product.id} className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group">
-                                                <div className="h-40 w-full relative vignette-overlay overflow-hidden">
+                                            <div
+                                                key={product.id}
+                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
+                                            >
+                                                <div className="h-44 w-full relative vignette-overlay overflow-hidden">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                                                     />
                                                     <div className="absolute top-3 right-3 z-10">
-                                                        <span className="px-3 py-1 rounded-full bg-[#121213]/90 text-[#ffc174] font-black text-xs border border-[#534434] shadow">
-                                                            ₱ {numPrice.toFixed(2)}
+                                                        <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow">
+                                                            ₱{numPrice.toFixed(2)}
                                                         </span>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
+                                                <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                                                     <div>
-                                                        <h3 className="font-bold text-base text-[#ffc174]">{product.name}</h3>
-                                                        <p className="text-xs text-[#d8c3ad] line-clamp-2 mt-1 leading-snug">{product.description}</p>
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1">
+                                                            {product.name}
+                                                        </h3>
+                                                        <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">
+                                                            {product.description}
+                                                        </p>
                                                     </div>
 
-                                                    <div className="pt-2">
+                                                    <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
                                                         {isOutOfStock ? (
-                                                            <span className="block text-center w-full py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
-                                                                Out of Stock
-                                                            </span>
-                                                        ) : cartEntry ? (
-                                                            <div className="flex items-center justify-between bg-[#121213] border border-[#f59e0b] rounded-xl p-1.5">
+                                                            <span className="text-[10px] font-bold text-rose-400 uppercase">Sold Out</span>
+                                                        ) : (
+                                                            <span className="text-[10px] text-[#d8c3ad] font-semibold">Ready to Sizzle</span>
+                                                        )}
+
+                                                        {cartEntry ? (
+                                                            <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] rounded-xl p-1">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
-                                                                    className="w-7 h-7 rounded-lg bg-[#261e15] text-[#f59e0b] flex items-center justify-center font-black hover:bg-[#31281f]"
+                                                                    className="p-1 rounded-lg hover:bg-[#261e15] text-[#d8c3ad]"
                                                                 >
                                                                     <Minus className="w-3.5 h-3.5" />
                                                                 </button>
-                                                                <span className="text-sm font-bold text-white px-3">{cartEntry.quantity}</span>
+                                                                <span className="font-mono font-bold text-xs px-2">{cartEntry.quantity}</span>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQuantity(product.id, cartEntry.quantity + 1)}
-                                                                    className="w-7 h-7 rounded-lg bg-[#f59e0b] text-[#472a00] flex items-center justify-center font-black hover:bg-[#ffc174]"
+                                                                    disabled={cartEntry.quantity >= product.stock_quantity}
+                                                                    className="p-1 rounded-lg hover:bg-[#261e15] text-[#d8c3ad] disabled:opacity-40"
                                                                 >
                                                                     <Plus className="w-3.5 h-3.5" />
                                                                 </button>
@@ -609,11 +540,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         ) : (
                                                             <button
                                                                 type="button"
-                                                                onClick={() => addItem(product as CartProduct)}
-                                                                className="w-full py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                                                onClick={() => addItem(product as CartProduct, 1)}
+                                                                disabled={isOutOfStock}
+                                                                className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md disabled:opacity-40 cursor-pointer"
                                                             >
-                                                                <Plus className="w-4 h-4" />
-                                                                Add to Order
+                                                                Add +
                                                             </button>
                                                         )}
                                                     </div>
@@ -625,27 +556,45 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                                 {/* Desktop Menu Pagination */}
                                 {totalPages > 1 && (
-                                    <div className="flex items-center justify-between pt-4 border-t border-[#262627]">
+                                    <div className="pt-4 border-t border-[#534434]/50 flex items-center justify-between">
                                         <button
                                             type="button"
-                                            disabled={currentPage === 1}
                                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                            className="px-3.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs font-bold text-[#ffc174] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#261e15] transition-all flex items-center gap-1 cursor-pointer"
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel cursor-pointer"
                                         >
-                                            <ChevronLeft className="w-4 h-4" /> Previous Page
+                                            <ChevronLeft className="w-4 h-4" />
+                                            <span>Previous</span>
                                         </button>
 
-                                        <span className="text-xs font-semibold text-[#8c7a6b]">
-                                            Page <strong className="text-white">{currentPage}</strong> of <strong className="text-white">{totalPages}</strong>
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            {Array.from({ length: totalPages }).map((_, idx) => {
+                                                const pageNum = idx + 1;
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        type="button"
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel cursor-pointer ${
+                                                            currentPage === pageNum
+                                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                                                : 'bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white'
+                                                        }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
 
                                         <button
                                             type="button"
-                                            disabled={currentPage === totalPages}
                                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                            className="px-3.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs font-bold text-[#ffc174] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#261e15] transition-all flex items-center gap-1 cursor-pointer"
+                                            disabled={currentPage === totalPages}
+                                            className="px-4 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 btn-bevel cursor-pointer"
                                         >
-                                            Next Page <ChevronRight className="w-4 h-4" />
+                                            <span>Next</span>
+                                            <ChevronRight className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
@@ -653,7 +602,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                         </div>
 
-                        {/* DESKTOP CHECKOUT SIDEBAR (`lg:col-span-5`) */}
+                        {/* DESKTOP CHECKOUT SIDEBAR (`lg:col-span-5`) MATCHING ORDER.TSX 1:1 */}
                         <div className="hidden lg:block lg:col-span-5">
                             <div className="sticky top-28 bg-[#1A1A1B] rounded-2xl border border-[#262627] p-5 shadow-2xl space-y-5">
                                 
@@ -911,36 +860,44 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </main>
 
-                {/* MOBILE FLOATING BOTTOM BAR (< lg) */}
-                <div className="block lg:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-[#1A1A1B]/95 backdrop-blur-md border-t border-[#534434]/40 shadow-2xl">
-                    <div className="max-w-md mx-auto flex items-center justify-between gap-3">
-                        <div>
-                            <div className="text-[10px] text-[#d8c3ad] uppercase font-bold">Table #{tableNumber} Total</div>
-                            <div className="text-base font-black text-[#ffc174] font-mono">₱ {subtotal.toFixed(2)}</div>
-                        </div>
-
+                {/* MOBILE FLOATING BOTTOM BAR MATCHING IMAGE 1 ORDER.TSX 1:1 */}
+                {itemCount > 0 && !isBasketSheetOpen && (
+                    <div className="block lg:hidden fixed bottom-4 left-4 right-4 z-40">
                         <button
-                            type="button"
                             onClick={() => setIsBasketSheetOpen(true)}
-                            className="px-5 py-2.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 btn-bevel cursor-pointer"
+                            className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-[#f59e0b] to-amber-600 text-[#472a00] font-black text-sm uppercase tracking-wider btn-bevel shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom-4 duration-300 cursor-pointer"
                         >
-                            <ShoppingBag className="w-4 h-4" />
-                            <span>View Basket ({itemCount})</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#121213] text-[#ffc174] text-xs font-black flex items-center justify-center border border-[#ffc174]">
+                                    {itemCount}
+                                </div>
+                                <div className="text-left">
+                                    <div className="text-sm font-black leading-tight">View your Order</div>
+                                    <div className="text-[10px] text-[#472a00]/80 font-bold">Saddle Ranch Table #{tableNumber}</div>
+                                </div>
+                            </div>
+
+                            <div className="font-mono text-base font-black">
+                                ₱ {subtotal.toFixed(2)}
+                            </div>
                         </button>
                     </div>
-                </div>
+                )}
 
-                {/* MOBILE SLIDE-UP DRAWER SHEET (< lg) */}
+                {/* MOBILE SLIDE-UP DRAWER SHEET (< lg) MATCHING ORDER.TSX 1:1 */}
                 {isBasketSheetOpen && (
-                    <div className="block lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-[#1A1A1B] border-t border-[#534434] rounded-t-3xl p-5 overflow-y-auto space-y-4">
+                    <div className="block lg:hidden fixed inset-0 z-[99999] flex items-end justify-center p-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
                             
-                            <div className="flex items-center justify-between border-b border-[#262627] pb-3">
-                                <div className="flex items-center gap-2">
-                                    <ShoppingBag className="w-5 h-5 text-[#f59e0b]" />
-                                    <h2 className="font-bold text-base text-[#ffc174]">Your Table Basket</h2>
+                            <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
+                                <div>
+                                    <h3 className="text-base font-black text-white font-domine">View your Order</h3>
+                                    <p className="text-[10px] text-[#d8c3ad]">Saddle Ranch In-House Table #{tableNumber}</p>
                                 </div>
-                                <button type="button" onClick={() => setIsBasketSheetOpen(false)} className="w-8 h-8 rounded-full bg-[#121213] text-[#8c7a6b] flex items-center justify-center">
+                                <button
+                                    onClick={() => setIsBasketSheetOpen(false)}
+                                    className="w-8 h-8 rounded-full bg-[#261e15] text-[#d8c3ad] flex items-center justify-center"
+                                >
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
@@ -951,9 +908,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <button
                                         type="button"
                                         onClick={() => setFulfillmentMode('dine_in')}
-                                        className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${
                                             fulfillmentMode === 'dine_in'
-                                                ? 'bg-[#f59e0b] text-[#472a00]'
+                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
                                                 : 'text-[#8c7a6b]'
                                         }`}
                                     >
@@ -962,9 +919,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <button
                                         type="button"
                                         onClick={() => setFulfillmentMode('express_takeout')}
-                                        className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${
                                             fulfillmentMode === 'express_takeout'
-                                                ? 'bg-[#f59e0b] text-[#472a00]'
+                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
                                                 : 'text-[#8c7a6b]'
                                         }`}
                                     >
@@ -1029,7 +986,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 <div key={item.product.id} className="p-2 rounded-xl bg-[#121213] border border-[#534434]/40 flex items-center justify-between text-xs">
                                                     <div className="truncate pr-2">
                                                         <div className="font-bold text-white truncate">{item.product.name}</div>
-                                                        <div className="text-[10px] text-[#8c7a6b]">₱ {itemPrice.toFixed(0)} x {item.quantity}</div>
+                                                        <div className="text-[10px] text-[#8c7a6b]">₱ {itemPrice.toFixed(2)} x {item.quantity}</div>
                                                     </div>
                                                     <div className="flex items-center gap-1.5 shrink-0">
                                                         <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-5 h-5 rounded bg-[#261e15] text-[#f59e0b] flex items-center justify-center">
