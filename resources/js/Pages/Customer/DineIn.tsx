@@ -554,7 +554,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                             {/* DESKTOP VIEW (>= md) MATCHING ORDER.TSX 1:1 */}
                             <div className="hidden md:block space-y-6">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                                         const isOutOfStock = product.stock_quantity <= 0;

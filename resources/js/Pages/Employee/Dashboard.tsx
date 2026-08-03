@@ -471,7 +471,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                 </div>
 
                                 {/* Spacious Dish Touch Cards */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                                     {filteredProducts.map((product) => {
                                         const cartItem = posCart.find(i => i.id === product.id);
                                         return (

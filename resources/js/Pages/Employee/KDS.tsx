@@ -435,7 +435,7 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
 
                         {/* HIGH-DISTINCTION UNCONFUSING KDS CARDS GRID */}
                         {filteredOrders.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                                 {filteredOrders.map((order) => {
                                     const elapsed = getElapsedMins(order.created_at);
                                     const typeBadge = getOrderTypeBadge(order.order_type, order.table_number);
