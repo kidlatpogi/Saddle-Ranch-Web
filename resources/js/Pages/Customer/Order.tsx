@@ -26,6 +26,7 @@ import { PageProps } from '@/types';
 import AIChatbot from '@/Components/AIChatbot';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
+import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 
 interface Product {
     id: number;
@@ -387,6 +388,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
         router.post('/order/checkout', payload, {
             onSuccess: (page) => {
+                setIsBasketSheetOpen(false);
                 const flashOrder = (page.props.flash as any)?.order;
                 if (flashOrder?.order_number) {
                     try {
@@ -409,6 +411,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             },
             onFinish: () => {
                 setIsSubmitting(false);
+                setIsBasketSheetOpen(false);
             },
         });
     };
@@ -1448,12 +1451,28 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             )}
 
-                            <button
-                                onClick={() => setCompletedOrder(null)}
-                                className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase tracking-wider hover:bg-[#ffc174] transition-all block btn-bevel"
-                            >
-                                Order More Items
-                            </button>
+                            <div className="space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsBasketSheetOpen(false);
+                                        setCompletedOrder(null);
+                                        window.dispatchEvent(new CustomEvent('saddle_ranch_open_all_orders'));
+                                    }}
+                                    className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow hover:bg-[#ffc174] transition-all cursor-pointer"
+                                >
+                                    Track Order Live Status
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsBasketSheetOpen(false);
+                                        setCompletedOrder(null);
+                                    }}
+                                    className="w-full py-2 text-xs font-semibold text-[#8c7a6b] hover:text-white transition-colors cursor-pointer"
+                                >
+                                    Close & Order More Items
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -1464,6 +1483,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 </div>
                 <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
                 <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
+                <CustomerOrderTracker />
             </div>
         </>
     );

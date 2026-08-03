@@ -29,6 +29,7 @@ import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
+import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 
 interface Product {
     id: number;
@@ -339,6 +340,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
         router.post('/order/checkout', payload, {
             onSuccess: (page) => {
+                setIsBasketSheetOpen(false);
                 const flashOrder = (page.props.flash as any)?.order;
                 if (flashOrder?.order_number) {
                     try {
@@ -361,6 +363,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             },
             onFinish: () => {
                 setIsSubmitting(false);
+                setIsBasketSheetOpen(false);
             },
         });
     };
@@ -1205,6 +1208,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <button
                                     type="button"
                                     onClick={() => {
+                                        setIsBasketSheetOpen(false);
                                         setCompletedOrder(null);
                                         window.dispatchEvent(new CustomEvent('saddle_ranch_open_all_orders'));
                                     }}
@@ -1214,7 +1218,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setCompletedOrder(null)}
+                                    onClick={() => {
+                                        setIsBasketSheetOpen(false);
+                                        setCompletedOrder(null);
+                                    }}
                                     className="w-full py-2 text-xs font-semibold text-[#8c7a6b] hover:text-white transition-colors cursor-pointer"
                                 >
                                     Close & Order More Items
@@ -1235,6 +1242,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     isOpen={isPrivacyModalOpen}
                     onClose={() => setIsPrivacyModalOpen(false)}
                 />
+
+                <CustomerOrderTracker />
 
             </div>
         </>
