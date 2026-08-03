@@ -178,9 +178,16 @@ export default function CustomerOrderTracker() {
     // Calculate active non-completed orders count for trigger button indicator
     const activeOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
     const latestActiveOrder = activeOrders[0];
+    // Check if on order page (/order or /dine-in) to float above cart bar, or landing page to align with Help Assistant
+    const isOrderPage = typeof window !== 'undefined' && (
+        window.location.pathname.includes('/order') || 
+        window.location.pathname.includes('/dine-in')
+    );
 
     return (
-        <div className="fixed bottom-28 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans">
+        <div className={`fixed right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans ${
+            isOrderPage ? 'bottom-28' : 'bottom-4'
+        }`}>
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (
                 <div className="mb-3 w-80 sm:w-96 rounded-2xl bg-[#1c150e]/95 border-2 border-[#f59e0b]/50 shadow-2xl backdrop-blur-md text-[#f0e0d1] overflow-hidden animate-in slide-in-from-bottom-5 duration-200 z-[100000]">
