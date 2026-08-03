@@ -68,7 +68,11 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/waiter-call/status', function (Request $request) {
         $tableNumber = $request->query('table_number', '05');
-        $data = \Illuminate\Support\Facades\Cache::get("waiter_status_{$tableNumber}", ['status' => 'idle']);
+        $data = \Illuminate\Support\Facades\Cache::get("waiter_status_{$tableNumber}", ['status' => 'idle', 'updated_at' => 0]);
+        if (($data['status'] ?? '') === 'acknowledged' && (time() - ($data['updated_at'] ?? 0)) > 15) {
+            $data = ['status' => 'idle', 'updated_at' => time()];
+            \Illuminate\Support\Facades\Cache::put("waiter_status_{$tableNumber}", $data, 300);
+        }
         return response()->json([
             'status' => 'success',
             'data' => $data,

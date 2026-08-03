@@ -437,10 +437,22 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-                                <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Privacy & Data Safety Policy"
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Privacy</span>
+                                </button>
+
+                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                    {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                                    <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
+                                </span>
+                            </div>
                         </div>
 
                         {/* Top Bar Row 2 */}
@@ -926,14 +938,23 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     {/* Account & Saved Details Section */}
                                     {currentUser ? (
                                         <div className="p-3.5 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 truncate">
                                                 <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                                <span>Signed in as <strong className="text-white font-bold">{currentUser.name}</strong></span>
+                                                <div className="truncate flex items-center gap-1.5">
+                                                    <span className="text-white font-bold truncate">{currentUser.name}</span>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${
+                                                        currentUser.role && currentUser.role !== 'user'
+                                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
+                                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                                    }`}>
+                                                        {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => setIsPrivacyModalOpen(true)}
-                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 cursor-pointer"
+                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-2"
                                             >
                                                 <ShieldCheck className="w-3 h-3" /> Privacy Policy
                                             </button>
@@ -1230,12 +1251,21 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <div className="p-3 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
                                         <div className="flex items-center gap-2 truncate">
                                             <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                            <span className="truncate">Signed in as <strong className="text-white font-bold">{currentUser.name}</strong></span>
+                                            <div className="truncate flex items-center gap-1.5">
+                                                <span className="text-white font-bold truncate">{currentUser.name}</span>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${
+                                                    currentUser.role && currentUser.role !== 'user'
+                                                        ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
+                                                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                                }`}>
+                                                    {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => setIsPrivacyModalOpen(true)}
-                                            className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
+                                            className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-2"
                                         >
                                             <ShieldCheck className="w-3 h-3" /> Privacy
                                         </button>

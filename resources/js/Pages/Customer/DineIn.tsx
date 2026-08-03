@@ -75,6 +75,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [waiterStatus, setWaiterStatus] = useState<'idle' | 'pending' | 'acknowledged'>('idle');
 
     useEffect(() => {
+        let ackTimer: NodeJS.Timeout;
         const pollStatus = async () => {
             try {
                 const res = await fetch(`/api/v1/waiter-call/status?table_number=${encodeURIComponent(tableNumber)}`);
@@ -85,6 +86,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     if (currentStatus === 'acknowledged') {
                         setWaiterCalled(false);
                         setShowWaiterToast(true);
+
+                        // Keep "Server on the way" active for 12 seconds, then revert back to Call Waiter
+                        clearTimeout(ackTimer);
+                        ackTimer = setTimeout(() => {
+                            setWaiterStatus('idle');
+                            setShowWaiterToast(false);
+                        }, 12000);
                     }
                 }
             } catch (e) { }
@@ -92,7 +100,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
         pollStatus();
         const interval = setInterval(pollStatus, 2500);
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            clearTimeout(ackTimer);
+        };
     }, [tableNumber]);
 
     // Account Creation State
@@ -379,14 +390,25 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
+                                {/* Privacy Policy Pill */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Privacy & Data Safety Policy"
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Privacy</span>
+                                </button>
+
                                 {/* Call Waiter Pill */}
                                 <button
                                     onClick={handleCallWaiter}
                                     className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${waiterStatus === 'acknowledged'
-                                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
-                                            : waiterStatus === 'pending' || waiterCalled
-                                                ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
-                                                : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
+                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
+                                        : waiterStatus === 'pending' || waiterCalled
+                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
+                                            : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
                                         }`}
                                 >
                                     <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
@@ -442,13 +464,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 {/* Call Waiter Toast Alert */}
                 {showWaiterToast && (
                     <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${waiterStatus === 'acknowledged'
-                            ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-600/30'
-                            : 'bg-amber-500 text-[#472a00] border-[#ffc174]'
+                        ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-600/30'
+                        : 'bg-amber-500 text-[#472a00] border-[#ffc174]'
                         }`}>
                         <BellRing className="w-6 h-6 shrink-0 animate-bounce" />
                         <div className="text-xs leading-snug">
                             <div className="font-black text-sm uppercase">
-                                {waiterStatus === 'acknowledged' ? 'Staff Acknowledged! 🏃‍♂️' : 'Staff Notified!'}
+                                {waiterStatus === 'acknowledged' ? 'Staff Acknowledged!' : 'Staff Notified!'}
                             </div>
                             <div>
                                 {waiterStatus === 'acknowledged'
@@ -628,8 +650,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         type="button"
                                                         onClick={() => setCurrentPage(pageNum)}
                                                         className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel cursor-pointer ${currentPage === pageNum
-                                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
-                                                                : 'bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white'
+                                                            ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                                            : 'bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -674,8 +696,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         type="button"
                                         onClick={() => setFulfillmentMode('dine_in')}
                                         className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${fulfillmentMode === 'dine_in'
-                                                ? 'bg-[#f59e0b] text-[#472a00] shadow'
-                                                : 'text-[#8c7a6b] hover:text-white'
+                                            ? 'bg-[#f59e0b] text-[#472a00] shadow'
+                                            : 'text-[#8c7a6b] hover:text-white'
                                             }`}
                                     >
                                         <QrCode className="w-3.5 h-3.5" /> Dine-In Table
@@ -684,8 +706,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         type="button"
                                         onClick={() => setFulfillmentMode('express_takeout')}
                                         className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${fulfillmentMode === 'express_takeout'
-                                                ? 'bg-[#f59e0b] text-[#472a00] shadow'
-                                                : 'text-[#8c7a6b] hover:text-white'
+                                            ? 'bg-[#f59e0b] text-[#472a00] shadow'
+                                            : 'text-[#8c7a6b] hover:text-white'
                                             }`}
                                     >
                                         <Utensils className="w-3.5 h-3.5" /> Express Takeout
@@ -807,8 +829,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     type="button"
                                                     onClick={() => setPaymentMethod(method)}
                                                     className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${paymentMethod === method
-                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
-                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                        ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                        : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
                                                         }`}
                                                 >
                                                     {method}
@@ -817,17 +839,26 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         </div>
                                     </div>
 
-                                    {/* Account & Saved Details Section */}
+                                    {/* Account Creation Section */}
                                     {currentUser ? (
                                         <div className="p-3 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
                                             <div className="flex items-center gap-2 truncate">
                                                 <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                                <span className="truncate">Signed in as <strong className="text-white font-bold">{currentUser.name}</strong></span>
+                                                <div className="truncate flex items-center gap-1.5">
+                                                    <span className="text-white font-bold truncate">{currentUser.name}</span>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${
+                                                        currentUser.role && currentUser.role !== 'user'
+                                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
+                                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                                    }`}>
+                                                        {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => setIsPrivacyModalOpen(true)}
-                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
+                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-2"
                                             >
                                                 <ShieldCheck className="w-3 h-3" /> Privacy
                                             </button>
@@ -957,8 +988,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         type="button"
                                         onClick={() => setFulfillmentMode('dine_in')}
                                         className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${fulfillmentMode === 'dine_in'
-                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
-                                                : 'text-[#8c7a6b]'
+                                            ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                            : 'text-[#8c7a6b]'
                                             }`}
                                     >
                                         Dine-In Table
@@ -967,8 +998,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         type="button"
                                         onClick={() => setFulfillmentMode('express_takeout')}
                                         className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${fulfillmentMode === 'express_takeout'
-                                                ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
-                                                : 'text-[#8c7a6b]'
+                                            ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
+                                            : 'text-[#8c7a6b]'
                                             }`}
                                     >
                                         Express Takeout
@@ -1059,8 +1090,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 type="button"
                                                 onClick={() => setPaymentMethod(method)}
                                                 className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
-                                                        ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
-                                                        : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                    ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                    : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
                                                     }`}
                                             >
                                                 {method}
