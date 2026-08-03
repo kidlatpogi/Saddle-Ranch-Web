@@ -384,12 +384,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors">
                                     <ArrowLeft className="w-4 h-4" />
                                 </Link>
-                                <div className="truncate">
-                                    <h1 className="text-sm sm:text-lg font-black font-domine text-[#ffc174] leading-tight truncate">
-                                        Saddle Ranch
-                                    </h1>
-                                    <p className="hidden sm:block text-xs text-[#d8c3ad] truncate">In-House QR Table Order</p>
-                                </div>
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
@@ -856,11 +850,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                                                 <div className="truncate flex items-center gap-1.5">
                                                     <span className="text-white font-bold truncate">{currentUser.name}</span>
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${
-                                                        currentUser.role && currentUser.role !== 'user'
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
                                                             ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
                                                             : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                    }`}>
+                                                        }`}>
                                                         {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
                                                     </span>
                                                 </div>
