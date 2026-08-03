@@ -15,9 +15,7 @@ class EmployeeAccountController extends Controller
 {
     public function index(): Response
     {
-        $employees = User::whereIn('role', ['employee', 'kitchen', 'cashier'])
-            ->orderBy('id', 'desc')
-            ->get();
+        $employees = User::orderBy('id', 'desc')->get();
 
         return Inertia::render('Admin/Employees', [
             'employees' => $employees,
@@ -29,7 +27,7 @@ class EmployeeAccountController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:employee,kitchen,cashier',
+            'role' => 'required|in:user,employee,kitchen,cashier,admin',
             'password' => 'required|string|min:6',
         ]);
 
@@ -42,12 +40,12 @@ class EmployeeAccountController extends Controller
 
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "Created Employee Account '{$employee->email}' as role '{$employee->role}'",
+            'action' => "Created Account '{$employee->email}' as role '{$employee->role}'",
             'ip_address' => $request->ip(),
             'payload' => ['employee_id' => $employee->id, 'email' => $employee->email, 'role' => $employee->role],
         ]);
 
-        return back()->with('success', 'Employee account created successfully.');
+        return back()->with('success', 'Account created successfully.');
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -57,7 +55,7 @@ class EmployeeAccountController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email,{$id}",
-            'role' => 'required|in:employee,kitchen,cashier',
+            'role' => 'required|in:user,employee,kitchen,cashier,admin',
             'password' => 'nullable|string|min:6',
         ]);
 
@@ -73,11 +71,32 @@ class EmployeeAccountController extends Controller
 
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "Updated Employee Account '{$employee->email}' (Password reset: " . (!empty($validated['password']) ? 'Yes' : 'No') . ")",
+            'action' => "Updated Account '{$employee->email}' (Role: {$employee->role})",
             'ip_address' => $request->ip(),
             'payload' => ['employee_id' => $employee->id, 'email' => $employee->email],
         ]);
 
-        return back()->with('success', 'Employee details updated successfully.');
+        return back()->with('success', 'Account details updated successfully.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $userToDelete = User::findOrFail($id);
+        
+        if ($userToDelete->id === auth()->id()) {
+            return back()->withErrors(['error' => 'You cannot delete your own active admin account.']);
+        }
+
+        $email = $userToDelete->email;
+        $userToDelete->delete();
+
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => "Deleted Account '{$email}'",
+            'ip_address' => request()->ip(),
+            'payload' => ['deleted_user_id' => $id, 'email' => $email],
+        ]);
+
+        return back()->with('success', "Account '{$email}' deleted successfully.");
     }
 }

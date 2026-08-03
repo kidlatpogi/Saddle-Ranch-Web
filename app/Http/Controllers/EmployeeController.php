@@ -119,12 +119,18 @@ class EmployeeController extends Controller
         // Decrement product stock levels when order transitions to 'completed'
         if ($currentStatus !== 'completed' && $newStatus === 'completed') {
             $order->load('orderItems.product');
+            $branchName = strtolower($order->branch ?? 'bulihan');
+            $isDasma = str_contains($branchName, 'dasma');
+
             foreach ($order->orderItems as $item) {
                 if ($item->product) {
                     $qty = (int) $item->quantity;
                     $item->product->decrement('stock_quantity', $qty);
-                    $item->product->decrement('stock_bulihan', $qty);
-                    $item->product->decrement('stock_dasmarinas', $qty);
+                    if ($isDasma) {
+                        $item->product->decrement('stock_dasmarinas', $qty);
+                    } else {
+                        $item->product->decrement('stock_bulihan', $qty);
+                    }
                 }
             }
         }
@@ -186,10 +192,19 @@ class EmployeeController extends Controller
             $order->cancellation_reason = $request->reason;
             $order->save();
 
-            // Restore item quantities back to products.stock_quantity
+            // Restore item quantities back to products stock_quantity & branch stocks
+            $branchName = strtolower($order->branch ?? 'bulihan');
+            $isDasma = str_contains($branchName, 'dasma');
+
             foreach ($order->orderItems as $item) {
                 if ($item->product) {
-                    $item->product->increment('stock_quantity', $item->quantity);
+                    $qty = (int) $item->quantity;
+                    $item->product->increment('stock_quantity', $qty);
+                    if ($isDasma) {
+                        $item->product->increment('stock_dasmarinas', $qty);
+                    } else {
+                        $item->product->increment('stock_bulihan', $qty);
+                    }
                 }
             }
 

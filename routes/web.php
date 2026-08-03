@@ -52,10 +52,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/vouchers', [VoucherController::class, 'store'])->name('admin.vouchers.store');
     Route::delete('/admin/vouchers/{id}', [VoucherController::class, 'destroy'])->name('admin.vouchers.destroy');
 
-    // Staff Accounts & Roles
+    // Staff & Customer Accounts & Roles (Full CRUD)
     Route::get('/admin/employees', [EmployeeAccountController::class, 'index'])->name('admin.employees');
     Route::post('/admin/employees', [EmployeeAccountController::class, 'store'])->name('admin.employees.store');
     Route::post('/admin/employees/{id}', [EmployeeAccountController::class, 'update'])->name('admin.employees.update');
+    Route::delete('/admin/employees/{id}', [EmployeeAccountController::class, 'destroy'])->name('admin.employees.destroy');
 
     // Analytics, QRs & Audit Logs
     Route::get('/admin/sales', [SalesAnalyticsController::class, 'index'])->name('admin.sales');
