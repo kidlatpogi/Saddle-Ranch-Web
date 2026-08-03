@@ -627,7 +627,12 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group">
-                            <div className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden">
+                            <a
+                                href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden block cursor-pointer"
+                            >
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
                                     alt="Google Maps View - Saddle Ranch Bulihan"
@@ -641,7 +646,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         <MapPin className="w-2.5 h-2.5" /> GOOGLE MAPS LOCATION
                                     </span>
                                 </div>
-                            </div>
+                            </a>
                             <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
                                     <h3 className="font-domine text-lg sm:text-2xl font-bold text-[#ffc174] mb-1 sm:mb-2">Saddle Ranch Bulihan</h3>
@@ -665,14 +670,14 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                                    <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-2.5 sm:py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
+                                    <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-2.5 sm:py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all cursor-pointer">
                                         Order from Bulihan Branch
                                     </button>
                                     <a
-                                        href="https://www.google.com/maps/search/?api=1&query=Block+26+Lot+17+Anahaw+St+Silang+Cavite"
+                                        href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="py-2.5 sm:py-3 px-3.5 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel"
+                                        className="py-2.5 sm:py-3 px-3.5 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel cursor-pointer"
                                     >
                                         <MapPin className="w-3.5 h-3.5 text-red-400" />
                                         <span>Google Maps</span>
@@ -683,7 +688,12 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group">
-                            <div className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden">
+                            <a
+                                href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden block cursor-pointer"
+                            >
                                 <img
                                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
                                     alt="Google Maps View - Saddle Ranch Dasmarinas"
@@ -697,7 +707,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                         <MapPin className="w-2.5 h-2.5" /> GOOGLE MAPS LOCATION
                                     </span>
                                 </div>
-                            </div>
+                            </a>
                             <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
                                 <div>
                                     <h3 className="font-domine text-lg sm:text-2xl font-bold text-[#ffc174] mb-1 sm:mb-2">Saddle Ranch Dasmariñas</h3>
@@ -721,14 +731,14 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                                    <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-2.5 sm:py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all">
+                                    <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-2.5 sm:py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all cursor-pointer">
                                         Order from Dasmariñas Branch
                                     </button>
                                     <a
-                                        href="https://www.google.com/maps/search/?api=1&query=8X23%2BQ75+Governor%27s+Dr+San+Agustin+I+Dasmari%C3%B1as+Cavite"
+                                        href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="py-2.5 sm:py-3 px-3.5 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel"
+                                        className="py-2.5 sm:py-3 px-3.5 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel cursor-pointer"
                                     >
                                         <MapPin className="w-3.5 h-3.5 text-red-400" />
                                         <span>Google Maps</span>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Navigation, CheckCircle2, X, Compass, Building2, Store } from 'lucide-react';
+import { MapPin, Navigation, CheckCircle2, X, Compass, Building2, Store, ExternalLink } from 'lucide-react';
 
 interface LocationModalProps {
     isOpen: boolean;
@@ -137,7 +137,7 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                     {/* The 2 Main Branches Cards */}
                     <div className="grid grid-cols-1 gap-3.5">
                         {/* Bulihan Branch */}
-                        <button
+                        <div
                             onClick={() => saveAndApply('Bulihan', 'block 26 lot 17, Anahaw St, Silang, Cavite', 'Silang Area')}
                             className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
                                 selectedBranch === 'Bulihan'
@@ -166,11 +166,23 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                                     </p>
                                 </div>
                             </div>
-                            <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Bulihan' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
-                        </button>
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    title="View Bulihan Branch on Google Maps"
+                                    className="p-2 rounded-xl bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#f59e0b] hover:text-white transition-all flex items-center gap-1 text-xs"
+                                >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Bulihan' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
+                            </div>
+                        </div>
 
                         {/* Dasmariñas Branch */}
-                        <button
+                        <div
                             onClick={() => saveAndApply('Dasma', "8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite", 'Dasmariñas Area')}
                             className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
                                 selectedBranch === 'Dasma'
@@ -199,8 +211,20 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
                                     </p>
                                 </div>
                             </div>
-                            <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Dasma' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
-                        </button>
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    title="View Dasmariñas Branch on Google Maps"
+                                    className="p-2 rounded-xl bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#f59e0b] hover:text-white transition-all flex items-center gap-1 text-xs"
+                                >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Dasma' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
