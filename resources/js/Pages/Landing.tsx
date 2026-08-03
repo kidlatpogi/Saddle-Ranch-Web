@@ -6,6 +6,7 @@ import CardNav, { CardNavItem } from '@/Components/CardNav';
 import AIChatbot from '@/Components/AIChatbot';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 import LocationModal from '@/Components/LocationModal';
+import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 
 interface Banner {
     id: number;
@@ -41,6 +42,10 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
     const [currentBranch, setCurrentBranch] = useState<'Bulihan' | 'Dasma'>(() => (localStorage.getItem('saddle_ranch_branch') as any) || 'Bulihan');
     const [currentLocName, setCurrentLocName] = useState<string>(() => localStorage.getItem('saddle_ranch_location_name') || 'Bulihan, Silang, Cavite');
     const [currentDistance, setCurrentDistance] = useState<string>(() => localStorage.getItem('saddle_ranch_distance') || '1.2 km away');
+    const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+    const [isAccessibilityModalOpen, setIsAccessibilityModalOpen] = useState(false);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
     useEffect(() => {
         if (!localStorage.getItem('saddle_ranch_branch')) {
@@ -94,17 +99,17 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             links: [
                 { label: 'Bulihan Branch', href: '#locations', ariaLabel: 'Saddle Ranch Bulihan' },
                 { label: 'Dasmariñas Branch', href: '#locations', ariaLabel: 'Saddle Ranch Dasmariñas' },
-                { label: 'Table QR Service', href: '/dine-in?table=05', ariaLabel: 'Dine-In Table QR' },
+                { label: 'Our Story & Heritage', href: '#about', ariaLabel: 'Our Story & Heritage' },
             ],
         },
         {
-            label: 'Promos & Access',
+            label: 'Promos & Offers',
             bgColor: '#1c150e',
             textColor: '#f0e0d1',
             links: [
-                { label: 'All Customer Orders', href: '/order', ariaLabel: 'View All Customer Live Orders' },
+                { label: 'Online Menu & Delivery', href: '/order', ariaLabel: 'View Full Online Menu' },
                 { label: 'Roadhouse Promos', href: '#promos', ariaLabel: 'Special Roadhouse Promos' },
-                { label: 'Staff Portal', href: '/login', ariaLabel: 'Staff Login Portal' },
+                { label: 'Sizzling Specials', href: '#featured-menu', ariaLabel: 'Sizzling Specials' },
             ],
         },
     ];
@@ -731,15 +736,23 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                             <p className="text-[#d8c3ad] font-mono text-xs">MON-SUN: 10 AM - 11 PM</p>
                         </div>
                         <div className="flex flex-col space-y-2">
-                            <h4 className="font-mono text-xs text-[#f0e0d1] mb-1 font-bold">Legal</h4>
-                            <a className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs" href="#">Privacy Policy</a>
-                            <a className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs" href="#">Terms of Service</a>
-                            <a className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs" href="#">Accessibility</a>
+                            <h4 className="font-mono text-xs text-[#f0e0d1] mb-1 font-bold">Legal Standards</h4>
+                            <button onClick={() => setIsPrivacyModalOpen(true)} className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs text-left cursor-pointer">
+                                Privacy Policy (RA 10173)
+                            </button>
+                            <button onClick={() => setIsTermsModalOpen(true)} className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs text-left cursor-pointer">
+                                Terms of Service (RA 7394)
+                            </button>
+                            <button onClick={() => setIsAccessibilityModalOpen(true)} className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs text-left cursor-pointer">
+                                Accessibility (BP 344 / RA 7277)
+                            </button>
                         </div>
                         <div className="flex flex-col space-y-2">
-                            <h4 className="font-mono text-xs text-[#f0e0d1] mb-1 font-bold">Connect</h4>
-                            <a className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs" href="#">Contact Us</a>
-                            <p className="text-[#d8c3ad] text-xs mt-auto opacity-70">© 2026 Saddle Ranch. Raw, Energetic, Sizzling.</p>
+                            <h4 className="font-mono text-xs text-[#f0e0d1] mb-1 font-bold">Customer Support</h4>
+                            <button onClick={() => setIsContactModalOpen(true)} className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs text-left cursor-pointer">
+                                Contact Us & Branch Support
+                            </button>
+                            <p className="text-[#d8c3ad] text-xs mt-auto opacity-70">© 2026 Saddle Ranch. Registered Business (Cavite, PH).</p>
                         </div>
                     </div>
                 </footer>
@@ -813,6 +826,113 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                 {/* Floating Order Tracker at Bottom Right */}
                 <CustomerOrderTracker />
                 <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
+                <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
+
+                {/* Terms of Service Modal (RA 7394 Consumer Act & RA 8792 E-Commerce Act) */}
+                {isTermsModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-lg rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-5 text-[#f0e0d1] max-h-[85vh] overflow-y-auto font-sans">
+                            <div className="flex items-center justify-between border-b border-[#3D3126] pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] flex items-center justify-center shrink-0">
+                                        <CheckCircle2 className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-domine text-lg font-bold text-[#ffc174]">Terms of Service</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Consumer Protection (RA 7394) & E-Commerce Act (RA 8792)</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsTermsModalOpen(false)} className="p-1.5 text-[#d8c3ad] hover:text-white hover:bg-[#31281f] rounded-lg transition-colors cursor-pointer">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="space-y-4 text-xs leading-relaxed text-[#d8c3ad]">
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1">
+                                    <h4 className="font-bold text-[#ffc174]">1. Online Ordering & Fulfillment</h4>
+                                    <p>By placing an order via Saddle Ranch Online Ordering or In-House Table QR, you confirm that all entered details are accurate. Food prep begins immediately upon confirmation.</p>
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1">
+                                    <h4 className="font-bold text-[#ffc174]">2. Pricing & Currency (PHP)</h4>
+                                    <p>All prices listed on Saddle Ranch are in Philippine Pesos (₱ PHP) inclusive of applicable taxes under Department of Trade and Industry (DTI) regulations.</p>
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1">
+                                    <h4 className="font-bold text-[#ffc174]">3. Cancellations & Refunds</h4>
+                                    <p>Per standard food safety protocols, orders cancelled after kitchen preparation has commenced are non-refundable. For defective orders, contact store management within 30 minutes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Accessibility Modal (BP 344 & RA 7277 Magna Carta for PWDs) */}
+                {isAccessibilityModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-lg rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-5 text-[#f0e0d1] max-h-[85vh] overflow-y-auto font-sans">
+                            <div className="flex items-center justify-between border-b border-[#3D3126] pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] flex items-center justify-center shrink-0">
+                                        <Utensils className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-domine text-lg font-bold text-[#ffc174]">Accessibility Statement</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Batas Pambansa Blg. 344 & RA 7277 PWD Standards</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsAccessibilityModalOpen(false)} className="p-1.5 text-[#d8c3ad] hover:text-white hover:bg-[#31281f] rounded-lg transition-colors cursor-pointer">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="space-y-4 text-xs leading-relaxed text-[#d8c3ad]">
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1">
+                                    <h4 className="font-bold text-[#ffc174]">High-Contrast Design & Readable Fonts</h4>
+                                    <p>Saddle Ranch digital platforms are built with WCAG 2.1 AA compliant high-contrast dark palette, large readable typography, and aria-labels for assistive screen readers.</p>
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1">
+                                    <h4 className="font-bold text-[#ffc174]">Physical Branch Accessibility</h4>
+                                    <p>Our Bulihan and Dasmariñas roadhouse branches feature ground-level PWD ramp access, wide entrance doorways, and accessible seating in compliance with BP 344.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Contact Us & Support Modal */}
+                {isContactModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="w-full max-w-lg rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-5 text-[#f0e0d1] max-h-[85vh] overflow-y-auto font-sans">
+                            <div className="flex items-center justify-between border-b border-[#3D3126] pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#ffc174] flex items-center justify-center shrink-0">
+                                        <Phone className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-domine text-lg font-bold text-[#ffc174]">Contact Us & Support</h3>
+                                        <p className="text-xs text-[#d8c3ad]">Saddle Ranch Customer Care (Cavite, Philippines)</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsContactModalOpen(false)} className="p-1.5 text-[#d8c3ad] hover:text-white hover:bg-[#31281f] rounded-lg transition-colors cursor-pointer">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="space-y-4 text-xs leading-relaxed text-[#d8c3ad]">
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1.5">
+                                    <div className="flex items-center gap-2 text-white font-bold">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b]" /> Bulihan Branch Hotline
+                                    </div>
+                                    <p>Brgy. Bulihan, Silang, Cavite • Operating Hours: 10:00 AM - 11:00 PM</p>
+                                    <p className="font-mono text-[#ffc174]">Phone: (046) 889-1234 / +63 917 123 4567</p>
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1.5">
+                                    <div className="flex items-center gap-2 text-white font-bold">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b]" /> Dasmariñas Branch Hotline
+                                    </div>
+                                    <p>Aguinaldo Highway, Dasmariñas, Cavite • Operating Hours: 10:00 AM - 11:00 PM</p>
+                                    <p className="font-mono text-[#ffc174]">Phone: (046) 416-5678 / +63 918 765 4321</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );
