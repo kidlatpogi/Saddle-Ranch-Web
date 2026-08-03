@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { 
-    ShoppingBag, 
-    Truck, 
-    ArrowLeft, 
-    Plus, 
-    Minus, 
-    Trash2, 
-    CheckCircle2, 
-    Clock, 
-    MapPin, 
+import {
+    ShoppingBag,
+    Truck,
+    ArrowLeft,
+    Plus,
+    Minus,
+    Trash2,
+    CheckCircle2,
+    Clock,
+    MapPin,
     AlertCircle,
     ShoppingCart,
     ChevronLeft,
@@ -87,7 +87,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         setShowWaiterToast(true);
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         };
 
         pollStatus();
@@ -120,14 +120,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             if (savedBranch === 'Dasma' || savedBranch === 'Bulihan') {
                 setSelectedBranch(savedBranch);
             }
-        } catch (e) {}
+        } catch (e) { }
     }, []);
 
     const handleSelectBranch = (branch: 'Bulihan' | 'Dasma') => {
         setSelectedBranch(branch);
         try {
             localStorage.setItem('saddle_ranch_selected_branch', branch);
-        } catch (e) {}
+        } catch (e) { }
     };
 
     const fallbackProducts: Product[] = [
@@ -275,7 +275,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     branch: selectedBranch,
                 }),
             });
-        } catch (e) {}
+        } catch (e) { }
 
         setTimeout(() => {
             setShowWaiterToast(false);
@@ -336,7 +336,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
                         localStorage.setItem('saddle_ranch_last_order', flashOrder.order_number);
                         window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: flashOrder }));
-                    } catch (e) {}
+                    } catch (e) { }
                 }
             },
             onError: (errors) => {
@@ -359,11 +359,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             <Head title={`Table ${tableNumber} In-House Order | Saddle Ranch`} />
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
-                
+
                 {/* Header matching Order.tsx 1:1 */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
-                        
+
                         {/* Top Bar Row 1 */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -382,21 +382,20 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 {/* Call Waiter Pill */}
                                 <button
                                     onClick={handleCallWaiter}
-                                    className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${
-                                        waiterStatus === 'acknowledged'
+                                    className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${waiterStatus === 'acknowledged'
                                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
                                             : waiterStatus === 'pending' || waiterCalled
-                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
-                                            : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
-                                    }`}
+                                                ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
+                                                : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
+                                        }`}
                                 >
                                     <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
                                     <span>
                                         {waiterStatus === 'acknowledged'
-                                            ? 'Server On The Way! 🏃‍♂️'
+                                            ? 'Server On The Way!'
                                             : waiterStatus === 'pending' || waiterCalled
-                                            ? 'Waiter Notified'
-                                            : 'Call Waiter'}
+                                                ? 'Waiter Notified'
+                                                : 'Call Waiter'}
                                     </span>
                                 </button>
 
@@ -426,9 +425,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors cursor-pointer ${
-                                        selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
-                                    }`}
+                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors cursor-pointer ${selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
+                                        }`}
                                 >
                                     <span>{cat}</span>
                                     {selectedCategory === cat && (
@@ -443,11 +441,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                 {/* Call Waiter Toast Alert */}
                 {showWaiterToast && (
-                    <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${
-                        waiterStatus === 'acknowledged'
+                    <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${waiterStatus === 'acknowledged'
                             ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-600/30'
                             : 'bg-amber-500 text-[#472a00] border-[#ffc174]'
-                    }`}>
+                        }`}>
                         <BellRing className="w-6 h-6 shrink-0 animate-bounce" />
                         <div className="text-xs leading-snug">
                             <div className="font-black text-sm uppercase">
@@ -473,7 +470,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Menu Catalog Column */}
                         <div className="lg:col-span-7 space-y-6">
-                            
+
                             {/* MOBILE VIEW (< md) MATCHING ORDER.TSX 1:1 */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
@@ -630,11 +627,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         key={pageNum}
                                                         type="button"
                                                         onClick={() => setCurrentPage(pageNum)}
-                                                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel cursor-pointer ${
-                                                            currentPage === pageNum
+                                                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel cursor-pointer ${currentPage === pageNum
                                                                 ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
                                                                 : 'bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {pageNum}
                                                     </button>
@@ -660,7 +656,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         {/* DESKTOP CHECKOUT SIDEBAR (`lg:col-span-5`) MATCHING ORDER.TSX 1:1 */}
                         <div className="hidden lg:block lg:col-span-5">
                             <div className="sticky top-28 bg-[#1A1A1B] rounded-2xl border border-[#262627] p-5 shadow-2xl space-y-5">
-                                
+
                                 {/* Header */}
                                 <div className="flex items-center justify-between border-b border-[#262627] pb-3">
                                     <div className="flex items-center gap-2">
@@ -677,22 +673,20 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <button
                                         type="button"
                                         onClick={() => setFulfillmentMode('dine_in')}
-                                        className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                                            fulfillmentMode === 'dine_in'
+                                        className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${fulfillmentMode === 'dine_in'
                                                 ? 'bg-[#f59e0b] text-[#472a00] shadow'
                                                 : 'text-[#8c7a6b] hover:text-white'
-                                        }`}
+                                            }`}
                                     >
                                         <QrCode className="w-3.5 h-3.5" /> Dine-In Table
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setFulfillmentMode('express_takeout')}
-                                        className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                                            fulfillmentMode === 'express_takeout'
+                                        className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${fulfillmentMode === 'express_takeout'
                                                 ? 'bg-[#f59e0b] text-[#472a00] shadow'
                                                 : 'text-[#8c7a6b] hover:text-white'
-                                        }`}
+                                            }`}
                                     >
                                         <Utensils className="w-3.5 h-3.5" /> Express Takeout
                                     </button>
@@ -812,11 +806,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     key={method}
                                                     type="button"
                                                     onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${
-                                                        paymentMethod === method
+                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${paymentMethod === method
                                                             ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                             : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {method}
                                                 </button>
@@ -943,7 +936,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 {isBasketSheetOpen && (
                     <div className="block lg:hidden fixed inset-0 z-[99999] flex items-end justify-center p-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
-                            
+
                             <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
                                 <div>
                                     <h3 className="text-base font-black text-white font-domine">View your Order</h3>
@@ -963,22 +956,20 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <button
                                         type="button"
                                         onClick={() => setFulfillmentMode('dine_in')}
-                                        className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${
-                                            fulfillmentMode === 'dine_in'
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${fulfillmentMode === 'dine_in'
                                                 ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
                                                 : 'text-[#8c7a6b]'
-                                        }`}
+                                            }`}
                                     >
                                         Dine-In Table
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setFulfillmentMode('express_takeout')}
-                                        className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${
-                                            fulfillmentMode === 'express_takeout'
+                                        className={`py-2 rounded-xl text-xs font-bold transition-all btn-bevel ${fulfillmentMode === 'express_takeout'
                                                 ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
                                                 : 'text-[#8c7a6b]'
-                                        }`}
+                                            }`}
                                     >
                                         Express Takeout
                                     </button>
@@ -1067,11 +1058,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                 key={method}
                                                 type="button"
                                                 onClick={() => setPaymentMethod(method)}
-                                                className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${
-                                                    paymentMethod === method
+                                                className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
                                                         ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                         : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                }`}
+                                                    }`}
                                             >
                                                 {method}
                                             </button>
