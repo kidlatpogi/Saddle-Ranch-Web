@@ -19,8 +19,7 @@ import {
     Info,
     ShieldCheck,
     UserCheck,
-    Lock,
-    User
+    Lock
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -438,22 +437,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
-                                <Link
-                                    href={currentUser ? (currentUser.role === 'admin' || currentUser.role === 'employee' || currentUser.role === 'cashier' || currentUser.role === 'kitchen' ? '/employee/dashboard' : '/dashboard') : '/login'}
-                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-sm"
-                                    aria-label={currentUser ? 'Account Dashboard' : 'Account Login'}
-                                    title={currentUser ? `Account (${currentUser.name})` : 'Account / Login'}
-                                >
-                                    <User className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                    <span className="hidden xs:inline">{currentUser ? (currentUser.name ? currentUser.name.split(' ')[0] : 'Account') : 'Account'}</span>
-                                </Link>
-
-                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                    {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-                                    <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
-                                </span>
-                            </div>
+                            <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                {orderType === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                                <span>{orderType === 'delivery' ? 'Delivery' : 'Pick-Up'}</span>
+                            </span>
                         </div>
 
                         {/* Top Bar Row 2 */}
@@ -1237,6 +1224,74 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Account & Saved Details Section (Mobile View Fix) */}
+                                {currentUser ? (
+                                    <div className="p-3 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
+                                        <div className="flex items-center gap-2 truncate">
+                                            <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span className="truncate">Signed in as <strong className="text-white font-bold">{currentUser.name}</strong></span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsPrivacyModalOpen(true)}
+                                            className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
+                                        >
+                                            <ShieldCheck className="w-3 h-3" /> Privacy
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2.5">
+                                        <label className="flex items-start gap-2 text-xs font-semibold text-[#ffc174] cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={createAccount}
+                                                onChange={(e) => setCreateAccount(e.target.checked)}
+                                                className="w-4 h-4 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] mt-0.5 shrink-0"
+                                            />
+                                            <span className="leading-snug">Save my delivery address & purchase history (Create a free account)</span>
+                                        </label>
+
+                                        {createAccount && (
+                                            <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+                                                <div>
+                                                    <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Email Address *</label>
+                                                    <input
+                                                        type="email"
+                                                        required={createAccount}
+                                                        value={accountEmail}
+                                                        onChange={(e) => setAccountEmail(e.target.value)}
+                                                        placeholder="your.email@example.com"
+                                                        className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Account Password (min 8 chars) *</label>
+                                                    <input
+                                                        type="password"
+                                                        required={createAccount}
+                                                        minLength={8}
+                                                        value={accountPassword}
+                                                        onChange={(e) => setAccountPassword(e.target.value)}
+                                                        placeholder="••••••••"
+                                                        className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-0.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPrivacyModalOpen(true)}
+                                                className="hover:underline text-[#f59e0b] flex items-center gap-1 cursor-pointer"
+                                            >
+                                                <ShieldCheck className="w-3 h-3" /> Privacy & Safety Policy
+                                            </button>
+                                            <span className="font-semibold text-emerald-400">100% Optional</span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="pt-2 flex items-center justify-between text-sm font-black">
                                     <span className="text-[#d8c3ad]">Total Amount</span>
