@@ -1010,11 +1010,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 </main>
 
                 {/* MOBILE ONLY: Sticky Floating Bottom Cart Bar */}
-                {itemCount > 0 && (
-                    <div className="block lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 animate-in slide-in-from-bottom-6 duration-300">
+                {itemCount > 0 && !isBasketSheetOpen && (
+                    <div className="block lg:hidden fixed bottom-4 left-4 right-4 z-40">
                         <button
                             onClick={() => setIsBasketSheetOpen(true)}
-                            className="w-full h-14 rounded-2xl bg-[#f59e0b] text-[#472a00] font-bold shadow-2xl shadow-[#f59e0b]/30 px-4 flex items-center justify-between hover:scale-[1.02] active:scale-98 transition-all btn-bevel"
+                            className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-[#f59e0b] to-amber-600 text-[#472a00] font-black text-sm uppercase tracking-wider btn-bevel shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom-4 duration-300 cursor-pointer"
                         >
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-[#121213] text-[#ffc174] text-xs font-black flex items-center justify-center border border-[#ffc174]">
