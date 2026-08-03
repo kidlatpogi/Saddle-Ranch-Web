@@ -196,13 +196,15 @@ export default function KitchenDisplaySystem({ userBranch = 'Bulihan' }: KDSProp
             setCurrentTime(new Date().toLocaleTimeString());
         }, 1000);
 
-        // Initial fetch + 3-second poll
+        // Initial fetch + 3.5-second poll (Only polls when tab is active)
         fetchKitchenOrders();
         fetchWaiterCalls();
         const pollInterval = setInterval(() => {
-            fetchKitchenOrders();
-            fetchWaiterCalls();
-        }, 3000);
+            if (!document.hidden) {
+                fetchKitchenOrders();
+                fetchWaiterCalls();
+            }
+        }, 3500);
 
         return () => {
             clearInterval(clockInterval);

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { 
-    ShoppingBag, 
-    Truck, 
-    ArrowLeft, 
-    Plus, 
-    Minus, 
-    Trash2, 
-    CheckCircle2, 
-    Clock, 
-    MapPin, 
+import {
+    ShoppingBag,
+    Truck,
+    ArrowLeft,
+    Plus,
+    Minus,
+    Trash2,
+    CheckCircle2,
+    Clock,
+    MapPin,
     AlertCircle,
     ShoppingCart,
     ChevronLeft,
@@ -397,7 +397,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                         localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
                         localStorage.setItem('saddle_ranch_last_order', flashOrder.order_number);
                         window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: flashOrder }));
-                    } catch (e) {}
+                    } catch (e) { }
                 }
             },
             onError: (errors) => {
@@ -421,11 +421,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             <Head title="Online Ordering | Saddle Ranch" />
 
             <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
-                
+
                 {/* Header */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
-                        
+
                         {/* Top Bar Row 1 */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -476,9 +476,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors ${
-                                        selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
-                                    }`}
+                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors ${selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
+                                        }`}
                                 >
                                     <span>{cat}</span>
                                     {selectedCategory === cat && (
@@ -502,7 +501,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Menu Column */}
                         <div className="lg:col-span-7 space-y-6">
-                            
+
                             {/* MOBILE (< md) */}
                             <div className="block md:hidden">
                                 <div className="grid grid-cols-2 gap-3.5">
@@ -587,12 +586,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                                                     <div>
-                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1">
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
                                                             {product.name}
                                                         </h3>
-                                                        <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">
-                                                            {product.description}
-                                                        </p>
                                                     </div>
 
                                                     <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
@@ -654,11 +650,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     <button
                                                         key={pageNum}
                                                         onClick={() => setCurrentPage(pageNum)}
-                                                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel ${
-                                                            currentPage === pageNum
+                                                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-all btn-bevel ${currentPage === pageNum
                                                                 ? 'bg-[#f59e0b] text-[#472a00] font-black shadow'
                                                                 : 'bg-[#1A1A1B] border border-[#534434] text-[#d8c3ad] hover:text-white'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {pageNum}
                                                     </button>
@@ -784,11 +779,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('pickup')}
-                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${
-                                                orderType === 'pickup'
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${orderType === 'pickup'
                                                     ? 'bg-[#f59e0b] text-[#472a00] shadow-lg'
                                                     : 'text-[#d8c3ad] hover:text-white'
-                                            }`}
+                                                }`}
                                         >
                                             <ShoppingBag className="w-4 h-4" />
                                             <span>Pick-Up</span>
@@ -796,11 +790,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <button
                                             type="button"
                                             onClick={() => setOrderType('delivery')}
-                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${
-                                                orderType === 'delivery'
+                                            className={`py-3.5 px-4 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 btn-bevel ${orderType === 'delivery'
                                                     ? 'bg-[#f59e0b] text-[#472a00] shadow-lg'
                                                     : 'text-[#d8c3ad] hover:text-white'
-                                            }`}
+                                                }`}
                                         >
                                             <Truck className="w-4 h-4" />
                                             <span>Delivery</span>
@@ -925,11 +918,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         key={method}
                                                         type="button"
                                                         onClick={() => setPaymentMethod(method)}
-                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all btn-bevel ${
-                                                            paymentMethod === method
+                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
                                                                 ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                                 : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {method}
                                                     </button>
@@ -945,22 +937,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                                                 <div className="truncate flex items-center gap-1.5">
                                                     <span className="text-white font-bold truncate">{currentUser.name}</span>
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${
-                                                        currentUser.role && currentUser.role !== 'user'
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
                                                             ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
                                                             : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                    }`}>
+                                                        }`}>
                                                         {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsPrivacyModalOpen(true)}
-                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-2"
-                                            >
-                                                <ShieldCheck className="w-3 h-3" /> Privacy Policy
-                                            </button>
                                         </div>
                                     ) : (
                                         <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-3">
@@ -1061,7 +1045,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 {isBasketSheetOpen && (
                     <div className="block lg:hidden fixed inset-0 z-[99999] flex items-end justify-center p-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
                         <div className="w-full max-w-md max-h-[85vh] rounded-t-3xl bg-[#1A1A1B] border border-[#ffc174]/30 p-5 shadow-2xl overflow-y-auto space-y-5 animate-in slide-in-from-bottom-8 duration-300">
-                            
+
                             <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
                                 <div>
                                     <h3 className="text-base font-black text-white font-domine">View your Order</h3>
@@ -1079,18 +1063,16 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             <div className="p-1 rounded-2xl bg-[#121213] border border-[#534434]/40 grid grid-cols-2 gap-1 text-xs font-bold">
                                 <button
                                     onClick={() => setOrderType('pickup')}
-                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${
-                                        orderType === 'pickup' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
-                                    }`}
+                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${orderType === 'pickup' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                        }`}
                                 >
                                     <ShoppingBag className="w-3.5 h-3.5" />
                                     <span>Pick-Up</span>
                                 </button>
                                 <button
                                     onClick={() => setOrderType('delivery')}
-                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${
-                                        orderType === 'delivery' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
-                                    }`}
+                                    className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all btn-bevel ${orderType === 'delivery' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#d8c3ad]'
+                                        }`}
                                 >
                                     <Truck className="w-3.5 h-3.5" />
                                     <span>Delivery</span>
@@ -1236,11 +1218,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     key={method}
                                                     type="button"
                                                     onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${
-                                                        paymentMethod === method
+                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
                                                             ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                             : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {method}
                                                 </button>
@@ -1256,11 +1237,10 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                                             <div className="truncate flex items-center gap-1.5">
                                                 <span className="text-white font-bold truncate">{currentUser.name}</span>
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${
-                                                    currentUser.role && currentUser.role !== 'user'
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
                                                         ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
                                                         : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                }`}>
+                                                    }`}>
                                                     {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
                                                 </span>
                                             </div>

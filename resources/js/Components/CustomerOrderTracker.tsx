@@ -120,11 +120,13 @@ export default function CustomerOrderTracker() {
         };
     }, [fetchOrders, getStoredOrders]);
 
-    // Near Real-Time Polling Loop (Every 2 Seconds)
+    // Efficient Real-Time Polling Loop (Only polls when tab is active)
     useEffect(() => {
         const interval = setInterval(() => {
-            fetchOrders();
-        }, 2000);
+            if (!document.hidden) {
+                fetchOrders();
+            }
+        }, 3500);
 
         return () => clearInterval(interval);
     }, [fetchOrders]);

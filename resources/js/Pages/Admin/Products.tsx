@@ -221,7 +221,6 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
 
                                     <div>
                                         <h3 className="font-domine font-bold text-white text-base">{p.name}</h3>
-                                        {p.description && <p className="text-xs text-[#a1a1aa] line-clamp-2 mt-1">{p.description}</p>}
                                     </div>
                                 </div>
 
@@ -292,17 +291,6 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     placeholder="e.g. Sizzling Pork Sisig"
-                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Description</label>
-                                <textarea
-                                    rows={2}
-                                    value={data.description}
-                                    onChange={(e) => setData('description', e.target.value)}
-                                    placeholder="Product description and ingredients..."
                                     className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                 />
                             </div>

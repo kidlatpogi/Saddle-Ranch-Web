@@ -581,12 +581,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                                                     <div>
-                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1">
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
                                                             {product.name}
                                                         </h3>
-                                                        <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-2">
-                                                            {product.description}
-                                                        </p>
                                                     </div>
 
                                                     <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">

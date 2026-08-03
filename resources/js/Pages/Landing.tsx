@@ -459,12 +459,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     {/* Product Details */}
                                     <div className="p-4 sm:p-5 md:p-6 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
                                         <div>
-                                            <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors mb-1.5 sm:mb-2">
+                                            <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
                                                 {product.name}
                                             </h3>
-                                            <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed line-clamp-3">
-                                                {product.description}
-                                            </p>
                                         </div>
 
                                         <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-end">

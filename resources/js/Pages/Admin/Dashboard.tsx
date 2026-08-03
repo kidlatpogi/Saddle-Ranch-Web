@@ -1084,7 +1084,6 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <div>
                                                         <span className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider block">{p.category}</span>
                                                         <h4 className="text-base font-bold text-white font-domine leading-snug">{p.name}</h4>
-                                                        <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">{p.description}</p>
                                                     </div>
                                                 </div>
 
