@@ -53,7 +53,7 @@ class OrderController extends Controller
     /**
      * Process checkout submission for Pick-Up, Delivery, Dine-In, or Express Takeout.
      */
-    public function checkout(Request $request): RedirectResponse
+    public function checkout(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $validated = $request->validate([
             'order_type' => 'required|in:dine_in,express_takeout,pickup,delivery',
@@ -164,6 +164,55 @@ class OrderController extends Controller
 
             return $order;
         });
+
+        $secretKey = env('PAYMONGO_SECRET_KEY');
+        $payMethod = strtolower($validated['payment_method']);
+
+        if ($secretKey && (str_contains($payMethod, 'paymongo') || str_contains($payMethod, 'qrph') || str_contains($payMethod, 'wallet') || str_contains($payMethod, 'online') || str_contains($payMethod, 'gcash') || str_contains($payMethod, 'card'))) {
+            $lineItems = [];
+            foreach ($createdOrder->orderItems as $item) {
+                $lineItems[] = [
+                    'currency' => 'PHP',
+                    'amount' => (int) round($item->unit_price * 100),
+                    'description' => $item->product->description ?? $item->product->name,
+                    'name' => $item->product->name,
+                    'quantity' => (int) $item->quantity,
+                ];
+            }
+
+            try {
+                $referer = $request->header('referer') ?: route('order');
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'Basic ' . base64_encode($secretKey . ':'),
+                    'Content-Type' => 'application/json',
+                ])->post('https://api.paymongo.com/v1/checkout_sessions', [
+                    'data' => [
+                        'attributes' => [
+                            'send_email_receipt' => true,
+                            'show_description' => true,
+                            'show_line_items' => true,
+                            'cancel_url' => $referer,
+                            'success_url' => $referer . (str_contains($referer, '?') ? '&' : '?') . 'success=1&order_number=' . $createdOrder->order_number,
+                            'payment_method_types' => ['qrph', 'gcash', 'paymaya', 'card'],
+                            'line_items' => $lineItems,
+                            'description' => 'Saddle Ranch Order #' . $createdOrder->order_number,
+                            'reference_number' => $createdOrder->order_number,
+                        ],
+                    ],
+                ]);
+
+                if ($response->successful()) {
+                    $checkoutUrl = $response->json('data.attributes.checkout_url');
+                    if ($checkoutUrl) {
+                        return Inertia::location($checkoutUrl);
+                    }
+                } else {
+                    \Illuminate\Support\Facades\Log::error('PayMongo Checkout Session Error: ' . $response->body());
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('PayMongo Request Exception: ' . $e->getMessage());
+            }
+        }
 
         return back()->with([
             'flash' => [

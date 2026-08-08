@@ -170,7 +170,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         if (orderType === 'delivery') {
             setPaymentMethod('Cash on Delivery');
         } else {
-            setPaymentMethod('GCash');
+            setPaymentMethod('Cash (Pick-Up)');
         }
     }, [orderType]);
 
@@ -183,6 +183,19 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('success') === '1' && params.get('order_number')) {
+            const orderNum = params.get('order_number');
+            setCompletedOrder({
+                order_number: orderNum,
+                total_amount: '0.00',
+                customer_name: 'Customer',
+            });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
 
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -905,20 +918,26 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
                                         <div className="grid grid-cols-2 gap-2">
                                             {orderType === 'delivery' ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setPaymentMethod('Cash on Delivery')}
-                                                    className="col-span-2 py-2.5 rounded-xl text-xs font-black border transition-all btn-bevel bg-[#f59e0b]/20 border-[#f59e0b] text-white"
-                                                >
-                                                    Cash on Delivery
-                                                </button>
-                                            ) : (
-                                                ['Cash (Pick-Up)', 'GCash'].map((method) => (
+                                                ['Cash on Delivery', 'QRPh / e-Wallets'].map((method) => (
                                                     <button
                                                         key={method}
                                                         type="button"
                                                         onClick={() => setPaymentMethod(method)}
-                                                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                                ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                                : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                            }`}
+                                                    >
+                                                        {method}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                ['Cash (Pick-Up)', 'QRPh / e-Wallets'].map((method) => (
+                                                    <button
+                                                        key={method}
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod(method)}
+                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
                                                                 ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                                 : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
                                                             }`}
@@ -1205,20 +1224,26 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {orderType === 'delivery' ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => setPaymentMethod('Cash on Delivery')}
-                                                className="col-span-2 py-2 rounded-xl text-xs font-black border transition-all btn-bevel bg-[#f59e0b]/20 border-[#f59e0b] text-white"
-                                            >
-                                                Cash on Delivery
-                                            </button>
-                                        ) : (
-                                            ['Cash (Pick-Up)', 'GCash'].map((method) => (
+                                            ['Cash on Delivery', 'QRPh / e-Wallets'].map((method) => (
                                                 <button
                                                     key={method}
                                                     type="button"
                                                     onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                        }`}
+                                                >
+                                                    {method}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            ['Cash (Pick-Up)', 'QRPh / e-Wallets'].map((method) => (
+                                                <button
+                                                    key={method}
+                                                    type="button"
+                                                    onClick={() => setPaymentMethod(method)}
+                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
                                                             ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                             : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
                                                         }`}

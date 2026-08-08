@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { 
     ListOrdered, 
     Utensils, 
@@ -146,6 +146,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const [posPaymentMethod, setPosPaymentMethod] = useState<'Cash' | 'GCash'>('Cash');
     const [cashTendered, setCashTendered] = useState<string>('');
     const [showReceiptModal, setShowReceiptModal] = useState<OrderItem | null>(null);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     // Security Void Modal State
     const [cancelModalOrder, setCancelModalOrder] = useState<OrderItem | null>(null);
@@ -344,15 +345,14 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                             <span>Kitchen KDS Terminal</span>
                         </Link>
 
-                        <Link
-                            href="/logout"
-                            method="post"
-                            as="button"
-                            className="px-3.5 py-2.5 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-rose-400 flex items-center gap-1.5 text-xs font-bold transition-colors"
+                        <button
+                            type="button"
+                            onClick={() => setShowLogoutModal(true)}
+                            className="px-3.5 py-2.5 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-rose-400 flex items-center gap-1.5 text-xs font-bold transition-colors cursor-pointer"
                         >
                             <LogOut className="w-4 h-4" />
                             <span>Sign Out</span>
-                        </Link>
+                        </button>
                     </div>
                 </header>
 
@@ -1067,6 +1067,45 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <LogOut className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Log Out Confirmation</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-1">Are you sure you want to log out?</p>
+                            </div>
+                        </div>
+
+                        <p className="text-xs text-[#71717a] leading-relaxed bg-[#141416] p-3.5 rounded-xl border border-[#27272a]">
+                            You will be signed out of the register terminal session. Any active order transactions will be safely preserved.
+                        </p>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowLogoutModal(false)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => router.post('/logout')}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                <span>Log Out</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -268,6 +268,17 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             setCompletedOrder(flash.order);
             clearCart();
         }
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('success') === '1' && params.get('order_number')) {
+            const orderNum = params.get('order_number');
+            setCompletedOrder({
+                order_number: orderNum,
+                total_amount: '0.00',
+                customer_name: 'Guest',
+            });
+            clearCart();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }, [flash]);
 
     const handleCallWaiter = async () => {
@@ -1084,12 +1095,12 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <div>
                                     <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
                                     <div className="grid grid-cols-2 gap-2">
-                                        {['Cash', 'GCash'].map((method) => (
+                                        {['Cash', 'QRPh / e-Wallets'].map((method) => (
                                             <button
                                                 key={method}
                                                 type="button"
                                                 onClick={() => setPaymentMethod(method)}
-                                                className={`py-2 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
                                                     ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                     : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
                                                     }`}

@@ -36,7 +36,11 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // Enforce role-based redirection for staff vs customer accounts
-        if ($user && in_array($user->role ?? 'user', ['admin', 'employee', 'cashier'])) {
+        if ($user && ($user->role ?? '') === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if ($user && in_array($user->role ?? 'user', ['employee', 'cashier'])) {
             return redirect()->intended(route('employee.dashboard'));
         }
 
