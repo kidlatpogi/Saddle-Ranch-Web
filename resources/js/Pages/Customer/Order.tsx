@@ -559,7 +559,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <button
                                         type="button"
                                         onClick={() => setIsAccountModalOpen(true)}
-                                        className="px-3 py-1 rounded-full bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
+                                        className="hidden sm:flex px-3 py-1 rounded-full bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-xs font-black uppercase tracking-wider items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
                                     >
                                         <User className="w-3.5 h-3.5" />
                                         <span>Account</span>
@@ -568,7 +568,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <button
                                         type="button"
                                         onClick={() => setIsAuthModalOpen(true)}
-                                        className="px-3 py-1 rounded-full bg-[#261e15] hover:bg-[#31281f] border border-[#534434] text-[#ffc174] text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
+                                        className="hidden sm:flex px-3 py-1 rounded-full bg-[#261e15] hover:bg-[#31281f] border border-[#534434] text-[#ffc174] text-xs font-black uppercase tracking-wider items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
                                     >
                                         <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
                                         <span>Sign In</span>
@@ -592,16 +592,41 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             </div>
                         </div>
 
-                        {/* Top Bar Row 2 */}
-                        <div className="relative w-full">
-                            <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search menu items (sisig, steaks, drinks...)"
-                                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                            />
+                        {/* Top Bar Row 2 - 80% Search & 20% Account Button (Mobile View) */}
+                        <div className="flex items-center gap-2 w-full">
+                            <div className="relative flex-1">
+                                <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search menu items..."
+                                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-[#121213] border border-[#534434]/60 text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                />
+                            </div>
+
+                            {/* Mobile Only Sign In / Account Button */}
+                            <div className="sm:hidden shrink-0">
+                                {currentUser ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAccountModalOpen(true)}
+                                        className="px-3 py-2 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/50 text-[#ffc174] font-bold text-xs uppercase flex items-center justify-center gap-1 shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                                    >
+                                        <User className="w-3.5 h-3.5" />
+                                        <span>Account</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAuthModalOpen(true)}
+                                        className="px-3 py-2 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] font-bold text-xs uppercase flex items-center justify-center gap-1 shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                                    >
+                                        <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                        <span>Sign In</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Top Bar Row 3 */}
