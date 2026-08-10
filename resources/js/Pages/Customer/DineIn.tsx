@@ -24,7 +24,8 @@ import {
     BellRing,
     Building2,
     Utensils,
-    Ticket
+    Ticket,
+    LogOut
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -375,6 +376,23 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         setVoucherInput('');
         setVoucherError('');
         setVoucherSuccess('');
+    };
+
+    const handleCustomerLogout = async () => {
+        try {
+            await fetch('/api/v1/customer/logout', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+            });
+        } catch (e) {}
+        setCurrentUser(null);
+        setAppliedVoucher(null);
+        setVoucherDiscount(0);
+        setVoucherInput('');
+        setVoucherSuccess('');
+        setVoucherError('');
     };
 
     const finalTotal = Math.max(0, subtotal - voucherDiscount);
@@ -961,13 +979,22 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsPrivacyModalOpen(true)}
-                                                    className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-1"
-                                                >
-                                                    <ShieldCheck className="w-3 h-3" /> Privacy
-                                                </button>
+                                                <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleCustomerLogout}
+                                                        className="px-2 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/40 text-[9px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                                    >
+                                                        <LogOut className="w-2.5 h-2.5" /> Sign Out
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsPrivacyModalOpen(true)}
+                                                        className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
+                                                    >
+                                                        <ShieldCheck className="w-3 h-3" /> Privacy
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <div className="space-y-1.5">
@@ -1259,13 +1286,22 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     </span>
                                                 </div>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsPrivacyModalOpen(true)}
-                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-1"
-                                            >
-                                                <ShieldCheck className="w-3 h-3" /> Policy
-                                            </button>
+                                            <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCustomerLogout}
+                                                    className="px-2 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/40 text-[9px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                                >
+                                                    <LogOut className="w-2.5 h-2.5" /> Sign Out
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                                    className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
+                                                >
+                                                    <ShieldCheck className="w-3 h-3" /> Policy
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-1.5">

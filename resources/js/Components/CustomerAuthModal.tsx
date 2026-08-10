@@ -19,6 +19,7 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
     const [regEmail, setRegEmail] = useState('');
     const [regPhone, setRegPhone] = useState('');
     const [regPassword, setRegPassword] = useState('');
+    const [regPasswordConfirmation, setRegPasswordConfirmation] = useState('');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -69,6 +70,11 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
         setErrorMsg('');
         setSuccessMsg('');
 
+        if (regPassword !== regPasswordConfirmation) {
+            setErrorMsg('Account password and confirmation password do not match.');
+            return;
+        }
+
         if (regPhone.trim() && (regPhone.trim().length !== 11 || !/^\d{11}$/.test(regPhone.trim()))) {
             setErrorMsg('Mobile number must be exactly 11 numeric digits (e.g. 09171234567).');
             return;
@@ -89,6 +95,7 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
                     email: regEmail.trim(),
                     phone_number: regPhone.trim() || null,
                     password: regPassword,
+                    password_confirmation: regPasswordConfirmation,
                 }),
             });
 
@@ -276,6 +283,22 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
                                     value={regPassword}
                                     onChange={(e) => setRegPassword(e.target.value)}
                                     placeholder="••••••••"
+                                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-bold text-[#d8c3ad] mb-1">Confirm Password *</label>
+                            <div className="relative">
+                                <Lock className="w-4 h-4 text-[#8c7a6b] absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="password"
+                                    required
+                                    minLength={8}
+                                    value={regPasswordConfirmation}
+                                    onChange={(e) => setRegPasswordConfirmation(e.target.value)}
+                                    placeholder="Re-enter password..."
                                     className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                 />
                             </div>

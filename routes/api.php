@@ -105,8 +105,105 @@ Route::prefix('v1')->group(function () {
         return response()->json(['status' => 'success']);
     });
 
-    // Voucher Validation for Customer Checkout
-    Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
+    // Customer Web Checkout Auth & Voucher Validation (Session Based - Web Middleware Group)
+    Route::middleware(['web'])->group(function () {
+        Route::get('/customer/me', function (Request $request) {
+            return response()->json([
+                'status' => 'success',
+                'user' => \Illuminate\Support\Facades\Auth::user(),
+            ]);
+        });
+
+        Route::post('/customer/login', function (Request $request) {
+            $credentials = $request->validate([
+                'email' => 'required|email',
+                'password' => 'required|string',
+            ]);
+
+            if (\Illuminate\Support\Facades\Auth::attempt($credentials, true)) {
+                $request->session()->regenerate();
+                $user = \Illuminate\Support\Facades\Auth::user();
+
+                \App\Models\AuditLog::create([
+                    'user_id' => $user->id,
+                    'action' => "Customer {$user->name} logged in via Checkout Auth Modal",
+                    'ip_address' => $request->ip(),
+                    'payload' => ['email' => $user->email],
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Logged in successfully!',
+                    'user' => $user,
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid email address or password.',
+            ], 401);
+        });
+
+        Route::post('/customer/register', function (Request $request) {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:users,email',
+                'phone_number' => 'nullable|string|regex:/^[0-9]{11}$/',
+                'password' => 'required|string|min:8|confirmed',
+            ], [
+                'email.unique' => 'An account with this email address already exists. Please sign in.',
+                'phone_number.regex' => 'Mobile number must consist of 11 numeric digits.',
+                'password.confirmed' => 'Account password and confirmation password do not match.',
+            ]);
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone_number' => $validated['phone_number'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'role' => 'user',
+            ]);
+
+            \Illuminate\Support\Facades\Auth::login($user, true);
+            $request->session()->regenerate();
+
+            \App\Models\AuditLog::create([
+                'user_id' => $user->id,
+                'action' => "New Customer Account Registered: {$user->email}",
+                'ip_address' => $request->ip(),
+                'payload' => ['email' => $user->email, 'name' => $user->name],
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Account created and logged in successfully!',
+                'user' => $user,
+            ]);
+        });
+
+        Route::post('/customer/logout', function (Request $request) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            if ($user) {
+                \App\Models\AuditLog::create([
+                    'user_id' => $user->id,
+                    'action' => "Customer {$user->name} logged out from web session",
+                    'ip_address' => $request->ip(),
+                    'payload' => ['email' => $user->email],
+                ]);
+            }
+            \Illuminate\Support\Facades\Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Logged out successfully!',
+            ]);
+        });
+
+        // Voucher Validation Endpoint (web session protected)
+        Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
+    });
 
     // Customer Order Lookup / Live Status Tracking Endpoint
     Route::get('/orders/track', function (Request $request) {
@@ -176,74 +273,7 @@ Route::prefix('v1')->group(function () {
         ]);
     });
 
-    // Customer Web Checkout Auth (Session Based - Web Middleware Group)
-    Route::middleware(['web'])->group(function () {
-        Route::post('/customer/login', function (Request $request) {
-            $credentials = $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string',
-            ]);
 
-            if (\Illuminate\Support\Facades\Auth::attempt($credentials, true)) {
-                $request->session()->regenerate();
-                $user = \Illuminate\Support\Facades\Auth::user();
-
-                \App\Models\AuditLog::create([
-                    'user_id' => $user->id,
-                    'action' => "Customer {$user->name} logged in via Checkout Auth Modal",
-                    'ip_address' => $request->ip(),
-                    'payload' => ['email' => $user->email],
-                ]);
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Logged in successfully!',
-                    'user' => $user,
-                ]);
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid email address or password.',
-            ], 401);
-        });
-
-        Route::post('/customer/register', function (Request $request) {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email',
-                'phone_number' => 'nullable|string|regex:/^[0-9]{11}$/',
-                'password' => 'required|string|min:8',
-            ], [
-                'email.unique' => 'An account with this email address already exists. Please sign in.',
-                'phone_number.regex' => 'Mobile number must consist of 11 numeric digits.',
-            ]);
-
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'phone_number' => $validated['phone_number'] ?? null,
-                'password' => Hash::make($validated['password']),
-                'role' => 'user',
-            ]);
-
-            \Illuminate\Support\Facades\Auth::login($user, true);
-            $request->session()->regenerate();
-
-            \App\Models\AuditLog::create([
-                'user_id' => $user->id,
-                'action' => "New Customer Account Registered: {$user->email}",
-                'ip_address' => $request->ip(),
-                'payload' => ['email' => $user->email, 'name' => $user->name],
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Account created and logged in successfully!',
-                'user' => $user,
-            ]);
-        });
-    });
 
     // List active products with full absolute image URL formatting
     Route::get('/products', function () {
