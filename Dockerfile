@@ -15,7 +15,8 @@ RUN apk add --no-cache \
     git \
     curl \
     oniguruma-dev \
-    icu-dev
+    icu-dev \
+    dos2unix
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_sqlite zip bcmath opcache mbstring intl
@@ -41,6 +42,7 @@ RUN chmod -R 777 storage bootstrap/cache database
 
 # Entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN dos2unix /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
 EXPOSE 10000
