@@ -53,6 +53,8 @@ interface OrderItem {
     itemsCount?: number;
     itemsSummary?: string;
     order_items?: any[];
+    discount_type?: string;
+    discount_amount?: number;
 }
 
 interface ProductItem {
@@ -75,9 +77,10 @@ interface PosCartItem {
 interface EmployeeDashboardProps {
     initialOrders?: OrderItem[];
     userBranch?: string;
+    products?: any[];
 }
 
-export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan' }: EmployeeDashboardProps) {
+export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan', products: serverProducts }: EmployeeDashboardProps) {
     // POS is default active tab for Cashiers!
     const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
@@ -144,6 +147,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const [posTableNumber, setPosTableNumber] = useState('01');
     const [posOrderType, setPosOrderType] = useState<'Dine-In' | 'Pick-Up'>('Dine-In');
     const [posPaymentMethod, setPosPaymentMethod] = useState<'Cash' | 'GCash'>('Cash');
+    const [posDiscountType, setPosDiscountType] = useState<'NONE' | 'SENIOR' | 'PWD'>('NONE');
     const [cashTendered, setCashTendered] = useState<string>('');
     const [showReceiptModal, setShowReceiptModal] = useState<OrderItem | null>(null);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -155,14 +159,45 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const [cancelError, setCancelError] = useState('');
     const [cancelLoading, setCancelLoading] = useState(false);
 
-    // Live State Products Dataset
-    const [products] = useState<ProductItem[]>([
+    const getProductCategory = (name: string): string => {
+        const n = name.toLowerCase();
+        if (n.includes('tea') || (n.includes('rice') && !n.includes('pepper')) || n.includes('beverage') || n.includes('juice')) {
+            return 'Drinks & Extra Rice';
+        }
+        if (n.includes('pepper') || n.includes('inasal') || n.includes('rice meal')) {
+            return 'Sizzling Rice Meals';
+        }
+        if (n.includes('t-bone') || n.includes('platter') || n.includes('barkada') || n.includes('ribeye')) {
+            return 'Barkada Platters';
+        }
+        return 'Authentic Filipino Cuisine';
+    };
+
+    const fallbackProducts: ProductItem[] = [
         { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino Cuisine', price: 180, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
         { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', price: 280, stock: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
         { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino Cuisine', price: 450, stock: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 4, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
-        { id: 5, name: 'Signature Red Iced Tea (1L)', category: 'Drinks & Extra Rice', price: 95, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-    ]);
+        { id: 4, name: 'Sizzling Chicken Inasal Platter', category: 'Sizzling Rice Meals', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
+        { id: 5, name: 'Sizzling Beef Pepper Rice', category: 'Sizzling Rice Meals', price: 195, stock: 35, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ' },
+        { id: 6, name: 'Sizzling Gambas Al Ajillo', category: 'Authentic Filipino Cuisine', price: 260, stock: 25, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 7, name: 'Extra Garlic Rice', category: 'Drinks & Extra Rice', price: 35, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ' },
+        { id: 8, name: 'Signature Red Iced Tea (1 Litro)', category: 'Drinks & Extra Rice', price: 95, stock: 60, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+    ];
+
+    const products: ProductItem[] = React.useMemo(() => {
+        if (serverProducts && serverProducts.length > 0) {
+            return serverProducts.map((p) => ({
+                id: p.id,
+                name: p.name,
+                category: p.category || getProductCategory(p.name),
+                price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+                stock: p.stock_quantity ?? p.stock ?? 50,
+                isActive: p.is_active ?? true,
+                image: p.image_path || p.image || fallbackProducts[0].image,
+            }));
+        }
+        return fallbackProducts;
+    }, [serverProducts]);
 
     // POS Cart Helpers
     const addToPosCart = (product: ProductItem) => {
@@ -188,7 +223,10 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         setPosCart(posCart.filter(item => item.id !== productId));
     };
 
-    const posCartTotal = posCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const posSubtotal = posCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const posDiscountRate = (posDiscountType === 'SENIOR' || posDiscountType === 'PWD') ? 0.20 : 0;
+    const posDiscountAmount = posSubtotal * posDiscountRate;
+    const posCartTotal = posSubtotal - posDiscountAmount;
     const posTenderedAmount = parseFloat(cashTendered) || 0;
     const posChangeAmount = Math.max(0, posTenderedAmount - posCartTotal);
 
@@ -211,11 +249,13 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
             phone: 'Walk-In Counter',
             amount: posCartTotal,
             total_amount: posCartTotal,
-            payment: `${posPaymentMethod} (Walk-In POS)`,
+            payment: `${posPaymentMethod} (Walk-In POS${posDiscountType !== 'NONE' ? ` - ${posDiscountType} 20%` : ''})`,
             status: 'preparing',
             time: 'Just now',
             itemsCount: posCart.reduce((sum, i) => sum + i.quantity, 0),
-            itemsSummary: itemsSummaryText
+            itemsSummary: itemsSummaryText,
+            discount_type: posDiscountType,
+            discount_amount: posDiscountAmount,
         };
 
         setOrders([newOrder, ...orders]);
@@ -223,6 +263,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
 
         // Reset Cart
         setPosCart([]);
+        setPosDiscountType('NONE');
         setCashTendered('');
         setPosCustomerName('Walk-In Guest');
     };
@@ -609,6 +650,26 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                 {posCart.length > 0 && (
                                     <form onSubmit={handleCheckoutWalkInOrder} className="space-y-4 pt-4 border-t border-[#333338]">
                                         <div>
+                                            <label className="block text-xs font-bold text-[#a1a1aa] mb-2">Discount Type</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {(['NONE', 'SENIOR', 'PWD'] as const).map((dType) => (
+                                                    <button
+                                                        key={dType}
+                                                        type="button"
+                                                        onClick={() => setPosDiscountType(dType)}
+                                                        className={`py-2 rounded-2xl text-xs font-bold transition-all ${
+                                                            posDiscountType === dType
+                                                                ? 'bg-[#f59e0b] text-[#3f2000] font-black border border-[#f59e0b]'
+                                                                : 'bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white'
+                                                        }`}
+                                                    >
+                                                        {dType === 'NONE' ? 'NONE' : `${dType} (20%)`}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
                                             <label className="block text-xs font-bold text-[#a1a1aa] mb-2">Payment Method</label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {(['Cash', 'GCash'] as const).map((method) => (
@@ -677,8 +738,14 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                         <div className="space-y-1.5 pt-2">
                                             <div className="flex justify-between text-xs text-[#a1a1aa]">
                                                 <span>Subtotal</span>
-                                                <span className="font-mono">₱{(posCartTotal * 0.88).toFixed(2)}</span>
+                                                <span className="font-mono">₱{posSubtotal.toFixed(2)}</span>
                                             </div>
+                                            {posDiscountType !== 'NONE' && (
+                                                <div className="flex justify-between text-xs font-bold text-emerald-400">
+                                                    <span>Discount ({posDiscountType} 20%)</span>
+                                                    <span className="font-mono">-₱{posDiscountAmount.toFixed(2)}</span>
+                                                </div>
+                                            )}
                                             <div className="flex justify-between text-xs text-[#a1a1aa]">
                                                 <span>12% VAT</span>
                                                 <span className="font-mono">₱{(posCartTotal * 0.12).toFixed(2)}</span>
@@ -980,6 +1047,12 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                     <span>Payment Mode:</span>
                                     <span className="text-white font-bold">{showReceiptModal.payment_method || showReceiptModal.payment || 'Cash'}</span>
                                 </div>
+                                {showReceiptModal.discount_type && showReceiptModal.discount_type !== 'NONE' && (
+                                    <div className="flex justify-between text-emerald-400 font-bold">
+                                        <span>Discount ({showReceiptModal.discount_type} 20%):</span>
+                                        <span>-₱{Number(showReceiptModal.discount_amount || 0).toFixed(2)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between text-sm font-bold text-white pt-1">
                                     <span>Total Paid:</span>
                                     <span className="text-[#fbbf24]">₱{Number(showReceiptModal.total_amount || showReceiptModal.amount || 0).toFixed(2)}</span>
