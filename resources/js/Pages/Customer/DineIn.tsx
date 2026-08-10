@@ -1142,20 +1142,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     />
                                 </div>
 
-                                {fulfillmentMode === 'express_takeout' && (
-                                    <div>
-                                        <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">
-                                            Mobile Number *
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={customerPhone}
-                                            onChange={(e) => setCustomerPhone(e.target.value)}
-                                            placeholder="09171234567"
-                                            className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                        />
-                                    </div>
-                                )}
+
 
                                 <div>
                                     <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">
