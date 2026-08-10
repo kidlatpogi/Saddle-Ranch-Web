@@ -1027,117 +1027,125 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </div>
 
                                     {/* Account & Saved Details Section */}
-                                    {currentUser ? (
-                                        <div className="p-3.5 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
-                                            <div className="flex items-center gap-2 truncate">
-                                                <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                                <div className="truncate flex items-center gap-1.5">
-                                                    <span className="text-white font-bold truncate">{currentUser.name}</span>
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
-                                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
-                                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                        }`}>
-                                                        {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
-                                                    </span>
+                                    {/* UNIFIED PROMO COUPON & CUSTOMER ACCOUNT CARD */}
+                                    {!currentUser ? (
+                                        <div className="p-4 rounded-2xl bg-[#121213] border border-[#534434] space-y-3 shadow-lg">
+                                            <div className="flex items-center justify-between border-b border-[#534434]/40 pb-2.5">
+                                                <div className="flex items-center gap-1.5 text-xs font-black text-[#ffc174] uppercase tracking-wider">
+                                                    <Ticket className="w-4 h-4 text-[#f59e0b]" /> Promo Coupon & Account
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-2.5">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-1.5 text-xs font-bold text-[#ffc174]">
-                                                    <UserCheck className="w-4 h-4 text-[#f59e0b]" /> Customer Account
-                                                </div>
-                                                <span className="text-[10px] text-emerald-400 font-semibold">Optional</span>
-                                            </div>
-                                            <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
-                                                Sign in or create a free account to save your address, apply promo coupons, and track past orders.
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsAuthModalOpen(true)}
-                                                className="w-full py-2.5 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 border border-[#f59e0b]/50 text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                                            >
-                                                <Lock className="w-3.5 h-3.5" /> Sign In / Create Free Account
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* COUPON / VOUCHER CODE SECTION */}
-                                    <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <label className="block text-[11px] font-bold text-[#ffc174] uppercase tracking-wider flex items-center gap-1.5">
-                                                <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon / Voucher
-                                            </label>
-                                            {!currentUser && (
-                                                <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
-                                                    <Lock className="w-3 h-3" /> Login Required
+                                                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                                    <Lock className="w-3 h-3 text-amber-400" /> Sign In Required
                                                 </span>
-                                            )}
-                                        </div>
+                                            </div>
 
-                                        {!currentUser ? (
-                                            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] flex items-center justify-between">
-                                                <span>Coupons require a customer account.</span>
+                                            <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                                Sign in or create a quick account to apply promo coupons, save your delivery address, and track orders.
+                                            </p>
+
+                                            <div className="flex gap-2 pt-0.5">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    placeholder="Enter Coupon / Voucher Code"
+                                                    value={voucherInput}
+                                                    onClick={() => setIsAuthModalOpen(true)}
+                                                    className="flex-1 px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono placeholder:normal-case placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none cursor-pointer"
+                                                />
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsAuthModalOpen(true)}
-                                                    className="px-2.5 py-1 rounded-lg bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-[10px] uppercase cursor-pointer shrink-0 ml-2"
+                                                    className="px-3.5 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer shrink-0 shadow-md flex items-center gap-1.5"
                                                 >
-                                                    Sign In / Register
+                                                    <Lock className="w-3.5 h-3.5" /> Sign In / Register
                                                 </button>
                                             </div>
-                                        ) : appliedVoucher ? (
-                                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                                    <div>
-                                                        <div className="font-mono font-bold text-white">{appliedVoucher.code}</div>
-                                                        <div className="text-[10px] text-emerald-300">Saved ₱{voucherDiscount.toFixed(2)} OFF</div>
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 rounded-2xl bg-[#121213] border border-emerald-500/30 space-y-3 shadow-lg">
+                                            <div className="flex items-center justify-between border-b border-[#534434]/40 pb-2.5">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                                                    <div className="truncate flex items-center gap-1.5">
+                                                        <span className="text-white font-bold truncate text-xs">{currentUser.name}</span>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
+                                                                ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
+                                                                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                                            }`}>
+                                                            {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <button
                                                     type="button"
-                                                    onClick={handleRemoveVoucher}
-                                                    className="text-[10px] text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer"
+                                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                                    className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-2"
                                                 >
-                                                    Remove
+                                                    <ShieldCheck className="w-3 h-3" /> Privacy
                                                 </button>
                                             </div>
-                                        ) : (
+
                                             <div className="space-y-1.5">
-                                                <div className="flex gap-1.5">
-                                                    <input
-                                                        type="text"
-                                                        value={voucherInput}
-                                                        onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
-                                                        placeholder="Enter Coupon (e.g. SADDLE10)"
-                                                        className="flex-1 px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleApplyVoucher}
-                                                        disabled={!voucherInput.trim() || isValidatingVoucher}
-                                                        className="px-3.5 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-xs uppercase tracking-wider shadow cursor-pointer"
-                                                    >
-                                                        {isValidatingVoucher ? '...' : 'Apply'}
-                                                    </button>
-                                                </div>
-                                                {voucherError && (
-                                                    <div className="text-[11px] text-rose-400 font-semibold flex items-center gap-1">
-                                                        <AlertCircle className="w-3 h-3 shrink-0" />
-                                                        <span>{voucherError}</span>
+                                                <label className="block text-[11px] font-bold text-[#ffc174] uppercase tracking-wider flex items-center gap-1.5">
+                                                    <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon / Voucher
+                                                </label>
+
+                                                {appliedVoucher ? (
+                                                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+                                                        <div className="flex items-center gap-2">
+                                                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                                            <div>
+                                                                <div className="font-mono font-bold text-white">{appliedVoucher.code}</div>
+                                                                <div className="text-[10px] text-emerald-300">Saved ₱{voucherDiscount.toFixed(2)} OFF</div>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRemoveVoucher}
+                                                            className="text-[10px] text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer"
+                                                        >
+                                                            Remove
+                                                        </button>
                                                     </div>
-                                                )}
-                                                {voucherSuccess && (
-                                                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-                                                        <CheckCircle2 className="w-3 h-3 shrink-0" />
-                                                        <span>{voucherSuccess}</span>
+                                                ) : (
+                                                    <div className="space-y-1.5">
+                                                        <div className="flex gap-1.5">
+                                                            <input
+                                                                type="text"
+                                                                value={voucherInput}
+                                                                onChange={(e) => {
+                                                                    setVoucherInput(e.target.value.toUpperCase());
+                                                                    setVoucherError('');
+                                                                }}
+                                                                placeholder="ENTER VOUCHER CODE"
+                                                                className="flex-1 px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleApplyVoucher}
+                                                                disabled={!voucherInput.trim() || isValidatingVoucher}
+                                                                className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer"
+                                                            >
+                                                                {isValidatingVoucher ? '...' : 'Apply'}
+                                                            </button>
+                                                        </div>
+                                                        {voucherError && (
+                                                            <div className="text-[11px] text-rose-400 font-semibold flex items-center gap-1">
+                                                                <AlertCircle className="w-3 h-3 shrink-0" />
+                                                                <span>{voucherError}</span>
+                                                            </div>
+                                                        )}
+                                                        {voucherSuccess && (
+                                                            <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                                                                <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                                                <span>{voucherSuccess}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
 
                                     <div className="space-y-1 pt-2 border-t border-[#534434]/50">
                                         <div className="flex justify-between text-xs text-[#d8c3ad]">
@@ -1389,133 +1397,99 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
 
                                 {/* Account & Saved Details Section (Mobile View Fix) */}
-                                {currentUser ? (
-                                    <div className="p-3 rounded-2xl bg-[#121213] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                            <div className="truncate flex items-center gap-1.5">
-                                                <span className="text-white font-bold truncate">{currentUser.name}</span>
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
-                                                        ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
-                                                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                    }`}>
-                                                    {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
-                                                </span>
+                                {/* UNIFIED PROMO COUPON & CUSTOMER ACCOUNT CARD (MOBILE) */}
+                                {!currentUser ? (
+                                    <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-2.5 shadow-lg">
+                                        <div className="flex items-center justify-between border-b border-[#534434]/40 pb-2">
+                                            <div className="flex items-center gap-1.5 text-xs font-black text-[#ffc174] uppercase tracking-wider">
+                                                <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon & Account
                                             </div>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsPrivacyModalOpen(true)}
-                                            className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-2"
-                                        >
-                                            <ShieldCheck className="w-3 h-3" /> Privacy
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2.5">
-                                        <label className="flex items-start gap-2 text-xs font-semibold text-[#ffc174] cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={createAccount}
-                                                onChange={(e) => setCreateAccount(e.target.checked)}
-                                                className="w-4 h-4 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] mt-0.5 shrink-0"
-                                            />
-                                            <span className="leading-snug">Save my delivery address & purchase history (Create a free account)</span>
-                                        </label>
-
-                                        {createAccount && (
-                                            <div className="space-y-2 pt-1 animate-in fade-in duration-200">
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Email Address *</label>
-                                                    <input
-                                                        type="email"
-                                                        required={createAccount}
-                                                        value={accountEmail}
-                                                        onChange={(e) => setAccountEmail(e.target.value)}
-                                                        placeholder="your.email@example.com"
-                                                        className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Account Password (min 8 chars) *</label>
-                                                    <input
-                                                        type="password"
-                                                        required={createAccount}
-                                                        minLength={8}
-                                                        value={accountPassword}
-                                                        onChange={(e) => setAccountPassword(e.target.value)}
-                                                        placeholder="••••••••"
-                                                        className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-0.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsPrivacyModalOpen(true)}
-                                                className="hover:underline text-[#f59e0b] flex items-center gap-1 cursor-pointer"
-                                            >
-                                                <ShieldCheck className="w-3 h-3" /> Privacy & Safety Policy
-                                            </button>
-                                            <span className="font-semibold text-emerald-400">100% Optional</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* MOBILE COUPON SECTION */}
-                                <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <label className="block text-[11px] font-bold text-[#ffc174] uppercase tracking-wider flex items-center gap-1">
-                                            <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon / Voucher
-                                        </label>
-                                        {!currentUser && (
-                                            <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
-                                                <Lock className="w-3 h-3" /> Login Required
+                                            <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                                <Lock className="w-2.5 h-2.5 text-amber-400" /> Required
                                             </span>
-                                        )}
-                                    </div>
+                                        </div>
 
-                                    {!currentUser ? (
-                                        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] flex items-center justify-between">
-                                            <span>Coupons require a customer account.</span>
+                                        <p className="text-[10px] text-[#d8c3ad] leading-relaxed">
+                                            Sign in or register to apply promo coupons and save order history.
+                                        </p>
+
+                                        <div className="flex gap-1.5 pt-0.5">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                placeholder="Coupon Code..."
+                                                value={voucherInput}
+                                                onClick={() => setIsAuthModalOpen(true)}
+                                                className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono placeholder:normal-case placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none cursor-pointer"
+                                            />
                                             <button
                                                 type="button"
                                                 onClick={() => setIsAuthModalOpen(true)}
-                                                className="px-2 py-1 rounded-lg bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-[10px] uppercase cursor-pointer shrink-0 ml-1"
+                                                className="px-3 py-1.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer shrink-0 shadow flex items-center gap-1"
                                             >
-                                                Sign In
+                                                <Lock className="w-3 h-3" /> Sign In
                                             </button>
                                         </div>
-                                    ) : appliedVoucher ? (
-                                        <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
-                                            <div className="flex items-center gap-1.5">
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                                <span className="font-mono font-bold text-white">{appliedVoucher.code} (-₱{voucherDiscount.toFixed(2)})</span>
+                                    </div>
+                                ) : (
+                                    <div className="p-3.5 rounded-2xl bg-[#121213] border border-emerald-500/30 space-y-2.5 shadow-lg">
+                                        <div className="flex items-center justify-between border-b border-[#534434]/40 pb-2">
+                                            <div className="flex items-center gap-2 truncate">
+                                                <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                <div className="truncate flex items-center gap-1.5">
+                                                    <span className="text-white font-bold truncate text-xs">{currentUser.name}</span>
+                                                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
+                                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
+                                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                                        }`}>
+                                                        {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <button type="button" onClick={handleRemoveVoucher} className="text-[10px] text-rose-400 font-bold underline">Remove</button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-1.5">
-                                            <input
-                                                type="text"
-                                                value={voucherInput}
-                                                onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
-                                                placeholder="Coupon code..."
-                                                className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono"
-                                            />
                                             <button
                                                 type="button"
-                                                onClick={handleApplyVoucher}
-                                                disabled={!voucherInput.trim() || isValidatingVoucher}
-                                                className="px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase"
+                                                onClick={() => setIsPrivacyModalOpen(true)}
+                                                className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer ml-1"
                                             >
-                                                Apply
+                                                <ShieldCheck className="w-3 h-3" /> Policy
                                             </button>
                                         </div>
-                                    )}
-                                </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-[#ffc174] uppercase tracking-wider flex items-center gap-1">
+                                                <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon / Voucher
+                                            </label>
+
+                                            {appliedVoucher ? (
+                                                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                                        <span className="font-mono font-bold text-white">{appliedVoucher.code} (-₱{voucherDiscount.toFixed(2)})</span>
+                                                    </div>
+                                                    <button type="button" onClick={handleRemoveVoucher} className="text-[10px] text-rose-400 font-bold underline">Remove</button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        value={voucherInput}
+                                                        onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                                                        placeholder="Coupon code..."
+                                                        className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleApplyVoucher}
+                                                        disabled={!voucherInput.trim() || isValidatingVoucher}
+                                                        className="px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase"
+                                                    >
+                                                        Apply
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="pt-2 space-y-1">
                                     <div className="flex items-center justify-between text-xs text-[#d8c3ad]">

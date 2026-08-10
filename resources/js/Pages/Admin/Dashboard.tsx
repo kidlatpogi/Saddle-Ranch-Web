@@ -1915,9 +1915,26 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                         <td className="py-3.5 px-4 font-mono text-[11px] text-[#fbbf24] font-bold">{log.timestamp}</td>
                                                         <td className="py-3.5 px-4 font-semibold text-white">{log.user} ({log.role})</td>
                                                         <td className="py-3.5 px-4">
-                                                            <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/15 text-[#fbbf24] text-[10px] font-black uppercase border border-[#f59e0b]/30">
-                                                                {log.module}
-                                                            </span>
+                                                            {(() => {
+                                                                const act = (log.action || '').toLowerCase();
+                                                                let tagType = 'CREATE';
+                                                                let tagStyle = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+
+                                                                if (act.includes('delete') || act.includes('void') || act.includes('cancel') || act.includes('remove')) {
+                                                                    tagType = 'DELETE';
+                                                                    tagStyle = 'bg-rose-500/20 text-rose-400 border-rose-500/40';
+                                                                } else if (act.includes('update') || act.includes('edit') || act.includes('toggle') || act.includes('change') || act.includes('status')) {
+                                                                    tagType = 'EDIT';
+                                                                    tagStyle = 'bg-sky-500/20 text-sky-400 border-sky-500/40';
+                                                                }
+
+                                                                return (
+                                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border flex items-center gap-1.5 w-fit ${tagStyle}`}>
+                                                                        <span className="font-mono tracking-wider">[{tagType}]</span>
+                                                                        <span>{log.module}</span>
+                                                                    </span>
+                                                                );
+                                                            })()}
                                                         </td>
                                                         <td className="py-3.5 px-4 text-[#a1a1aa] font-mono">{log.action}</td>
                                                     </tr>

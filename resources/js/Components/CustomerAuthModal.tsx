@@ -251,13 +251,14 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-[#d8c3ad] mb-1">Mobile Number (Optional)</label>
+                            <label className="block text-[11px] font-bold text-[#d8c3ad] mb-1">Mobile Number (Optional - 11 digits)</label>
                             <div className="relative">
                                 <Phone className="w-4 h-4 text-[#8c7a6b] absolute left-3 top-1/2 -translate-y-1/2" />
                                 <input
                                     type="tel"
+                                    maxLength={11}
                                     value={regPhone}
-                                    onChange={(e) => setRegPhone(e.target.value)}
+                                    onChange={(e) => setRegPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
                                     placeholder="09171234567"
                                     className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                 />

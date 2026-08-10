@@ -113,7 +113,30 @@ export default function AdminAuditLogs({ logs }: AuditLogsProps) {
                                             <div className="font-bold text-white font-sans">{log.user?.name || 'System Auto'}</div>
                                             <div className="text-[10px] text-[#fbbf24] font-mono uppercase">{log.user?.role || 'System'}</div>
                                         </td>
-                                        <td className="py-4 font-bold text-zinc-100 max-w-md">{log.action}</td>
+                                        <td className="py-4 font-bold text-zinc-100 max-w-md">
+                                            {(() => {
+                                                const act = (log.action || '').toLowerCase();
+                                                let tagType = 'CREATE';
+                                                let tagStyle = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+
+                                                if (act.includes('delete') || act.includes('void') || act.includes('cancel') || act.includes('remove')) {
+                                                    tagType = 'DELETE';
+                                                    tagStyle = 'bg-rose-500/20 text-rose-400 border-rose-500/40';
+                                                } else if (act.includes('update') || act.includes('edit') || act.includes('toggle') || act.includes('change') || act.includes('status')) {
+                                                    tagType = 'EDIT';
+                                                    tagStyle = 'bg-sky-500/20 text-sky-400 border-sky-500/40';
+                                                }
+
+                                                return (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-black uppercase border shrink-0 ${tagStyle}`}>
+                                                            {tagType}
+                                                        </span>
+                                                        <span>{log.action}</span>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </td>
                                         <td className="py-4 text-[#71717a]">{log.ip_address || '127.0.0.1'}</td>
                                         <td className="py-4 text-right">
                                             {log.payload && (
