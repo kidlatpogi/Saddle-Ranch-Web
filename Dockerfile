@@ -32,7 +32,7 @@ COPY . .
 
 # Install PHP & NPM dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 # Setup Storage & SQLite Permissions
