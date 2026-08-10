@@ -64,6 +64,7 @@ class OrderController extends Controller
             'delivery_notes' => 'nullable|string',
             'pickup_time' => 'nullable|string',
             'payment_method' => 'required|string',
+            'voucher_code' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -105,7 +106,7 @@ class OrderController extends Controller
                 }
             }
 
-            $totalAmount = 0;
+            $rawSubtotal = 0;
             $orderItemsToCreate = [];
 
             foreach ($validated['items'] as $itemData) {
@@ -121,7 +122,7 @@ class OrderController extends Controller
                 }
 
                 $subtotal = $product->price * $itemData['quantity'];
-                $totalAmount += $subtotal;
+                $rawSubtotal += $subtotal;
 
                 $orderItemsToCreate[] = [
                     'product' => $product,
@@ -130,6 +131,70 @@ class OrderController extends Controller
                     'subtotal' => $subtotal,
                 ];
             }
+
+            // Voucher Validation & Discount Processing
+            $discountAmount = 0.00;
+            $appliedVoucherCode = null;
+            $voucherModel = null;
+
+            if (!empty($validated['voucher_code'])) {
+                if (!$userId) {
+                    throw ValidationException::withMessages([
+                        'voucher_code' => ['You must be logged in to apply a promo coupon or voucher.'],
+                    ]);
+                }
+
+                $code = strtoupper(trim($validated['voucher_code']));
+                $voucherModel = \App\Models\Voucher::where('code', $code)->first();
+
+                if (!$voucherModel) {
+                    throw ValidationException::withMessages([
+                        'voucher_code' => ['Invalid promo coupon or voucher code.'],
+                    ]);
+                }
+
+                $now = now();
+                if ($voucherModel->is_limited_time || $voucherModel->starts_at || $voucherModel->expires_at) {
+                    if ($voucherModel->starts_at && $now->lessThan($voucherModel->starts_at)) {
+                        throw ValidationException::withMessages([
+                            'voucher_code' => ['This promo code is not active yet.'],
+                        ]);
+                    }
+                    if ($voucherModel->expires_at && $now->greaterThan($voucherModel->expires_at)) {
+                        throw ValidationException::withMessages([
+                            'voucher_code' => ['This promo code has expired.'],
+                        ]);
+                    }
+                }
+
+                if ($voucherModel->is_one_time_use) {
+                    $alreadyUsed = \App\Models\VoucherUsage::where('voucher_id', $voucherModel->id)
+                        ->where('user_id', $userId)
+                        ->exists();
+                    if ($alreadyUsed) {
+                        throw ValidationException::withMessages([
+                            'voucher_code' => ['You have already redeemed this 1-time use promo code.'],
+                        ]);
+                    }
+                }
+
+                if ($rawSubtotal < $voucherModel->min_spend) {
+                    throw ValidationException::withMessages([
+                        'voucher_code' => ["Minimum order amount of ₱{$voucherModel->min_spend} required to use code '{$voucherModel->code}'."],
+                    ]);
+                }
+
+                if ($voucherModel->discount_type === 'percentage') {
+                    $discountAmount = ($rawSubtotal * ($voucherModel->value / 100));
+                } else {
+                    $discountAmount = min($rawSubtotal, $voucherModel->value);
+                }
+
+                $discountAmount = round($discountAmount, 2);
+                $appliedVoucherCode = $voucherModel->code;
+            }
+
+            $finalTotalAmount = round(max(0, $rawSubtotal - $discountAmount), 2);
 
             // Generate unique order number (e.g. SR-8492)
             $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
@@ -140,8 +205,10 @@ class OrderController extends Controller
                 'order_type' => $validated['order_type'],
                 'table_number' => $validated['table_number'] ?? null,
                 'status' => 'pending',
-                'total_amount' => $totalAmount,
+                'total_amount' => $finalTotalAmount,
                 'payment_method' => $validated['payment_method'],
+                'voucher_code' => $appliedVoucherCode,
+                'discount_amount' => $discountAmount,
                 'customer_name' => $validated['customer_name'] ?? null,
                 'customer_phone' => $validated['customer_phone'] ?? null,
                 'delivery_address' => $validated['delivery_address'] ?? null,
@@ -160,6 +227,16 @@ class OrderController extends Controller
 
                 // Auto-decrement stock quantity
                 $itemInfo['product']->decrement('stock_quantity', $itemInfo['quantity']);
+            }
+
+            // Record Voucher Usage
+            if ($voucherModel && $userId) {
+                \App\Models\VoucherUsage::create([
+                    'voucher_id' => $voucherModel->id,
+                    'user_id' => $userId,
+                    'order_id' => $order->id,
+                ]);
+                $voucherModel->increment('times_used');
             }
 
             return $order;

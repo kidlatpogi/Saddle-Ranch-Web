@@ -20,6 +20,8 @@ class Order extends Model
         'status',
         'total_amount',
         'payment_method',
+        'voucher_code',
+        'discount_amount',
         'customer_name',
         'customer_phone',
         'delivery_address',
@@ -32,6 +34,7 @@ class Order extends Model
     {
         return [
             'total_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
         ];
     }
 

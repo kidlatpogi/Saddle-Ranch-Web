@@ -85,10 +85,16 @@ interface BannerItem {
 interface VoucherItem {
     id: number;
     code: string;
-    discountPercent: number;
+    discount_type?: 'fixed' | 'percentage';
+    discountPercent?: number;
+    value?: number;
     minSpend: number;
+    is_one_time_use?: boolean;
+    is_limited_time?: boolean;
+    starts_at?: string;
+    expires_at?: string;
     usedCount: number;
-    branch?: 'All' | 'Bulihan' | 'Dasma';
+    branch?: 'All' | 'Bulihan' | 'Dasma' | 'all' | string;
     isActive: boolean;
 }
 
@@ -117,9 +123,10 @@ interface AdminDashboardProps {
     initialProducts?: any[];
     initialAuditLogs?: any[];
     initialEmployees?: any[];
+    initialVouchers?: any[];
 }
 
-export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees }: AdminDashboardProps) {
+export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -254,14 +261,44 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }
     });
 
-    const [vouchers, setVouchers] = useState<VoucherItem[]>([
-        { id: 1, code: 'SADDLE10', discountPercent: 10, minSpend: 300, usedCount: 42, isActive: true },
-        { id: 2, code: 'BULIHANFREE', discountPercent: 15, minSpend: 500, usedCount: 89, isActive: true },
-        { id: 3, code: 'WELCOME2026', discountPercent: 20, minSpend: 800, usedCount: 15, isActive: false }
-    ]);
+    const formatVouchers = (raw: any[]): VoucherItem[] => {
+        if (!raw || raw.length === 0) {
+            return [
+                { id: 1, code: 'SADDLE10', discount_type: 'percentage', value: 10, discountPercent: 10, minSpend: 300, is_one_time_use: true, is_limited_time: false, usedCount: 42, isActive: true },
+                { id: 2, code: 'BULIHANFREE', discount_type: 'percentage', value: 15, discountPercent: 15, minSpend: 500, is_one_time_use: false, is_limited_time: true, usedCount: 89, isActive: true },
+            ];
+        }
+        return raw.map((v: any) => ({
+            id: v.id,
+            code: v.code,
+            discount_type: v.discount_type || 'percentage',
+            value: Number(v.value),
+            discountPercent: v.discount_type === 'percentage' ? Number(v.value) : 0,
+            minSpend: Number(v.min_spend || 0),
+            is_one_time_use: Boolean(v.is_one_time_use),
+            is_limited_time: Boolean(v.is_limited_time),
+            starts_at: v.starts_at ? v.starts_at.split('T')[0] : undefined,
+            expires_at: v.expires_at ? v.expires_at.split('T')[0] : undefined,
+            usedCount: v.times_used || 0,
+            branch: v.branch ? (v.branch.toLowerCase().includes('dasma') ? 'Dasma' : (v.branch.toLowerCase().includes('all') ? 'All' : 'Bulihan')) : 'All',
+            isActive: true,
+        }));
+    };
+
+    const [vouchers, setVouchers] = useState<VoucherItem[]>(formatVouchers(initialVouchers || []));
 
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
+
+    // Order Void & Delete Modals State
+    const [voidingOrder, setVoidingOrder] = useState<any | null>(null);
+    const [voidPassword, setVoidPassword] = useState('');
+    const [voidReason, setVoidReason] = useState('');
+    const [isVoiding, setIsVoiding] = useState(false);
+    const [voidError, setVoidError] = useState('');
+
+    const [deletingOrder, setDeletingOrder] = useState<any | null>(null);
+    const [isDeletingOrder, setIsDeletingOrder] = useState(false);
 
     // Expanded Audit Logs Dataset
     const formatAuditLogs = (rawLogs: any[]): AuditLogItem[] => {
@@ -304,8 +341,13 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     // Voucher Modal State with Real-Time Preview
     const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
     const [newVoucherCode, setNewVoucherCode] = useState('');
-    const [newVoucherDiscount, setNewVoucherDiscount] = useState('10');
+    const [newVoucherDiscountType, setNewVoucherDiscountType] = useState<'fixed' | 'percentage'>('percentage');
+    const [newVoucherValue, setNewVoucherValue] = useState('10');
     const [newVoucherMinSpend, setNewVoucherMinSpend] = useState('300');
+    const [newVoucherIsOneTime, setNewVoucherIsOneTime] = useState(true);
+    const [newVoucherIsLimitedTime, setNewVoucherIsLimitedTime] = useState(false);
+    const [newVoucherStartsAt, setNewVoucherStartsAt] = useState('');
+    const [newVoucherExpiresAt, setNewVoucherExpiresAt] = useState('');
 
     // Employee CRUD Modals State
     const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
@@ -479,21 +521,94 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         setTargetBannerSlot(null);
     };
 
+    const handleConfirmVoid = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!voidingOrder || !voidPassword.trim() || !voidReason.trim()) return;
+
+        setIsVoiding(true);
+        setVoidError('');
+
+        try {
+            const response = await fetch(`/orders/${voidingOrder.id}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    password: voidPassword,
+                    reason: voidReason,
+                }),
+            });
+
+            const json = await response.json();
+            if (response.ok) {
+                setOrders(prev => prev.map(o => o.id === voidingOrder.id ? { ...o, status: 'cancelled' } : o));
+                setVoidingOrder(null);
+                setVoidPassword('');
+                setVoidReason('');
+            } else {
+                setVoidError(json.message || 'Verification failed.');
+            }
+        } catch (err: any) {
+            setVoidError('Failed to void order. Please check credentials.');
+        } finally {
+            setIsVoiding(false);
+        }
+    };
+
+    const handleConfirmDeleteOrder = async () => {
+        if (!deletingOrder) return;
+        setIsDeletingOrder(true);
+        try {
+            router.delete(`/admin/orders/${deletingOrder.id}`, {
+                onSuccess: () => {
+                    setOrders(prev => prev.filter(o => o.id !== deletingOrder.id));
+                    setDeletingOrder(null);
+                },
+                onFinish: () => setIsDeletingOrder(false),
+            });
+        } catch (err) {
+            setIsDeletingOrder(false);
+        }
+    };
+
     const handleCreateVoucher = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newVoucherCode.trim()) return;
 
-        const newVouch: VoucherItem = {
-            id: Date.now(),
-            code: newVoucherCode.toUpperCase(),
-            discountPercent: parseInt(newVoucherDiscount) || 10,
-            minSpend: parseFloat(newVoucherMinSpend) || 300,
-            usedCount: 0,
-            isActive: true
-        };
-        setVouchers([newVouch, ...vouchers]);
-        setNewVoucherCode('');
-        setShowAddVoucherModal(false);
+        router.post('/admin/vouchers', {
+            code: newVoucherCode.toUpperCase().trim(),
+            discount_type: newVoucherDiscountType,
+            value: newVoucherValue,
+            min_spend: newVoucherMinSpend,
+            is_one_time_use: newVoucherIsOneTime,
+            is_limited_time: newVoucherIsLimitedTime,
+            starts_at: newVoucherStartsAt || null,
+            expires_at: newVoucherExpiresAt || null,
+            branch: productBranchFilter === 'Bulihan' ? 'bulihan' : (productBranchFilter === 'Dasma' ? 'dasmarinas' : 'all'),
+        }, {
+            onSuccess: () => {
+                const newVouch: VoucherItem = {
+                    id: Date.now(),
+                    code: newVoucherCode.toUpperCase().trim(),
+                    discount_type: newVoucherDiscountType,
+                    value: parseFloat(newVoucherValue) || 0,
+                    discountPercent: newVoucherDiscountType === 'percentage' ? parseFloat(newVoucherValue) : 0,
+                    minSpend: parseFloat(newVoucherMinSpend) || 0,
+                    is_one_time_use: newVoucherIsOneTime,
+                    is_limited_time: newVoucherIsLimitedTime,
+                    starts_at: newVoucherStartsAt || undefined,
+                    expires_at: newVoucherExpiresAt || undefined,
+                    usedCount: 0,
+                    isActive: true
+                };
+                setVouchers([newVouch, ...vouchers]);
+                setNewVoucherCode('');
+                setShowAddVoucherModal(false);
+            }
+        });
     };
 
     const handleCreateEmployee = (e: React.FormEvent) => {
@@ -943,13 +1058,14 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                     o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
                                                                     o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
                                                                     o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                                                                    o.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
                                                                     'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                                                                 }`}>
-                                                                    {o.status}
+                                                                    {o.status === 'cancelled' ? 'VOIDED' : o.status}
                                                                 </span>
                                                             </td>
                                                             <td className="py-4 px-4">
-                                                                <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-2 flex-wrap">
                                                                     {o.status === 'pending' && (
                                                                         <button
                                                                             onClick={() => updateOrderStatus(o.id, 'preparing')}
@@ -974,6 +1090,22 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                             Complete Order
                                                                         </button>
                                                                     )}
+                                                                    {o.status !== 'cancelled' && (
+                                                                        <button
+                                                                            onClick={() => setVoidingOrder(o)}
+                                                                            className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500 hover:text-zinc-950 text-[11px] font-bold transition-all"
+                                                                            title="Void Order"
+                                                                        >
+                                                                            Void
+                                                                        </button>
+                                                                    )}
+                                                                    <button
+                                                                        onClick={() => setDeletingOrder(o)}
+                                                                        className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all"
+                                                                        title="Delete Order Permanently"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -1498,15 +1630,30 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     </div>
 
                                                     <div className="font-domine text-3xl font-black text-[#fbbf24] tracking-tight">
-                                                        {v.discountPercent}% OFF
+                                                        {v.discount_type === 'percentage'
+                                                            ? `${v.discountPercent ?? v.value}% OFF`
+                                                            : `₱${(v.value ?? 0).toFixed(2)} OFF`}
                                                     </div>
 
-                                                    <div className="inline-block px-3 py-1 rounded-xl bg-[#18181b] border border-[#3f3f46] font-mono font-black text-white text-sm tracking-wider">
-                                                        {v.code}
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="inline-block px-3 py-1 rounded-xl bg-[#18181b] border border-[#3f3f46] font-mono font-black text-white text-sm tracking-wider">
+                                                            {v.code}
+                                                        </span>
+                                                        {v.is_one_time_use && (
+                                                            <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-bold uppercase">
+                                                                1-Time Use
+                                                            </span>
+                                                        )}
                                                     </div>
 
-                                                    <div className="text-[11px] text-[#a1a1aa]">
-                                                        Min order: <strong className="text-amber-400 font-mono font-bold">₱{v.minSpend.toFixed(2)}</strong>
+                                                    <div className="text-[11px] text-[#a1a1aa] space-y-0.5">
+                                                        <div>Min order: <strong className="text-amber-400 font-mono font-bold">₱{v.minSpend.toFixed(2)}</strong></div>
+                                                        {(v.starts_at || v.expires_at) && (
+                                                            <div className="text-[10px] text-[#71717a] font-mono">
+                                                                {v.starts_at && <span>Active: {v.starts_at} </span>}
+                                                                {v.expires_at && <span>Until: {v.expires_at}</span>}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -2214,8 +2361,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
             {/* ADD VOUCHER MODAL */}
             {showAddVoucherModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-                    <form onSubmit={handleCreateVoucher} className="w-full max-w-md rounded-3xl bg-[#202024] border border-[#3f3f46] p-6 shadow-2xl space-y-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+                    <form onSubmit={handleCreateVoucher} className="w-full max-w-md rounded-3xl bg-[#202024] border border-[#3f3f46] p-6 shadow-2xl space-y-4 my-8">
                         <div className="flex items-center justify-between pb-2 border-b border-[#333338]">
                             <h3 className="text-lg font-bold text-white font-domine">Create Promo Ticket Voucher</h3>
                             <button type="button" onClick={() => setShowAddVoucherModal(false)} className="text-[#a1a1aa] hover:text-white">
@@ -2231,16 +2378,20 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             <div className="relative rounded-2xl bg-[#18181b] border border-[#3f3f46] p-4 flex items-center gap-3">
                                 <div className="flex-1 space-y-1 border-r border-dashed border-[#3f3f46] pr-3">
                                     <div className="text-[9px] font-mono font-bold text-[#f59e0b]">ROADHOUSE COUPON</div>
-                                    <div className="font-domine text-2xl font-black text-[#fbbf24]">{newVoucherDiscount || '10'}% OFF</div>
+                                    <div className="font-domine text-2xl font-black text-[#fbbf24]">
+                                        {newVoucherDiscountType === 'percentage' ? `${newVoucherValue || '10'}% OFF` : `₱${newVoucherValue || '50'} OFF`}
+                                    </div>
                                     <div className="font-mono text-xs font-bold text-white bg-[#27272a] px-2 py-0.5 rounded inline-block">
                                         {newVoucherCode.toUpperCase() || 'PROMO10'}
                                     </div>
                                 </div>
                                 <div className="text-right text-[10px] text-[#71717a] font-mono space-y-1">
                                     <div>Min ₱{newVoucherMinSpend || '300'}</div>
-                                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase inline-block">
-                                        Active
-                                    </span>
+                                    {newVoucherIsOneTime && (
+                                        <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[8px] font-bold uppercase block">
+                                            1-Time Use
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -2254,33 +2405,101 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     value={newVoucherCode}
                                     onChange={(e) => setNewVoucherCode(e.target.value)}
                                     placeholder="e.g. SUMMER15"
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white uppercase"
+                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white uppercase font-mono"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Discount (% Off) *</label>
-                                    <input
-                                        type="number"
-                                        required
-                                        value={newVoucherDiscount}
-                                        onChange={(e) => setNewVoucherDiscount(e.target.value)}
-                                        placeholder="15"
+                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Discount Type *</label>
+                                    <select
+                                        value={newVoucherDiscountType}
+                                        onChange={(e) => setNewVoucherDiscountType(e.target.value as any)}
                                         className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                                    />
+                                    >
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed Amount (₱)</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Min Order (₱) *</label>
+                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Discount Value *</label>
                                     <input
                                         type="number"
                                         required
-                                        value={newVoucherMinSpend}
-                                        onChange={(e) => setNewVoucherMinSpend(e.target.value)}
-                                        placeholder="300"
-                                        className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                        value={newVoucherValue}
+                                        onChange={(e) => setNewVoucherValue(e.target.value)}
+                                        placeholder={newVoucherDiscountType === 'percentage' ? '15' : '50'}
+                                        className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Min Order Spend (₱) *</label>
+                                <input
+                                    type="number"
+                                    required
+                                    value={newVoucherMinSpend}
+                                    onChange={(e) => setNewVoucherMinSpend(e.target.value)}
+                                    placeholder="300"
+                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                />
+                            </div>
+
+                            {/* VOUCHER SETTINGS: 1 TIME USE & LIMITED TIME ONLY */}
+                            <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#333338] space-y-3">
+                                <div className="text-xs font-bold text-[#fbbf24] uppercase tracking-wider">Voucher Rules & Restrictions</div>
+                                
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label htmlFor="one-time-toggle" className="text-xs font-bold text-white cursor-pointer">1 Time Use Only</label>
+                                        <p className="text-[10px] text-[#a1a1aa]">Limits voucher redemption to 1-time per customer</p>
+                                    </div>
+                                    <input
+                                        id="one-time-toggle"
+                                        type="checkbox"
+                                        checked={newVoucherIsOneTime}
+                                        onChange={(e) => setNewVoucherIsOneTime(e.target.checked)}
+                                        className="w-4 h-4 accent-[#f59e0b] rounded cursor-pointer"
+                                    />
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2 border-t border-[#27272a]">
+                                    <div>
+                                        <label htmlFor="limited-time-toggle" className="text-xs font-bold text-white cursor-pointer">Limited Time Only</label>
+                                        <p className="text-[10px] text-[#a1a1aa]">Set activation and expiration date window</p>
+                                    </div>
+                                    <input
+                                        id="limited-time-toggle"
+                                        type="checkbox"
+                                        checked={newVoucherIsLimitedTime}
+                                        onChange={(e) => setNewVoucherIsLimitedTime(e.target.checked)}
+                                        className="w-4 h-4 accent-[#f59e0b] rounded cursor-pointer"
+                                    />
+                                </div>
+
+                                {newVoucherIsLimitedTime && (
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <div>
+                                            <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Date Activated</label>
+                                            <input
+                                                type="date"
+                                                value={newVoucherStartsAt}
+                                                onChange={(e) => setNewVoucherStartsAt(e.target.value)}
+                                                className="w-full px-2.5 py-1.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Date Ended</label>
+                                            <input
+                                                type="date"
+                                                value={newVoucherExpiresAt}
+                                                onChange={(e) => setNewVoucherExpiresAt(e.target.value)}
+                                                className="w-full px-2.5 py-1.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -2289,6 +2508,89 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Create Ticket</button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* VOID ORDER MODAL */}
+            {voidingOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+                    <form onSubmit={handleConfirmVoid} className="w-full max-w-md rounded-3xl bg-[#202024] border border-amber-500/50 p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#333338]">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5 text-amber-400" />
+                                <h3 className="text-lg font-bold text-white font-domine">Void Order #{voidingOrder.id}</h3>
+                            </div>
+                            <button type="button" onClick={() => setVoidingOrder(null)} className="text-[#a1a1aa] hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-[#a1a1aa]">
+                            Voiding an order cancels it, restores stock levels, and records a security audit log. Please enter authorization password and reason.
+                        </p>
+
+                        {voidError && (
+                            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
+                                {voidError}
+                            </div>
+                        )}
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Authorization Password *</label>
+                            <input
+                                type="password"
+                                required
+                                value={voidPassword}
+                                onChange={(e) => setVoidPassword(e.target.value)}
+                                placeholder="Enter admin/employee password"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white focus:border-amber-400 focus:outline-none"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Void Reason *</label>
+                            <input
+                                type="text"
+                                required
+                                value={voidReason}
+                                onChange={(e) => setVoidReason(e.target.value)}
+                                placeholder="e.g. Customer cancelled order / Wrong item entered"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white focus:border-amber-400 focus:outline-none"
+                            />
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setVoidingOrder(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
+                            <button type="submit" disabled={isVoiding} className="w-1/2 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50">
+                                {isVoiding ? 'Verifying...' : 'Confirm Void'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* DELETE ORDER PERMANENTLY MODAL */}
+            {deletingOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+                    <div className="w-full max-w-sm rounded-3xl bg-[#202024] border border-rose-500/50 p-6 shadow-2xl space-y-4 text-center">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
+                            <Trash2 className="w-6 h-6" />
+                        </div>
+
+                        <div>
+                            <h3 className="text-lg font-bold text-white font-domine">Delete Order #{deletingOrder.id}?</h3>
+                            <p className="text-xs text-[#a1a1aa] mt-1">
+                                Are you sure you want to permanently delete this order from the database? This action cannot be undone.
+                            </p>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button type="button" onClick={() => setDeletingOrder(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
+                            <button type="button" onClick={handleConfirmDeleteOrder} disabled={isDeletingOrder} className="w-1/2 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-black uppercase btn-bevel disabled:opacity-50">
+                                {isDeletingOrder ? 'Deleting...' : 'Delete Order'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

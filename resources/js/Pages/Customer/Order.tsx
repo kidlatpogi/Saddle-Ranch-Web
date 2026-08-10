@@ -19,7 +19,8 @@ import {
     Info,
     ShieldCheck,
     UserCheck,
-    Lock
+    Lock,
+    Ticket
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -183,6 +184,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
+
+    // Coupon & Voucher State
+    const [voucherInput, setVoucherInput] = useState('');
+    const [appliedVoucher, setAppliedVoucher] = useState<any | null>(null);
+    const [voucherDiscount, setVoucherDiscount] = useState<number>(0);
+    const [voucherError, setVoucherError] = useState('');
+    const [voucherSuccess, setVoucherSuccess] = useState('');
+    const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -348,6 +357,64 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
         }
     }, [flash]);
 
+    const handleApplyVoucher = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!voucherInput.trim()) return;
+
+        if (!currentUser) {
+            setVoucherError('You must be logged in to apply a promo coupon or voucher code.');
+            setVoucherSuccess('');
+            return;
+        }
+
+        setIsValidatingVoucher(true);
+        setVoucherError('');
+        setVoucherSuccess('');
+
+        try {
+            const response = await fetch('/api/v1/vouchers/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: voucherInput.trim(),
+                    total_amount: subtotal,
+                }),
+            });
+
+            const json = await response.json();
+            if (response.ok && json.status === 'success') {
+                setAppliedVoucher(json.voucher);
+                setVoucherDiscount(json.discount_amount);
+                setVoucherSuccess(`Coupon applied! Saved ₱${json.discount_amount.toFixed(2)}.`);
+                setVoucherError('');
+            } else {
+                setAppliedVoucher(null);
+                setVoucherDiscount(0);
+                setVoucherError(json.message || 'Invalid coupon code.');
+            }
+        } catch (err: any) {
+            setAppliedVoucher(null);
+            setVoucherDiscount(0);
+            setVoucherError('Failed to validate coupon code.');
+        } finally {
+            setIsValidatingVoucher(false);
+        }
+    };
+
+    const handleRemoveVoucher = () => {
+        setAppliedVoucher(null);
+        setVoucherDiscount(0);
+        setVoucherInput('');
+        setVoucherError('');
+        setVoucherSuccess('');
+    };
+
+    const finalTotal = Math.max(0, subtotal - voucherDiscount);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError('');
@@ -390,6 +457,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             delivery_address: orderType === 'delivery' ? constructedDeliveryAddress : null,
             delivery_notes: deliveryNotes,
             payment_method: paymentMethod,
+            voucher_code: appliedVoucher ? appliedVoucher.code : null,
             create_account: !currentUser && createAccount,
             account_email: !currentUser && createAccount ? accountEmail.trim() : null,
             account_password: !currentUser && createAccount ? accountPassword.trim() : null,
@@ -1004,7 +1072,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     </div>
                                                 </div>
                                             )}
-
                                             <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-0.5">
                                                 <button
                                                     type="button"
@@ -1018,9 +1085,91 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </div>
                                     )}
 
-                                    <div className="pt-2 flex justify-between text-base font-black text-white">
-                                        <span>Total Amount</span>
-                                        <span className="text-[#ffc174] font-mono">₱{subtotal.toFixed(2)}</span>
+                                    {/* COUPON / VOUCHER CODE SECTION */}
+                                    <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="block text-[11px] font-bold text-[#ffc174] uppercase tracking-wider flex items-center gap-1.5">
+                                                <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon / Voucher
+                                            </label>
+                                            {!currentUser && (
+                                                <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+                                                    <Lock className="w-3 h-3" /> Login Required
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {!currentUser ? (
+                                            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] leading-snug">
+                                                <span>You must be logged in to apply promo coupons or vouchers. </span>
+                                                <Link href="/login" className="underline font-bold text-white hover:text-[#f59e0b]">Sign In / Register</Link>
+                                            </div>
+                                        ) : appliedVoucher ? (
+                                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                                    <div>
+                                                        <div className="font-mono font-bold text-white">{appliedVoucher.code}</div>
+                                                        <div className="text-[10px] text-emerald-300">Saved ₱{voucherDiscount.toFixed(2)} OFF</div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveVoucher}
+                                                    className="text-[10px] text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-1.5">
+                                                <div className="flex gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        value={voucherInput}
+                                                        onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                                                        placeholder="Enter Coupon (e.g. SADDLE10)"
+                                                        className="flex-1 px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleApplyVoucher}
+                                                        disabled={!voucherInput.trim() || isValidatingVoucher}
+                                                        className="px-3.5 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-xs uppercase tracking-wider shadow cursor-pointer"
+                                                    >
+                                                        {isValidatingVoucher ? '...' : 'Apply'}
+                                                    </button>
+                                                </div>
+                                                {voucherError && (
+                                                    <div className="text-[11px] text-rose-400 font-semibold flex items-center gap-1">
+                                                        <AlertCircle className="w-3 h-3 shrink-0" />
+                                                        <span>{voucherError}</span>
+                                                    </div>
+                                                )}
+                                                {voucherSuccess && (
+                                                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                                                        <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                                        <span>{voucherSuccess}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-1 pt-2 border-t border-[#534434]/50">
+                                        <div className="flex justify-between text-xs text-[#d8c3ad]">
+                                            <span>Subtotal</span>
+                                            <span className="font-mono">₱{subtotal.toFixed(2)}</span>
+                                        </div>
+                                        {voucherDiscount > 0 && (
+                                            <div className="flex justify-between text-xs text-emerald-400 font-bold">
+                                                <span>Coupon Discount</span>
+                                                <span className="font-mono">- ₱{voucherDiscount.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between text-base font-black text-white pt-1">
+                                            <span>Total Amount</span>
+                                            <span className="text-[#ffc174] font-mono">₱{finalTotal.toFixed(2)}</span>
+                                        </div>
                                     </div>
 
                                     <button
@@ -1028,7 +1177,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         disabled={cart.length === 0 || isSubmitting}
                                         className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel"
                                     >
-                                        {isSubmitting ? 'Processing Order...' : `Place Order (₱${subtotal.toFixed(2)})`}
+                                        {isSubmitting ? 'Processing Order...' : `Place Order (₱${finalTotal.toFixed(2)})`}
                                     </button>
                                 </div>
                             </form>
@@ -1331,9 +1480,68 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </div>
                                 )}
 
-                                <div className="pt-2 flex items-center justify-between text-sm font-black">
-                                    <span className="text-[#d8c3ad]">Total Amount</span>
-                                    <span className="text-[#ffc174] font-mono text-lg">₱ {subtotal.toFixed(2)}</span>
+                                {/* MOBILE COUPON SECTION */}
+                                <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-[11px] font-bold text-[#ffc174] uppercase tracking-wider flex items-center gap-1">
+                                            <Ticket className="w-3.5 h-3.5 text-[#f59e0b]" /> Promo Coupon / Voucher
+                                        </label>
+                                        {!currentUser && (
+                                            <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+                                                <Lock className="w-3 h-3" /> Login Required
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {!currentUser ? (
+                                        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px]">
+                                            <span>Login required for coupons. </span>
+                                            <Link href="/login" className="underline font-bold text-white">Sign In</Link>
+                                        </div>
+                                    ) : appliedVoucher ? (
+                                        <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+                                            <div className="flex items-center gap-1.5">
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                                <span className="font-mono font-bold text-white">{appliedVoucher.code} (-₱{voucherDiscount.toFixed(2)})</span>
+                                            </div>
+                                            <button type="button" onClick={handleRemoveVoucher} className="text-[10px] text-rose-400 font-bold underline">Remove</button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-1.5">
+                                            <input
+                                                type="text"
+                                                value={voucherInput}
+                                                onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                                                placeholder="Coupon code..."
+                                                className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleApplyVoucher}
+                                                disabled={!voucherInput.trim() || isValidatingVoucher}
+                                                className="px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase"
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="pt-2 space-y-1">
+                                    <div className="flex items-center justify-between text-xs text-[#d8c3ad]">
+                                        <span>Subtotal</span>
+                                        <span className="font-mono">₱ {subtotal.toFixed(2)}</span>
+                                    </div>
+                                    {voucherDiscount > 0 && (
+                                        <div className="flex items-center justify-between text-xs text-emerald-400 font-bold">
+                                            <span>Discount</span>
+                                            <span className="font-mono">- ₱ {voucherDiscount.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between text-sm font-black pt-1">
+                                        <span className="text-white">Total Amount</span>
+                                        <span className="text-[#ffc174] font-mono text-lg">₱ {finalTotal.toFixed(2)}</span>
+                                    </div>
                                 </div>
 
                                 <button
@@ -1341,7 +1549,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     disabled={isSubmitting}
                                     className="w-full py-3.5 rounded-2xl bg-[#f59e0b] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 hover:bg-[#ffc174] transition-all btn-bevel"
                                 >
-                                    {isSubmitting ? 'Processing Order...' : `Place Order • ₱ ${subtotal.toFixed(2)}`}
+                                    {isSubmitting ? 'Processing Order...' : `Place Order • ₱ ${finalTotal.toFixed(2)}`}
                                 </button>
                             </form>
                         </div>

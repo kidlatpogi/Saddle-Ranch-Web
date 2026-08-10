@@ -17,8 +17,12 @@ interface VoucherItem {
     discount_type: 'percentage' | 'fixed';
     value: number;
     min_spend: number;
+    is_one_time_use?: boolean;
+    is_limited_time?: boolean;
     branch?: 'all' | 'bulihan' | 'dasmarinas';
+    starts_at?: string;
     expires_at?: string;
+    times_used?: number;
 }
 
 interface VouchersProps {
@@ -33,7 +37,10 @@ export default function AdminVouchers({ vouchers = [] }: VouchersProps) {
         discount_type: 'fixed' as 'fixed' | 'percentage',
         value: '',
         min_spend: '0',
+        is_one_time_use: true,
+        is_limited_time: false,
         branch: 'all',
+        starts_at: '',
         expires_at: '',
     });
 
@@ -183,27 +190,70 @@ export default function AdminVouchers({ vouchers = [] }: VouchersProps) {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Min. Spend (₱)</label>
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Min. Spend (₱)</label>
+                                <input
+                                    type="number"
+                                    value={data.min_spend}
+                                    onChange={(e) => setData('min_spend', e.target.value)}
+                                    placeholder="300"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-[#333338] space-y-3">
+                                <div className="text-xs font-bold text-[#fbbf24] uppercase tracking-wider">Voucher Rules</div>
+                                
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label htmlFor="modal-one-time" className="text-xs font-bold text-white cursor-pointer">1 Time Use Only</label>
+                                        <p className="text-[10px] text-[#a1a1aa]">One redemption per customer account</p>
+                                    </div>
                                     <input
-                                        type="number"
-                                        value={data.min_spend}
-                                        onChange={(e) => setData('min_spend', e.target.value)}
-                                        placeholder="300"
-                                        className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                        id="modal-one-time"
+                                        type="checkbox"
+                                        checked={data.is_one_time_use}
+                                        onChange={(e) => setData('is_one_time_use', e.target.checked)}
+                                        className="w-4 h-4 accent-[#f59e0b] rounded cursor-pointer"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Expiration Date</label>
+                                <div className="flex items-center justify-between pt-2 border-t border-[#27272a]">
+                                    <div>
+                                        <label htmlFor="modal-limited-time" className="text-xs font-bold text-white cursor-pointer">Limited Time Only</label>
+                                        <p className="text-[10px] text-[#a1a1aa]">Enforce activation and expiration dates</p>
+                                    </div>
                                     <input
-                                        type="date"
-                                        value={data.expires_at}
-                                        onChange={(e) => setData('expires_at', e.target.value)}
-                                        className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                        id="modal-limited-time"
+                                        type="checkbox"
+                                        checked={data.is_limited_time}
+                                        onChange={(e) => setData('is_limited_time', e.target.checked)}
+                                        className="w-4 h-4 accent-[#f59e0b] rounded cursor-pointer"
                                     />
                                 </div>
+
+                                {data.is_limited_time && (
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Date Activated</label>
+                                            <input
+                                                type="date"
+                                                value={data.starts_at}
+                                                onChange={(e) => setData('starts_at', e.target.value)}
+                                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Date Ended</label>
+                                            <input
+                                                type="date"
+                                                value={data.expires_at}
+                                                onChange={(e) => setData('expires_at', e.target.value)}
+                                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-3 pt-4">

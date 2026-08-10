@@ -14,8 +14,12 @@ class Voucher extends Model
         'discount_type',
         'value',
         'min_spend',
+        'is_one_time_use',
+        'is_limited_time',
         'branch',
+        'starts_at',
         'expires_at',
+        'times_used',
     ];
 
     protected function casts(): array
@@ -23,7 +27,11 @@ class Voucher extends Model
         return [
             'value' => 'decimal:2',
             'min_spend' => 'decimal:2',
+            'is_one_time_use' => 'boolean',
+            'is_limited_time' => 'boolean',
+            'starts_at' => 'datetime',
             'expires_at' => 'datetime',
+            'times_used' => 'integer',
         ];
     }
 }

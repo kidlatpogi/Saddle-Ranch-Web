@@ -35,6 +35,7 @@ Route::middleware(['auth', 'role:admin,employee,cashier,kitchen'])->group(functi
 // Protected Admin Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::delete('/admin/orders/{id}', [AdminDashboardController::class, 'destroyOrder'])->name('admin.orders.destroy');
     
     // Product Management (CRUD)
     Route::get('/admin/products', [ProductManagementController::class, 'index'])->name('admin.products');
