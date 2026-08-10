@@ -157,15 +157,10 @@ export default function CustomerAccountModal({
                         <div className="w-12 h-12 rounded-2xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#f59e0b] font-black text-lg flex items-center justify-center">
                             {user.name ? user.name.charAt(0).toUpperCase() : 'C'}
                         </div>
-                        <div>
-                            <div className="flex items-center gap-2">
+                            <div>
                                 <h3 className="text-base font-bold text-white">{user.name}</h3>
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase">
-                                    Customer
-                                </span>
+                                <p className="text-xs text-[#8c7a6b] font-mono">{user.email}</p>
                             </div>
-                            <p className="text-xs text-[#8c7a6b] font-mono">{user.email}</p>
-                        </div>
                     </div>
                     <button
                         type="button"

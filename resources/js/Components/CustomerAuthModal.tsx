@@ -123,14 +123,9 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
 
                 {/* Header with Close Button */}
                 <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-2xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#f59e0b]">
-                            <Sparkles className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h3 className="text-base font-black text-white font-domine tracking-tight">Customer Portal</h3>
-                            <p className="text-[11px] text-[#d8c3ad]">Sign in or register to use coupons</p>
-                        </div>
+                    <div>
+                        <h3 className="text-base font-black text-white font-domine tracking-tight">Customer Portal</h3>
+                        <p className="text-[11px] text-[#d8c3ad]">Sign in or register to use coupons</p>
                     </div>
 
                     <button

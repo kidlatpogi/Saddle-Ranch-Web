@@ -555,6 +555,26 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
+                                {currentUser ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAccountModalOpen(true)}
+                                        className="px-3 py-1 rounded-full bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
+                                    >
+                                        <User className="w-3.5 h-3.5" />
+                                        <span>Account</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAuthModalOpen(true)}
+                                        className="px-3 py-1 rounded-full bg-[#261e15] hover:bg-[#31281f] border border-[#534434] text-[#ffc174] text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
+                                    >
+                                        <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                        <span>Sign In</span>
+                                    </button>
+                                )}
+
                                 <button
                                     type="button"
                                     onClick={() => setIsPrivacyModalOpen(true)}
@@ -1092,38 +1112,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             <div className="flex items-center justify-between border-b border-[#534434]/40 pb-2.5">
                                                 <div className="flex items-center gap-2 truncate">
                                                     <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                                    <div className="truncate flex items-center gap-1.5">
-                                                        <span className="text-white font-bold truncate text-xs">{currentUser.name}</span>
-                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
-                                                                ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
-                                                                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                            }`}>
-                                                            {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                                                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setIsAccountModalOpen(true)}
-                                                        className="px-2 py-0.5 rounded-lg bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                                                    >
-                                                        <User className="w-3 h-3" /> Account
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleCustomerLogout}
-                                                        className="px-2 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/40 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                                                    >
-                                                        <LogOut className="w-3 h-3" /> Sign Out
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setIsPrivacyModalOpen(true)}
-                                                        className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
-                                                    >
-                                                        <ShieldCheck className="w-3 h-3" /> Policy
-                                                    </button>
+                                                    <span className="text-white font-bold truncate text-xs">Signed in as {currentUser.name}</span>
                                                 </div>
                                             </div>
 
@@ -1478,38 +1467,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <div className="flex items-center justify-between border-b border-[#534434]/40 pb-2">
                                             <div className="flex items-center gap-2 truncate">
                                                 <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                                                <div className="truncate flex items-center gap-1.5">
-                                                    <span className="text-white font-bold truncate text-xs">{currentUser.name}</span>
-                                                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase shrink-0 ${currentUser.role && currentUser.role !== 'user'
-                                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]/40'
-                                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                                        }`}>
-                                                        {currentUser.role && currentUser.role !== 'user' ? `${currentUser.role} Staff` : 'Customer'}
-                                                    </span>
-                                                </div>
-                                                                     <div className="flex items-center gap-1 shrink-0 ml-1">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsAccountModalOpen(true)}
-                                                    className="px-2 py-0.5 rounded-lg bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-[9px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                                                >
-                                                    <User className="w-2.5 h-2.5" /> Account
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={handleCustomerLogout}
-                                                    className="px-2 py-0.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/40 text-[9px] font-bold flex items-center gap-1 transition-all cursor-pointer"
-                                                >
-                                                    <LogOut className="w-2.5 h-2.5" /> Sign Out
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsPrivacyModalOpen(true)}
-                                                    className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
-                                                >
-                                                    <ShieldCheck className="w-3 h-3" /> Policy
-                                                </button>
-                                            </div>                     </div>
+                                                <span className="text-white font-bold truncate text-xs">Signed in as {currentUser.name}</span>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-1.5">
