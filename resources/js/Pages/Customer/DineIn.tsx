@@ -25,7 +25,8 @@ import {
     Building2,
     Utensils,
     Ticket,
-    LogOut
+    LogOut,
+    User
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -33,6 +34,7 @@ import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 import CustomerAuthModal from '@/Components/CustomerAuthModal';
+import CustomerAccountModal from '@/Components/CustomerAccountModal';
 
 interface Product {
     id: number;
@@ -121,6 +123,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [accountEmail, setAccountEmail] = useState('');
     const [accountPassword, setAccountPassword] = useState('');
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
@@ -350,7 +353,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 }),
             });
 
-            const json = await response.json();
+            const json = await response.json().catch(() => ({}));
             if (response.ok && json.status === 'success') {
                 setAppliedVoucher(json.voucher);
                 setVoucherDiscount(json.discount_amount);
@@ -359,7 +362,12 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             } else {
                 setAppliedVoucher(null);
                 setVoucherDiscount(0);
-                setVoucherError(json.message || 'Invalid coupon code.');
+                let errStr = json.message;
+                if (!errStr && json.errors) {
+                    const firstKey = Object.keys(json.errors)[0];
+                    errStr = Array.isArray(json.errors[firstKey]) ? json.errors[firstKey][0] : json.errors[firstKey];
+                }
+                setVoucherError(errStr || 'Invalid promo coupon or voucher code.');
             }
         } catch (err: any) {
             setAppliedVoucher(null);
@@ -979,7 +987,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                                <div className="flex items-center gap-1 shrink-0 ml-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsAccountModalOpen(true)}
+                                                        className="px-2 py-0.5 rounded-lg bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-[9px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                                    >
+                                                        <User className="w-2.5 h-2.5" /> Account
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         onClick={handleCustomerLogout}
@@ -992,7 +1007,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         onClick={() => setIsPrivacyModalOpen(true)}
                                                         className="hover:underline text-[#f59e0b] text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
                                                     >
-                                                        <ShieldCheck className="w-3 h-3" /> Privacy
+                                                        <ShieldCheck className="w-3 h-3" /> Policy
                                                     </button>
                                                 </div>
                                             </div>
@@ -1286,7 +1301,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                            <div className="flex items-center gap-1 shrink-0 ml-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAccountModalOpen(true)}
+                                                    className="px-2 py-0.5 rounded-lg bg-[#f59e0b]/20 hover:bg-[#f59e0b] border border-[#f59e0b]/40 text-[#ffc174] hover:text-[#472a00] text-[9px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                                >
+                                                    <User className="w-2.5 h-2.5" /> Account
+                                                </button>
                                                 <button
                                                     type="button"
                                                     onClick={handleCustomerLogout}
@@ -1318,22 +1340,39 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     <button type="button" onClick={handleRemoveVoucher} className="text-[10px] text-rose-400 font-bold underline">Remove</button>
                                                 </div>
                                             ) : (
-                                                <div className="flex gap-1.5">
-                                                    <input
-                                                        type="text"
-                                                        value={voucherInput}
-                                                        onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
-                                                        placeholder="Coupon code..."
-                                                        className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleApplyVoucher}
-                                                        disabled={!voucherInput.trim() || isValidatingVoucher}
-                                                        className="px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase"
-                                                    >
-                                                        Apply
-                                                    </button>
+                                                <div className="space-y-1.5">
+                                                    <div className="flex gap-1.5">
+                                                        <input
+                                                            type="text"
+                                                            value={voucherInput}
+                                                            onChange={(e) => {
+                                                                setVoucherInput(e.target.value.toUpperCase());
+                                                                setVoucherError('');
+                                                            }}
+                                                            placeholder="Coupon code..."
+                                                            className="flex-1 px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white uppercase font-mono"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleApplyVoucher}
+                                                            disabled={!voucherInput.trim() || isValidatingVoucher}
+                                                            className="px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#472a00] font-black text-xs uppercase"
+                                                        >
+                                                            {isValidatingVoucher ? '...' : 'Apply'}
+                                                        </button>
+                                                    </div>
+                                                    {voucherError && (
+                                                        <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-300 font-semibold flex items-center gap-1.5">
+                                                            <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                                            <span>{voucherError}</span>
+                                                        </div>
+                                                    )}
+                                                    {voucherSuccess && (
+                                                        <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[11px] text-emerald-300 font-semibold flex items-center gap-1.5">
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                            <span>{voucherSuccess}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -1449,6 +1488,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     onSuccess={(user) => {
                         setCurrentUser(user);
                     }}
+                />
+                <CustomerAccountModal
+                    isOpen={isAccountModalOpen}
+                    onClose={() => setIsAccountModalOpen(false)}
+                    user={currentUser}
+                    onUpdateUser={(updatedUser) => setCurrentUser(updatedUser)}
+                    onLogout={handleCustomerLogout}
                 />
             </div>
         </>

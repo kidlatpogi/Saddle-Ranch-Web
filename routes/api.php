@@ -203,6 +203,94 @@ Route::prefix('v1')->group(function () {
 
         // Voucher Validation Endpoint (web session protected)
         Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
+
+        // Customer Purchase History
+        Route::get('/customer/orders', function (Request $request) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+            }
+
+            $orders = Order::with('orderItems.product')
+                ->where('user_id', $user->id)
+                ->orWhere('customer_name', $user->name)
+                ->orWhere(function ($query) use ($user) {
+                    if ($user->phone_number) {
+                        $query->where('customer_phone', $user->phone_number);
+                    }
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $orders,
+            ]);
+        });
+
+        // Customer Profile Update
+        Route::post('/customer/profile/update', function (Request $request) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+            }
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+                'phone_number' => 'nullable|string|regex:/^[0-9]{11}$/',
+                'password' => 'nullable|string|min:8|confirmed',
+            ], [
+                'email.unique' => 'This email address is already in use by another account.',
+                'phone_number.regex' => 'Mobile number must consist of 11 numeric digits.',
+                'password.confirmed' => 'New password and confirmation password do not match.',
+            ]);
+
+            $user->name = $validated['name'];
+            $user->email = $validated['email'];
+            $user->phone_number = $validated['phone_number'] ?? null;
+            if (!empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
+            $user->save();
+
+            \App\Models\AuditLog::create([
+                'user_id' => $user->id,
+                'action' => "Customer updated profile details ({$user->email})",
+                'ip_address' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Profile updated successfully!',
+                'user' => $user,
+            ]);
+        });
+
+        // Customer Account Deletion
+        Route::post('/customer/account/delete', function (Request $request) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+            }
+
+            $userEmail = $user->email;
+            \App\Models\AuditLog::create([
+                'user_id' => null,
+                'action' => "Customer Account Deleted permanently: {$userEmail}",
+                'ip_address' => $request->ip(),
+            ]);
+
+            \Illuminate\Support\Facades\Auth::guard('web')->logout();
+            $user->delete();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Account permanently deleted.',
+            ]);
+        });
     });
 
     // Customer Order Lookup / Live Status Tracking Endpoint
