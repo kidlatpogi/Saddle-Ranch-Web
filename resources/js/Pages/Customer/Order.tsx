@@ -28,6 +28,7 @@ import AIChatbot from '@/Components/AIChatbot';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
+import CustomerAuthModal from '@/Components/CustomerAuthModal';
 
 interface Product {
     id: number;
@@ -119,7 +120,13 @@ const CAVITE_LOCATIONS: Record<string, string[]> = {
 
 export default function CustomerOrder({ products = [] }: OrderProps) {
     const { flash, auth } = usePage<PageProps>().props;
-    const currentUser: any = auth?.user;
+    const authUser: any = auth?.user;
+    const [currentUser, setCurrentUser] = useState<any>(authUser);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    useEffect(() => {
+        setCurrentUser(authUser);
+    }, [authUser]);
 
     const queryParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const initialMode = (queryParams.get('mode') === 'delivery' ? 'delivery' : 'pickup') as 'pickup' | 'delivery';
@@ -1101,7 +1108,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         {!currentUser ? (
                                             <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] leading-snug">
                                                 <span>You must be logged in to apply promo coupons or vouchers. </span>
-                                                <Link href="/login" className="underline font-bold text-white hover:text-[#f59e0b]">Sign In / Register</Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAuthModalOpen(true)}
+                                                    className="underline font-bold text-white hover:text-[#f59e0b] cursor-pointer"
+                                                >
+                                                    Sign In / Register
+                                                </button>
                                             </div>
                                         ) : appliedVoucher ? (
                                             <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
@@ -1496,7 +1509,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     {!currentUser ? (
                                         <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px]">
                                             <span>Login required for coupons. </span>
-                                            <Link href="/login" className="underline font-bold text-white">Sign In</Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAuthModalOpen(true)}
+                                                className="underline font-bold text-white hover:text-[#f59e0b] cursor-pointer"
+                                            >
+                                                Sign In / Register
+                                            </button>
                                         </div>
                                     ) : appliedVoucher ? (
                                         <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
@@ -1697,6 +1716,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
                 <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
                 <CustomerOrderTracker />
+                <CustomerAuthModal
+                    isOpen={isAuthModalOpen}
+                    onClose={() => setIsAuthModalOpen(false)}
+                    onSuccess={(user) => {
+                        setCurrentUser(user);
+                    }}
+                />
             </div>
         </>
     );

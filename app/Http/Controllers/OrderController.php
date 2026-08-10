@@ -239,6 +239,21 @@ class OrderController extends Controller
                 $voucherModel->increment('times_used');
             }
 
+            // Create Audit Log record
+            $custName = $validated['customer_name'] ?? ($validated['table_number'] ? "Table {$validated['table_number']}" : 'Guest');
+            AuditLog::create([
+                'user_id' => $userId,
+                'action' => "Order #{$order->order_number} placed by {$custName} ({$order->order_type}) - Total: ₱" . number_format($finalTotalAmount, 2),
+                'ip_address' => request()->ip(),
+                'payload' => [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'order_type' => $order->order_type,
+                    'total_amount' => $finalTotalAmount,
+                    'voucher_code' => $appliedVoucherCode,
+                ],
+            ]);
+
             return $order;
         });
 

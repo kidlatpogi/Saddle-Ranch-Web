@@ -313,7 +313,13 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }));
     };
 
-    const [auditLogs] = useState<AuditLogItem[]>(formatAuditLogs(initialAuditLogs || []));
+    const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(formatAuditLogs(initialAuditLogs || []));
+
+    React.useEffect(() => {
+        if (initialAuditLogs && initialAuditLogs.length > 0) {
+            setAuditLogs(formatAuditLogs(initialAuditLogs));
+        }
+    }, [initialAuditLogs]);
 
     // Modals & Forms State
     const [showAddProductModal, setShowAddProductModal] = useState(false);
@@ -545,6 +551,17 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             const json = await response.json();
             if (response.ok) {
                 setOrders(prev => prev.map(o => o.id === voidingOrder.id ? { ...o, status: 'cancelled' } : o));
+                
+                const newLog: AuditLogItem = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                    user: 'Admin Staff',
+                    role: 'Admin',
+                    action: `Voided Order #${voidingOrder.orderNumber || voidingOrder.id} | Reason: ${voidReason}`,
+                    module: 'Order Queue / Sales',
+                };
+                setAuditLogs(prev => [newLog, ...prev]);
+
                 setVoidingOrder(null);
                 setVoidPassword('');
                 setVoidReason('');
@@ -565,6 +582,17 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             router.delete(`/admin/orders/${deletingOrder.id}`, {
                 onSuccess: () => {
                     setOrders(prev => prev.filter(o => o.id !== deletingOrder.id));
+
+                    const newLog: AuditLogItem = {
+                        id: Date.now(),
+                        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                        user: 'Admin Staff',
+                        role: 'Admin',
+                        action: `Permanently Deleted Order #${deletingOrder.orderNumber || deletingOrder.id}`,
+                        module: 'Order Queue / Sales',
+                    };
+                    setAuditLogs(prev => [newLog, ...prev]);
+
                     setDeletingOrder(null);
                 },
                 onFinish: () => setIsDeletingOrder(false),

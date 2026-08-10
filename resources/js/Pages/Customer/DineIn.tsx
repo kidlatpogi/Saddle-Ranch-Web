@@ -31,6 +31,7 @@ import { PageProps } from '@/types';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
+import CustomerAuthModal from '@/Components/CustomerAuthModal';
 
 interface Product {
     id: number;
@@ -51,7 +52,13 @@ type CategoryType = 'Popular' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada P
 
 export default function DineInOrder({ products = [], tableNumber: initialTableNumber = '05' }: DineInProps) {
     const { flash, auth } = usePage<PageProps>().props;
-    const currentUser: any = auth?.user;
+    const authUser: any = auth?.user;
+    const [currentUser, setCurrentUser] = useState<any>(authUser);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    useEffect(() => {
+        setCurrentUser(authUser);
+    }, [authUser]);
 
     const queryParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const urlTable = queryParams.get('table');
@@ -1011,7 +1018,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         {!currentUser ? (
                                             <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px]">
                                                 <span>You must be logged in to apply promo coupons or vouchers. </span>
-                                                <Link href="/login" className="underline font-bold text-white hover:text-[#f59e0b]">Sign In</Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAuthModalOpen(true)}
+                                                    className="underline font-bold text-white hover:text-[#f59e0b] cursor-pointer"
+                                                >
+                                                    Sign In / Register
+                                                </button>
                                             </div>
                                         ) : appliedVoucher ? (
                                             <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
@@ -1325,7 +1338,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     {!currentUser ? (
                                         <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px]">
                                             <span>Login required for coupons. </span>
-                                            <Link href="/login" className="underline font-bold text-white">Sign In</Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAuthModalOpen(true)}
+                                                className="underline font-bold text-white hover:text-[#f59e0b] cursor-pointer"
+                                            >
+                                                Sign In / Register
+                                            </button>
                                         </div>
                                     ) : appliedVoucher ? (
                                         <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
@@ -1459,7 +1478,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 />
 
                 <CustomerOrderTracker />
-
+                <CustomerAuthModal
+                    isOpen={isAuthModalOpen}
+                    onClose={() => setIsAuthModalOpen(false)}
+                    onSuccess={(user) => {
+                        setCurrentUser(user);
+                    }}
+                />
             </div>
         </>
     );
