@@ -148,60 +148,61 @@ export default function CustomerAccountModal({
     if (!isOpen || !user) return null;
 
     return (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-xl rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-5 max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-xl rounded-t-3xl sm:rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[85vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
                 
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-[#534434]/40 pb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#f59e0b] font-black text-lg flex items-center justify-center">
+                <div className="flex items-center justify-between border-b border-[#534434]/40 pb-3.5">
+                    <div className="flex items-center gap-3 truncate">
+                        <div className="w-11 h-11 rounded-2xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 text-[#f59e0b] font-black text-lg flex items-center justify-center shrink-0 shadow-inner">
                             {user.name ? user.name.charAt(0).toUpperCase() : 'C'}
                         </div>
-                            <div>
-                                <h3 className="text-base font-bold text-white">{user.name}</h3>
-                                <p className="text-xs text-[#8c7a6b] font-mono">{user.email}</p>
-                            </div>
+                        <div className="truncate">
+                            <h3 className="text-base font-bold text-white truncate">{user.name}</h3>
+                            <p className="text-xs text-[#8c7a6b] font-mono truncate">{user.email}</p>
+                        </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-[#121213] border border-[#534434] text-[#8c7a6b] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-full bg-[#121213] border border-[#534434] text-[#8c7a6b] hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                        aria-label="Close Modal"
                     >
                         <X className="w-4 h-4" />
                     </button>
                 </div>
 
-                {/* Tabs */}
-                <div className="grid grid-cols-3 gap-2 bg-[#121213] p-1 rounded-2xl border border-[#534434]/60">
+                {/* Mobile-Friendly 3-Tab Bar */}
+                <div className="grid grid-cols-3 gap-1.5 bg-[#121213] p-1 rounded-2xl border border-[#534434]/60">
                     <button
                         type="button"
                         onClick={() => setActiveTab('history')}
-                        className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            activeTab === 'history' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#8c7a6b] hover:text-white'
+                        className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                            activeTab === 'history' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow-md' : 'text-[#8c7a6b] hover:text-white'
                         }`}
                     >
-                        <ShoppingBag className="w-3.5 h-3.5" />
-                        <span>Purchase History</span>
+                        <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                        <span>Orders</span>
                     </button>
                     <button
                         type="button"
                         onClick={() => setActiveTab('edit')}
-                        className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            activeTab === 'edit' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#8c7a6b] hover:text-white'
+                        className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                            activeTab === 'edit' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow-md' : 'text-[#8c7a6b] hover:text-white'
                         }`}
                     >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Account Edit</span>
+                        <Edit3 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Edit Profile</span>
                     </button>
                     <button
                         type="button"
                         onClick={() => setActiveTab('settings')}
-                        className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            activeTab === 'settings' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow' : 'text-[#8c7a6b] hover:text-white'
+                        className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                            activeTab === 'settings' ? 'bg-[#f59e0b] text-[#472a00] font-black shadow-md' : 'text-[#8c7a6b] hover:text-white'
                         }`}
                     >
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out & Delete</span>
+                        <LogOut className="w-3.5 h-3.5 shrink-0" />
+                        <span>Sign Out</span>
                     </button>
                 </div>
 
