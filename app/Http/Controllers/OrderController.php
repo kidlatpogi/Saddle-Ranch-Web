@@ -73,6 +73,8 @@ class OrderController extends Controller
             'account_email' => 'nullable|required_if:create_account,true|email|max:255|unique:users,email',
             'account_password' => 'nullable|required_if:create_account,true|string|min:8',
         ], [
+            'items.*.product_id.exists' => 'One or more items in your cart are invalid or no longer available.',
+            'items.required' => 'Your cart is empty. Please add items to your cart.',
             'customer_phone.regex' => 'The mobile number must consist of exactly 11 numeric digits (e.g. 09171234567).',
             'account_email.unique' => 'An account with this email already exists. Please sign in or use a different email.',
         ]);

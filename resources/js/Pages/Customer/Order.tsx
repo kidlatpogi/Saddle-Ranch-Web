@@ -291,7 +291,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             is_active: true,
         },
         {
-            id: 13,
+            id: 7,
             name: 'Extra Garlic Rice',
             description: 'Fragrant fried garlic rice served piping hot.',
             price: 35.00,
@@ -300,7 +300,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             is_active: true,
         },
         {
-            id: 14,
+            id: 8,
             name: 'Signature Red Iced Tea (1 Litro)',
             description: 'Chilled house-brewed red iced tea pitcher (1 Litro).',
             price: 95.00,
@@ -494,11 +494,19 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             create_account: !currentUser && createAccount,
             account_email: !currentUser && createAccount ? accountEmail.trim() : null,
             account_password: !currentUser && createAccount ? accountPassword.trim() : null,
-            items: cart.map((item) => ({
-                product_id: item.product.id,
-                quantity: item.quantity,
-            })),
+            items: cart
+                .filter((item) => allProducts.some((p) => p.id === item.product.id))
+                .map((item) => ({
+                    product_id: item.product.id,
+                    quantity: item.quantity,
+                })),
         };
+
+        if (payload.items.length === 0) {
+            setIsSubmitting(false);
+            setValidationError('Your cart contains invalid or unavailable products. Please re-add items to your cart.');
+            return;
+        }
 
         router.post('/order/checkout', payload, {
             onSuccess: (page) => {
@@ -516,8 +524,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             },
             onError: (errors) => {
                 setIsSubmitting(false);
+                const itemsErrKey = Object.keys(errors).find(k => k.startsWith('items'));
                 if (errors.items) {
                     setValidationError(errors.items);
+                } else if (itemsErrKey) {
+                    setValidationError('One or more selected items are no longer available. Please update your cart.');
                 } else {
                     const firstErr = Object.values(errors)[0];
                     setValidationError(typeof firstErr === 'string' ? firstErr : 'An error occurred during checkout.');

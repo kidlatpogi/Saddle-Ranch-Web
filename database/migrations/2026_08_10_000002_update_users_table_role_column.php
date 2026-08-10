@@ -18,7 +18,9 @@ return new class extends Migration
             DB::statement("DROP TABLE users;");
             DB::statement("CREATE TABLE users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                name VARCHAR NOT NULL,
+                name VARCHAR,
+                first_name VARCHAR,
+                last_name VARCHAR,
                 email VARCHAR NOT NULL UNIQUE,
                 email_verified_at DATETIME,
                 password VARCHAR NOT NULL,
@@ -30,7 +32,7 @@ return new class extends Migration
                 created_at DATETIME,
                 updated_at DATETIME
             );");
-            DB::statement("INSERT INTO users (id, name, email, email_verified_at, password, role, branch, phone_number, address, remember_token, created_at, updated_at) SELECT id, name, email, email_verified_at, password, role, branch, phone_number, address, remember_token, created_at, updated_at FROM users_temp;");
+            DB::statement("INSERT INTO users (id, name, first_name, last_name, email, email_verified_at, password, role, branch, phone_number, address, remember_token, created_at, updated_at) SELECT id, name, first_name, last_name, email, email_verified_at, password, role, branch, phone_number, address, remember_token, created_at, updated_at FROM users_temp;");
             DB::statement("DROP TABLE users_temp;");
             DB::statement("PRAGMA foreign_keys=ON;");
         } else {

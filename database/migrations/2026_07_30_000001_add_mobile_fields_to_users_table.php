@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'first_name')) {
-                $table->string('first_name')->nullable()->after('name');
+                $table->string('first_name')->nullable();
             }
             if (!Schema::hasColumn('users', 'last_name')) {
-                $table->string('last_name')->nullable()->after('first_name');
+                $table->string('last_name')->nullable();
             }
             if (!Schema::hasColumn('users', 'address')) {
-                $table->string('address')->nullable()->after('password');
+                $table->string('address')->nullable();
             }
             if (!Schema::hasColumn('users', 'phone_number')) {
-                $table->string('phone_number')->nullable()->after('address');
+                $table->string('phone_number')->nullable();
             }
         });
     }
@@ -33,7 +33,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['first_name', 'last_name', 'address', 'phone_number']);
+            $cols = array_filter(['first_name', 'last_name', 'address', 'phone_number'], fn($col) => Schema::hasColumn('users', $col));
+            if (!empty($cols)) {
+                $table->dropColumn(array_values($cols));
+            }
         });
     }
 };

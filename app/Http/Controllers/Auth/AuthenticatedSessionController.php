@@ -48,7 +48,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('employee.kitchen'));
         }
 
-        return redirect()->intended(route('order.index'));
+        return redirect()->intended(route('order'));
     }
 
     /**
