@@ -32,7 +32,7 @@ COPY . .
 
 # Install PHP & NPM dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm ci || npm install
+RUN npm install
 RUN npm run build
 
 # Setup Storage & SQLite Permissions
