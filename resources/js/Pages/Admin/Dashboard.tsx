@@ -102,7 +102,7 @@ interface EmployeeItem {
     id: number;
     name: string;
     email: string;
-    role: 'Admin' | 'Kitchen Staff' | 'Cashier';
+    role: 'Admin' | 'Kitchen Staff' | 'Cashier' | 'Staff' | 'Customer' | string;
     branch?: 'All' | 'Bulihan' | 'Dasma';
     status: 'Active' | 'Inactive';
     createdAt: string;
@@ -150,7 +150,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             id: e.id,
             name: e.name || e.email,
             email: e.email,
-            role: e.role === 'admin' ? 'Admin' : (e.role === 'kitchen' ? 'Kitchen Staff' : 'Cashier'),
+            role: e.role === 'admin' ? 'Admin' : (e.role === 'kitchen' ? 'Kitchen Staff' : (e.role === 'cashier' ? 'Cashier' : (e.role === 'employee' ? 'Staff' : 'Customer'))),
             branch: e.branch ? (e.branch.toLowerCase().includes('dasma') ? 'Dasma' : (e.branch.toLowerCase().includes('all') ? 'All' : 'Bulihan')) : 'Bulihan',
             status: 'Active',
             createdAt: e.created_at ? e.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
@@ -363,6 +363,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [newEmpBranch, setNewEmpBranch] = useState<'Bulihan' | 'Dasma'>('Bulihan');
 
     const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
+    const [userRoleFilter, setUserRoleFilter] = useState<string>('All');
 
     // Audit Logs Filters & Pagination
     const [auditModuleFilter, setAuditModuleFilter] = useState<string>('All');
@@ -772,7 +773,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         { id: 'tables', label: 'Table & QR Generator', icon: <QrCode className="w-4 h-4" /> },
         { id: 'banners', label: 'Promo Banners', icon: <ImageIcon className="w-4 h-4" /> },
         { id: 'vouchers', label: 'Vouchers', icon: <Ticket className="w-4 h-4" /> },
-        { id: 'employees', label: 'Employees', icon: <Users className="w-4 h-4" /> },
+        { id: 'employees', label: 'User Accounts', icon: <Users className="w-4 h-4" /> },
         { id: 'audit', label: 'Audit Logs', icon: <FileText className="w-4 h-4" /> },
         { id: 'sales', label: 'Sales & Revenue', icon: <TrendingUp className="w-4 h-4" /> },
     ];
@@ -1715,13 +1716,13 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             </div>
                         )}
 
-                        {/* TAB 7: EMPLOYEES WITH BRANCH SORT */}
+                        {/* TAB 7: USER ACCOUNTS (ADMIN, EMPLOYEES & CUSTOMERS) */}
                         {activeTab === 'employees' && (
                             <div className="space-y-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white font-domine">Staff & Employee Accounts (Full CRUD)</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Manage Cashier and Kitchen staff accounts for Bulihan and Dasmariñas</p>
+                                        <h3 className="text-lg font-bold text-white font-domine">Staff & Customer User Accounts</h3>
+                                        <p className="text-xs text-[#a1a1aa]">Manage Admin, Staff (Cashier/Kitchen), and Customer accounts across all branches</p>
                                     </div>
                                     <button
                                         onClick={() => setShowAddEmployeeModal(true)}
@@ -1732,22 +1733,41 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     </button>
                                 </div>
 
-                                {/* BRANCH SORT FILTER TOOLBAR */}
+                                {/* BRANCH & ROLE SORT FILTER TOOLBAR */}
                                 <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
-                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
-                                        <MapPin className="w-4 h-4 text-[#f59e0b]" />
-                                        <span className="text-[#a1a1aa] font-bold">Branch View:</span>
-                                        <select
-                                            value={productBranchFilter}
-                                            onChange={(e) => setProductBranchFilter(e.target.value)}
-                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
-                                            <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
-                                        </select>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <Users className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Account Role:</span>
+                                            <select
+                                                value={userRoleFilter}
+                                                onChange={(e) => setUserRoleFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Accounts</option>
+                                                <option value="Admin" className="bg-[#18181b]">Admin Accounts</option>
+                                                <option value="Staff" className="bg-[#18181b]">Staff / Employees</option>
+                                                <option value="Customer" className="bg-[#18181b]">Customer Accounts</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                            <select
+                                                value={productBranchFilter}
+                                                onChange={(e) => setProductBranchFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Branches</option>
+                                                <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
                                     </div>
+
                                     <div className="text-xs text-[#a1a1aa]">
-                                        Staff Accounts for <strong className="text-[#fbbf24] font-bold">{productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}</strong>
+                                        Showing <strong className="text-[#fbbf24] font-bold">{userRoleFilter}</strong> Accounts ({productBranchFilter === 'All' ? 'All Branches' : `${productBranchFilter} Store`})
                                     </div>
                                 </div>
 
@@ -1765,50 +1785,62 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-[#333338] text-zinc-200">
-                                            {employees.filter(e => !e.branch || e.branch === productBranchFilter).map((e) => (
-                                                <tr key={e.id} className="hover:bg-[#27272a]/50 transition-colors">
-                                                    <td className="py-4 px-4 font-bold text-white text-sm">{e.name}</td>
-                                                    <td className="py-4 px-4 font-mono text-[#a1a1aa]">{e.email}</td>
-                                                    <td className="py-4 px-4">
-                                                        <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                                                            e.branch === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                                                        }`}>
-                                                            {(e.branch ?? productBranchFilter) === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-4">
-                                                        <span className="px-2.5 py-1 rounded-full bg-[#f59e0b]/15 text-[#fbbf24] text-[10px] font-black uppercase border border-[#f59e0b]/30">
-                                                            {e.role}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-4">
-                                                        <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                                                            e.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                                                        }`}>
-                                                            {e.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-4 font-mono text-[#71717a]">{e.createdAt}</td>
-                                                    <td className="py-4 px-4 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <button
-                                                                onClick={() => setEditingEmployee(e)}
-                                                                className="p-1.5 rounded-xl bg-[#27272a] text-[#fbbf24] hover:bg-[#3f3f46] border border-[#3f3f46]"
-                                                                title="Edit Employee"
-                                                            >
-                                                                <Edit2 className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => deleteEmployee(e.id)}
-                                                                className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20"
-                                                                title="Delete Employee"
-                                                            >
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {employees
+                                                .filter(e => {
+                                                    if (productBranchFilter !== 'All' && e.branch && e.branch !== productBranchFilter) return false;
+                                                    if (userRoleFilter === 'Admin' && e.role !== 'Admin') return false;
+                                                    if (userRoleFilter === 'Staff' && !['Cashier', 'Kitchen Staff', 'Staff', 'Employee'].includes(e.role)) return false;
+                                                    if (userRoleFilter === 'Customer' && e.role !== 'Customer') return false;
+                                                    return true;
+                                                })
+                                                .map((e) => (
+                                                    <tr key={e.id} className="hover:bg-[#27272a]/50 transition-colors">
+                                                        <td className="py-4 px-4 font-bold text-white text-sm">{e.name}</td>
+                                                        <td className="py-4 px-4 font-mono text-[#a1a1aa]">{e.email}</td>
+                                                        <td className="py-4 px-4">
+                                                            <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                                                e.branch === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                                            }`}>
+                                                                {(e.branch ?? productBranchFilter) === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                                                                e.role === 'Admin' ? 'bg-amber-500/20 text-[#fbbf24] border-amber-500/40' :
+                                                                e.role === 'Customer' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
+                                                                'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                                                            }`}>
+                                                                {e.role}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                                                e.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                                            }`}>
+                                                                {e.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-4 font-mono text-[#71717a]">{e.createdAt}</td>
+                                                        <td className="py-4 px-4 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => setEditingEmployee(e)}
+                                                                    className="p-1.5 rounded-xl bg-[#27272a] text-[#fbbf24] hover:bg-[#3f3f46] border border-[#3f3f46]"
+                                                                    title="Edit User Account"
+                                                                >
+                                                                    <Edit2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => deleteEmployee(e.id)}
+                                                                    className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20"
+                                                                    title="Delete User Account"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
                                         </tbody>
                                     </table>
                                 </div>
