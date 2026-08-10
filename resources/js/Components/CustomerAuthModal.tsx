@@ -9,11 +9,11 @@ interface CustomerAuthModalProps {
 
 export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: CustomerAuthModalProps) {
     const [mode, setMode] = useState<'login' | 'register'>('login');
-    
+
     // Login form state
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
-    
+
     // Register form state
     const [regName, setRegName] = useState('');
     const [regEmail, setRegEmail] = useState('');
@@ -113,7 +113,7 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
     return (
         <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
             <div className="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-5 sm:p-6 shadow-2xl space-y-5 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-                
+
                 {/* Header with Close Button */}
                 <div className="flex items-center justify-between pb-3 border-b border-[#534434]/50">
                     <div className="flex items-center gap-2.5">
@@ -140,22 +140,20 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
                     <button
                         type="button"
                         onClick={() => { setMode('login'); setErrorMsg(''); }}
-                        className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                            mode === 'login'
+                        className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${mode === 'login'
                                 ? 'bg-[#f59e0b] text-[#472a00] font-black shadow-md'
                                 : 'text-[#8c7a6b] hover:text-[#d8c3ad]'
-                        }`}
+                            }`}
                     >
-                        <LogIn className="w-3.5 h-3.5" /> Customer Sign In
+                        <LogIn className="w-3.5 h-3.5" /> Sign In
                     </button>
                     <button
                         type="button"
                         onClick={() => { setMode('register'); setErrorMsg(''); }}
-                        className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                            mode === 'register'
+                        className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${mode === 'register'
                                 ? 'bg-[#f59e0b] text-[#472a00] font-black shadow-md'
                                 : 'text-[#8c7a6b] hover:text-[#d8c3ad]'
-                        }`}
+                            }`}
                     >
                         <UserPlus className="w-3.5 h-3.5" /> Create Account
                     </button>

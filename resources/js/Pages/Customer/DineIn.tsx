@@ -950,55 +950,23 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2.5">
-                                            <label className="flex items-start gap-2 text-xs font-semibold text-[#ffc174] cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={createAccount}
-                                                    onChange={(e) => setCreateAccount(e.target.checked)}
-                                                    className="w-4 h-4 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] mt-0.5 shrink-0"
-                                                />
-                                                <span className="leading-snug">Save my order history & details (Create a free account)</span>
-                                            </label>
-
-                                            {createAccount && (
-                                                <div className="space-y-2 pt-1 animate-in fade-in duration-200">
-                                                    <div>
-                                                        <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Email Address *</label>
-                                                        <input
-                                                            type="email"
-                                                            required={createAccount}
-                                                            value={accountEmail}
-                                                            onChange={(e) => setAccountEmail(e.target.value)}
-                                                            placeholder="your.email@example.com"
-                                                            className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Account Password (min 8 chars) *</label>
-                                                        <input
-                                                            type="password"
-                                                            required={createAccount}
-                                                            minLength={8}
-                                                            value={accountPassword}
-                                                            onChange={(e) => setAccountPassword(e.target.value)}
-                                                            placeholder="••••••••"
-                                                            className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                        />
-                                                    </div>
+                                        <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5 text-xs font-bold text-[#ffc174]">
+                                                    <UserCheck className="w-4 h-4 text-[#f59e0b]" /> Customer Account
                                                 </div>
-                                            )}
-
-                                            <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-0.5">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsPrivacyModalOpen(true)}
-                                                    className="hover:underline text-[#f59e0b] flex items-center gap-1 cursor-pointer"
-                                                >
-                                                    <ShieldCheck className="w-3 h-3" /> Privacy & Safety Policy
-                                                </button>
-                                                <span className="font-semibold text-emerald-400">100% Optional</span>
+                                                <span className="text-[10px] text-emerald-400 font-semibold">Optional</span>
                                             </div>
+                                            <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                                Sign in or create a free account to apply promo coupons and track order history.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAuthModalOpen(true)}
+                                                className="w-full py-2 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 border border-[#f59e0b]/50 text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                                            >
+                                                <Lock className="w-3.5 h-3.5" /> Sign In / Create Free Account
+                                            </button>
                                         </div>
                                     )}
 
@@ -1282,43 +1250,22 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     </div>
                                 ) : (
                                     <div className="p-3 rounded-2xl bg-[#121213] border border-[#534434] space-y-2">
-                                        <label className="flex items-start gap-2 text-xs font-semibold text-[#ffc174] cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={createAccount}
-                                                onChange={(e) => setCreateAccount(e.target.checked)}
-                                                className="w-4 h-4 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] mt-0.5 shrink-0"
-                                            />
-                                            <span className="leading-snug">Save my order history & details (Create a free account)</span>
-                                        </label>
-
-                                        {createAccount && (
-                                            <div className="space-y-2 pt-1 animate-in fade-in duration-200">
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Email Address *</label>
-                                                    <input
-                                                        type="email"
-                                                        required={createAccount}
-                                                        value={accountEmail}
-                                                        onChange={(e) => setAccountEmail(e.target.value)}
-                                                        placeholder="your.email@example.com"
-                                                        className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-0.5">Account Password (min 8 chars) *</label>
-                                                    <input
-                                                        type="password"
-                                                        required={createAccount}
-                                                        minLength={8}
-                                                        value={accountPassword}
-                                                        onChange={(e) => setAccountPassword(e.target.value)}
-                                                        placeholder="••••••••"
-                                                        className="w-full px-2.5 py-1.5 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                    />
-                                                </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5 text-xs font-bold text-[#ffc174]">
+                                                <UserCheck className="w-4 h-4 text-[#f59e0b]" /> Customer Account
                                             </div>
-                                        )}
+                                            <span className="text-[10px] text-emerald-400 font-semibold">Optional</span>
+                                        </div>
+                                        <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                            Sign in or create a free account to apply coupons and track orders.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAuthModalOpen(true)}
+                                            className="w-full py-2 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 border border-[#f59e0b]/50 text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                                        >
+                                            <Lock className="w-3.5 h-3.5" /> Sign In / Create Free Account
+                                        </button>
                                     </div>
                                 )}
 

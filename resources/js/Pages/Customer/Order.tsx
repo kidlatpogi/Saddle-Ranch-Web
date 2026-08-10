@@ -890,6 +890,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
 
                                 <div className="space-y-4">
+
+
                                     <div>
                                         <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Customer Full Name *</label>
                                         <input
@@ -1041,54 +1043,23 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-3">
-                                            <label className="flex items-start gap-2 text-xs font-semibold text-[#ffc174] cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={createAccount}
-                                                    onChange={(e) => setCreateAccount(e.target.checked)}
-                                                    className="w-4 h-4 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] mt-0.5"
-                                                />
-                                                <span>Save my delivery address & purchase history (Create a free account)</span>
-                                            </label>
-
-                                            {createAccount && (
-                                                <div className="space-y-2.5 pt-1 animate-in fade-in duration-200">
-                                                    <div>
-                                                        <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-1">Email Address *</label>
-                                                        <input
-                                                            type="email"
-                                                            required={createAccount}
-                                                            value={accountEmail}
-                                                            onChange={(e) => setAccountEmail(e.target.value)}
-                                                            placeholder="your.email@example.com"
-                                                            className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-semibold text-[#d8c3ad] mb-1">Account Password (min 8 characters) *</label>
-                                                        <input
-                                                            type="password"
-                                                            required={createAccount}
-                                                            minLength={8}
-                                                            value={accountPassword}
-                                                            onChange={(e) => setAccountPassword(e.target.value)}
-                                                            placeholder="••••••••"
-                                                            className="w-full px-3 py-2 rounded-xl bg-[#1A1A1B] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
-                                                        />
-                                                    </div>
+                                        <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434] space-y-2.5">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5 text-xs font-bold text-[#ffc174]">
+                                                    <UserCheck className="w-4 h-4 text-[#f59e0b]" /> Customer Account
                                                 </div>
-                                            )}
-                                            <div className="flex items-center justify-between text-[10px] text-[#8c7a6b] pt-0.5">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsPrivacyModalOpen(true)}
-                                                    className="hover:underline text-[#f59e0b] flex items-center gap-1 cursor-pointer"
-                                                >
-                                                    <ShieldCheck className="w-3 h-3" /> Privacy & Data Safety Policy
-                                                </button>
-                                                <span className="font-semibold text-emerald-400">100% Optional</span>
+                                                <span className="text-[10px] text-emerald-400 font-semibold">Optional</span>
                                             </div>
+                                            <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                                Sign in or create a free account to save your address, apply promo coupons, and track past orders.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsAuthModalOpen(true)}
+                                                className="w-full py-2.5 rounded-xl bg-[#f59e0b]/20 hover:bg-[#f59e0b]/30 border border-[#f59e0b]/50 text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                                            >
+                                                <Lock className="w-3.5 h-3.5" /> Sign In / Create Free Account
+                                            </button>
                                         </div>
                                     )}
 
@@ -1106,12 +1077,12 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </div>
 
                                         {!currentUser ? (
-                                            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] leading-snug">
-                                                <span>You must be logged in to apply promo coupons or vouchers. </span>
+                                            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] flex items-center justify-between">
+                                                <span>Coupons require a customer account.</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsAuthModalOpen(true)}
-                                                    className="underline font-bold text-white hover:text-[#f59e0b] cursor-pointer"
+                                                    className="px-2.5 py-1 rounded-lg bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-[10px] uppercase cursor-pointer shrink-0 ml-2"
                                                 >
                                                     Sign In / Register
                                                 </button>
@@ -1507,14 +1478,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </div>
 
                                     {!currentUser ? (
-                                        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px]">
-                                            <span>Login required for coupons. </span>
+                                        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] flex items-center justify-between">
+                                            <span>Coupons require a customer account.</span>
                                             <button
                                                 type="button"
                                                 onClick={() => setIsAuthModalOpen(true)}
-                                                className="underline font-bold text-white hover:text-[#f59e0b] cursor-pointer"
+                                                className="px-2 py-1 rounded-lg bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-[10px] uppercase cursor-pointer shrink-0 ml-1"
                                             >
-                                                Sign In / Register
+                                                Sign In
                                             </button>
                                         </div>
                                     ) : appliedVoucher ? (
