@@ -697,7 +697,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         {cartEntry ? (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                className="w-8.5 h-8.5 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center btn-bevel cursor-pointer"
+                                                                className="w-8.5 h-8.5 rounded-full bg-[#f59e0b] text-black font-mono font-black text-sm border-2 border-[#121213] shadow-xl flex items-center justify-center btn-bevel cursor-pointer"
                                                             >
                                                                 {cartEntry.quantity}
                                                             </button>
@@ -705,9 +705,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 disabled={isOutOfStock}
-                                                                className="w-8.5 h-8.5 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
+                                                                className="w-8.5 h-8.5 rounded-full bg-[#f59e0b] text-black hover:bg-[#ffc174] font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
                                                             >
-                                                                <Plus className="w-4.5 h-4.5 text-[#472a00] stroke-[3]" />
+                                                                <Plus className="w-4.5 h-4.5 text-black stroke-[3]" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -1252,7 +1252,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-[#f59e0b] to-amber-600 text-[#472a00] font-black text-sm uppercase tracking-wider btn-bevel shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom-4 duration-300 cursor-pointer"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#121213] text-[#ffc174] text-xs font-black flex items-center justify-center border border-[#ffc174]">
+                                <div className="w-8.5 h-8.5 rounded-full bg-[#121213] text-[#f59e0b] font-mono text-sm font-black flex items-center justify-center border-2 border-[#f59e0b] shadow-md shrink-0">
                                     {itemCount}
                                 </div>
                                 <div className="text-left">
