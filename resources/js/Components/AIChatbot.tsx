@@ -301,7 +301,10 @@ export default function AIChatbot() {
                                 <span>Ordering from: <strong className="text-[#ffc174] font-bold">{currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</strong></span>
                             </div>
                             <button
-                                onClick={() => setIsLocationModalOpen(true)}
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    setIsLocationModalOpen(true);
+                                }}
                                 className="text-[10px] font-black uppercase tracking-wider bg-[#f59e0b]/20 text-[#f59e0b] hover:bg-[#f59e0b] hover:text-[#472a00] px-2.5 py-0.5 rounded-full border border-[#f59e0b]/40 transition-colors cursor-pointer"
                             >
                                 Change

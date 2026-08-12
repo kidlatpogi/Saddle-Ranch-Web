@@ -690,7 +690,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         {cartEntry ? (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                className="w-7 h-7 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center btn-bevel cursor-pointer"
+                                                                className="w-8.5 h-8.5 rounded-full bg-[#121213] text-[#ffc174] font-black text-xs border border-[#f59e0b] shadow-lg flex items-center justify-center btn-bevel cursor-pointer"
                                                             >
                                                                 {cartEntry.quantity}
                                                             </button>
@@ -698,9 +698,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 disabled={isOutOfStock}
-                                                                className="w-7 h-7 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
+                                                                className="w-8.5 h-8.5 rounded-full bg-[#f59e0b] text-[#472a00] hover:bg-[#ffc174] font-black text-sm shadow-lg flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
                                                             >
-                                                                +
+                                                                <Plus className="w-4.5 h-4.5 text-[#472a00] stroke-[3]" />
                                                             </button>
                                                         )}
                                                     </div>
