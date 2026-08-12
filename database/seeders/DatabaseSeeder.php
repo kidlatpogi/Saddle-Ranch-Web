@@ -267,6 +267,18 @@ class DatabaseSeeder extends Seeder
         );
 
         Voucher::updateOrCreate(
+            ['code' => 'WELCOME50'],
+            [
+                'discount_type' => 'fixed',
+                'value' => 50.00,
+                'min_spend' => 500.00,
+                'is_one_time_use' => true,
+                'branch' => 'all',
+                'expires_at' => now()->addYear(),
+            ]
+        );
+
+        Voucher::updateOrCreate(
             ['code' => 'DASMAFEAST'],
             [
                 'discount_type' => 'fixed',

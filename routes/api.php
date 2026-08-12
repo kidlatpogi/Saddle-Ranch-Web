@@ -204,6 +204,46 @@ Route::prefix('v1')->group(function () {
         // Voucher Validation Endpoint (web session protected)
         Route::post('/vouchers/validate', [VoucherController::class, 'validateVoucher']);
 
+        // Customer Available Vouchers Endpoint
+        Route::get('/customer/vouchers', function (Request $request) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+
+            $vouchers = \App\Models\Voucher::where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })->orderBy('created_at', 'desc')->get();
+
+            $usedVoucherIds = [];
+            if ($user) {
+                $usedVoucherIds = \App\Models\VoucherUsage::where('user_id', $user->id)
+                    ->pluck('voucher_id')
+                    ->toArray();
+            }
+
+            $mapped = $vouchers->map(function ($v) use ($usedVoucherIds) {
+                $isUsed = in_array($v->id, $usedVoucherIds);
+                return [
+                    'id' => $v->id,
+                    'code' => $v->code,
+                    'discount_type' => $v->discount_type,
+                    'value' => (float) $v->value,
+                    'min_spend' => (float) $v->min_spend,
+                    'is_one_time_use' => (bool) $v->is_one_time_use,
+                    'is_limited_time' => (bool) $v->is_limited_time,
+                    'branch' => $v->branch,
+                    'starts_at' => $v->starts_at ? $v->starts_at->toIso8601String() : null,
+                    'expires_at' => $v->expires_at ? $v->expires_at->toIso8601String() : null,
+                    'is_used' => $isUsed,
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'is_logged_in' => !empty($user),
+                'user' => $user,
+                'data' => $mapped,
+            ]);
+        });
+
         // Customer Purchase History
         Route::get('/customer/orders', function (Request $request) {
             $user = \Illuminate\Support\Facades\Auth::user();
