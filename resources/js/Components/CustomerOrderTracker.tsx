@@ -34,6 +34,40 @@ export default function CustomerOrderTracker() {
     const [savedOrderNumbers, setSavedOrderNumbers] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 
+    // Track active cart items to dynamically position floating button above "View your Order" bar
+    const [hasCartItems, setHasCartItems] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return false;
+        try {
+            const stored = localStorage.getItem('saddle_ranch_cart_v1');
+            const items = stored ? JSON.parse(stored) : [];
+            return Array.isArray(items) && items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0) > 0;
+        } catch {
+            return false;
+        }
+    });
+
+    useEffect(() => {
+        const checkCart = () => {
+            try {
+                const stored = localStorage.getItem('saddle_ranch_cart_v1');
+                const items = stored ? JSON.parse(stored) : [];
+                const count = Array.isArray(items) ? items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0) : 0;
+                setHasCartItems(count > 0);
+            } catch {
+                setHasCartItems(false);
+            }
+        };
+
+        checkCart();
+        window.addEventListener('storage', checkCart);
+        window.addEventListener('saddle_ranch_cart_updated', checkCart);
+
+        return () => {
+            window.removeEventListener('storage', checkCart);
+            window.removeEventListener('saddle_ranch_cart_updated', checkCart);
+        };
+    }, []);
+
     // Load stored orders from localStorage
     const getStoredOrders = useCallback((): string[] => {
         try {
@@ -187,8 +221,8 @@ export default function CustomerOrderTracker() {
     );
 
     return (
-        <div className={`fixed right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans ${
-            isOrderPage ? 'bottom-28' : 'bottom-4'
+        <div className={`fixed right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans transition-all duration-300 ${
+            isOrderPage && hasCartItems ? 'bottom-[98px]' : 'bottom-4'
         }`}>
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (

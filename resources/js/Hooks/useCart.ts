@@ -30,6 +30,9 @@ export function useCart() {
     useEffect(() => {
         try {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('saddle_ranch_cart_updated', { detail: { cart } }));
+            }
         } catch (err) {
             console.error('Failed to save cart to localStorage', err);
         }

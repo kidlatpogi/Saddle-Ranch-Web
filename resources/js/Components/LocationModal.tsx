@@ -86,39 +86,38 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
         if (onSelectBranch) {
             onSelectBranch(branch, locName, dist);
         }
-        onClose();
     };
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-md rounded-3xl bg-[#1c150e] border-2 border-[#f59e0b]/50 shadow-2xl text-[#f0e0d1] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-3.5 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-md rounded-3xl bg-[#1c150e] border-2 border-[#f59e0b]/50 shadow-2xl text-[#f0e0d1] overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="p-6 bg-gradient-to-r from-[#261e15] to-[#19120a] border-b border-[#534434] flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-[#f59e0b] text-[#472a00] flex items-center justify-center font-bold shadow-md shadow-[#f59e0b]/20">
-                            <Store className="w-5 h-5" />
+                <div className="p-4 sm:p-6 bg-gradient-to-r from-[#261e15] to-[#19120a] border-b border-[#534434] flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#f59e0b] text-[#472a00] flex items-center justify-center font-bold shadow-md shadow-[#f59e0b]/20 shrink-0">
+                            <Store className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
                         </div>
-                        <div>
-                            <h3 className="font-domine font-bold text-lg text-[#ffc174]">Select Roadhouse Branch</h3>
-                            <p className="text-xs text-[#d8c3ad]">Choose your preferred ordering branch</p>
+                        <div className="min-w-0">
+                            <h3 className="font-domine font-bold text-base sm:text-lg text-[#ffc174] leading-tight truncate">Select Roadhouse Branch</h3>
+                            <p className="text-[11px] sm:text-xs text-[#d8c3ad] truncate">Choose your preferred ordering branch</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-xl text-[#d8c3ad] hover:text-white hover:bg-[#31281f] transition-colors cursor-pointer"
+                        className="p-1.5 sm:p-2 rounded-xl text-[#d8c3ad] hover:text-white hover:bg-[#31281f] transition-colors cursor-pointer shrink-0"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="p-6 space-y-5">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
                     {/* Auto GPS Detection Button */}
                     <button
                         onClick={handleUseGps}
                         disabled={loadingGps}
-                        className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:brightness-110 text-[#472a00] font-black text-sm uppercase tracking-wider flex items-center justify-center gap-3 shadow-lg shadow-[#f59e0b]/30 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                        className="w-full p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:brightness-110 text-[#472a00] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-lg shadow-[#f59e0b]/30 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                     >
-                        <Compass className={`w-5 h-5 ${loadingGps ? 'animate-spin' : ''}`} />
+                        <Compass className={`w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0 ${loadingGps ? 'animate-spin' : ''}`} />
                         <span>{loadingGps ? 'Finding Closest Branch...' : 'Detect Closest Branch (Use GPS)'}</span>
                     </button>
 
@@ -130,99 +129,111 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
 
                     <div className="flex items-center gap-3">
                         <div className="h-px bg-[#31281f] flex-1" />
-                        <span className="text-xs text-[#8c7a6b] font-bold uppercase tracking-widest">Select Branch</span>
+                        <span className="text-[10px] sm:text-xs text-[#8c7a6b] font-bold uppercase tracking-widest">Select Branch</span>
                         <div className="h-px bg-[#31281f] flex-1" />
                     </div>
 
                     {/* The 2 Main Branches Cards */}
-                    <div className="grid grid-cols-1 gap-3.5">
+                    <div className="grid grid-cols-1 gap-3">
                         {/* Bulihan Branch */}
                         <div
                             onClick={() => saveAndApply('Bulihan', 'block 26 lot 17, Anahaw St, Silang, Cavite', 'Silang Area')}
-                            className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
+                            className={`p-3.5 sm:p-4 rounded-2xl border text-left flex items-start sm:items-center justify-between gap-3 transition-all cursor-pointer group ${
                                 selectedBranch === 'Bulihan'
                                     ? 'bg-[#2b2014] border-[#f59e0b] shadow-md shadow-[#f59e0b]/10'
                                     : 'bg-[#261e15] border-[#534434] hover:border-[#f59e0b]/60'
                             }`}
                         >
-                            <div className="flex items-center gap-3.5">
-                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold ${
+                            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
                                     selectedBranch === 'Bulihan'
                                         ? 'bg-[#f59e0b] text-[#472a00]'
                                         : 'bg-[#31281f] text-[#f59e0b] group-hover:bg-[#f59e0b] group-hover:text-[#472a00]'
                                 } transition-colors`}>
                                     <Building2 className="w-5 h-5" />
                                 </div>
-                                <div>
-                                    <div className="font-bold text-base text-white group-hover:text-[#ffc174] flex items-center gap-2">
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-bold text-sm sm:text-base text-white group-hover:text-[#ffc174] flex items-center gap-2 flex-wrap">
                                         <span>Bulihan Branch</span>
                                         {selectedBranch === 'Bulihan' && (
-                                            <span className="text-[10px] bg-[#f59e0b]/20 text-[#f59e0b] px-2 py-0.5 rounded-full font-black border border-[#f59e0b]/30">Active</span>
+                                            <span className="text-[9px] sm:text-[10px] bg-[#f59e0b]/20 text-[#f59e0b] px-2 py-0.5 rounded-full font-black border border-[#f59e0b]/30">Active</span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-[#d8c3ad] flex items-center gap-1 mt-0.5">
-                                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
-                                        <span>block 26 lot 17, Anahaw St, Silang, Cavite</span>
+                                    <p className="text-[11px] sm:text-xs text-[#d8c3ad] flex items-start gap-1 mt-1 leading-snug">
+                                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0 mt-0.5" />
+                                        <span className="break-words">block 26 lot 17, Anahaw St, Silang, Cavite</span>
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0 pt-0.5 sm:pt-0">
                                 <a
                                     href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
                                     title="View Bulihan Branch on Google Maps"
-                                    className="p-2 rounded-xl bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#f59e0b] hover:text-white transition-all flex items-center gap-1 text-xs"
+                                    className="p-2 rounded-xl bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#f59e0b] hover:text-white transition-all flex items-center justify-center text-xs"
                                 >
                                     <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
-                                <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Bulihan' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
+                                <div className="w-5 h-5 flex items-center justify-center">
+                                    {selectedBranch === 'Bulihan' ? (
+                                        <CheckCircle2 className="w-5 h-5 text-[#f59e0b] shrink-0" />
+                                    ) : (
+                                        <div className="w-4 h-4 rounded-full border border-[#534434] group-hover:border-[#f59e0b]/60" />
+                                    )}
+                                </div>
                             </div>
                         </div>
 
                         {/* Dasmariñas Branch */}
                         <div
                             onClick={() => saveAndApply('Dasma', "8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite", 'Dasmariñas Area')}
-                            className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer group ${
+                            className={`p-3.5 sm:p-4 rounded-2xl border text-left flex items-start sm:items-center justify-between gap-3 transition-all cursor-pointer group ${
                                 selectedBranch === 'Dasma'
                                     ? 'bg-[#2b2014] border-[#f59e0b] shadow-md shadow-[#f59e0b]/10'
                                     : 'bg-[#261e15] border-[#534434] hover:border-[#f59e0b]/60'
                             }`}
                         >
-                            <div className="flex items-center gap-3.5">
-                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold ${
+                            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold shrink-0 ${
                                     selectedBranch === 'Dasma'
                                         ? 'bg-[#f59e0b] text-[#472a00]'
                                         : 'bg-[#31281f] text-[#f59e0b] group-hover:bg-[#f59e0b] group-hover:text-[#472a00]'
                                 } transition-colors`}>
                                     <Building2 className="w-5 h-5" />
                                 </div>
-                                <div>
-                                    <div className="font-bold text-base text-white group-hover:text-[#ffc174] flex items-center gap-2">
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-bold text-sm sm:text-base text-white group-hover:text-[#ffc174] flex items-center gap-2 flex-wrap">
                                         <span>Dasmariñas Branch</span>
                                         {selectedBranch === 'Dasma' && (
-                                            <span className="text-[10px] bg-[#f59e0b]/20 text-[#f59e0b] px-2 py-0.5 rounded-full font-black border border-[#f59e0b]/30">Active</span>
+                                            <span className="text-[9px] sm:text-[10px] bg-[#f59e0b]/20 text-[#f59e0b] px-2 py-0.5 rounded-full font-black border border-[#f59e0b]/30">Active</span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-[#d8c3ad] flex items-center gap-1 mt-0.5">
-                                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
-                                        <span>8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
+                                    <p className="text-[11px] sm:text-xs text-[#d8c3ad] flex items-start gap-1 mt-1 leading-snug">
+                                        <MapPin className="w-3.5 h-3.5 text-[#f59e0b] shrink-0 mt-0.5" />
+                                        <span className="break-words">8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0 pt-0.5 sm:pt-0">
                                 <a
                                     href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
                                     title="View Dasmariñas Branch on Google Maps"
-                                    className="p-2 rounded-xl bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#f59e0b] hover:text-white transition-all flex items-center gap-1 text-xs"
+                                    className="p-2 rounded-xl bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#f59e0b] hover:text-white transition-all flex items-center justify-center text-xs"
                                 >
                                     <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
-                                <CheckCircle2 className={`w-5 h-5 ${selectedBranch === 'Dasma' ? 'text-[#f59e0b]' : 'text-transparent'}`} />
+                                <div className="w-5 h-5 flex items-center justify-center">
+                                    {selectedBranch === 'Dasma' ? (
+                                        <CheckCircle2 className="w-5 h-5 text-[#f59e0b] shrink-0" />
+                                    ) : (
+                                        <div className="w-4 h-4 rounded-full border border-[#534434] group-hover:border-[#f59e0b]/60" />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
