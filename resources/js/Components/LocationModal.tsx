@@ -86,7 +86,6 @@ export default function LocationModal({ isOpen, onClose, onSelectBranch }: Locat
         if (onSelectBranch) {
             onSelectBranch(branch, locName, dist);
         }
-        onClose();
     };
 
     return (

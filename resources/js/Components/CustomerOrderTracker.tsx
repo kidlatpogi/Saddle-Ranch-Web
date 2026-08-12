@@ -222,7 +222,7 @@ export default function CustomerOrderTracker() {
 
     return (
         <div className={`fixed right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans transition-all duration-300 ${
-            isOrderPage && hasCartItems ? 'bottom-[81px]' : 'bottom-4'
+            isOrderPage && hasCartItems ? 'bottom-[98px]' : 'bottom-4'
         }`}>
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (
