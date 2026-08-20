@@ -190,12 +190,55 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }
     }, [initialEmployees]);
 
+    const getProductCategory = (name: string, category?: string): ProductItem['category'] => {
+        if (category) {
+            const cat = category.toLowerCase().trim();
+            if (cat.includes('filipino') || cat.includes('authentic')) return 'Authentic Filipino Cuisine';
+            if (cat.includes('platter') || cat.includes('barkada')) return 'Barkada Platters';
+            if (cat.includes('drink') || cat.includes('extra rice') || cat.includes('beverage')) return 'Drinks & Extra Rice';
+            if (cat.includes('sizzling') || cat.includes('rice meal') || cat.includes('meal')) return 'Sizzling Rice Meals';
+        }
+
+        const n = (name || '').toLowerCase().trim();
+        if (
+            n === 'extra rice' ||
+            n.includes('extra rice') ||
+            n.includes('plain rice') ||
+            n.includes('garlic rice') ||
+            n.includes('tea') ||
+            n.includes('cucumber') ||
+            n.includes('pitcher') ||
+            n.includes('beverage') ||
+            n.includes('drink') ||
+            n.includes('juice') ||
+            n.includes('soda') ||
+            n.includes('water')
+        ) {
+            return 'Drinks & Extra Rice';
+        }
+        if (n.includes('platter') || n.includes('barkada') || n.includes('sharing') || n.includes('bilao')) {
+            return 'Barkada Platters';
+        }
+        if (
+            n.includes('kare') ||
+            n.includes('adobo') ||
+            n.includes('sinigang') ||
+            n.includes('bulalo') ||
+            n.includes('lechon') ||
+            n.includes('pinakbet') ||
+            n.includes('filipino')
+        ) {
+            return 'Authentic Filipino Cuisine';
+        }
+        return 'Sizzling Rice Meals';
+    };
+
     const formatProducts = (rawProds: any[]): ProductItem[] => {
         if (!rawProds || rawProds.length === 0) return [];
         return rawProds.map((p: any) => ({
             id: p.id,
             name: p.name,
-            category: p.category || 'Sizzling Rice Meals',
+            category: getProductCategory(p.name, p.category),
             description: p.description || 'Delicious roadhouse sizzling meal.',
             price: Number(p.price || 0),
             stock: Number(p.stock_quantity ?? 50),
@@ -694,6 +737,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
         const formData = new FormData();
         formData.append('name', newProductName.trim());
+        formData.append('category', newProductCategory);
         formData.append('description', newProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
         formData.append('price', newProductPrice || '180');
         formData.append('price_bulihan', newProductPriceBulihan || newProductPrice || '180');
@@ -744,6 +788,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
         const formData = new FormData();
         formData.append('name', editProductName.trim() || editingProduct.name);
+        formData.append('category', editProductCategory);
         formData.append('description', editProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
         formData.append('price', editProductPrice || (editingProduct.price || 0).toString());
         formData.append('price_bulihan', editProductPriceBulihan || editProductPrice || (editingProduct.priceBulihan ?? editingProduct.price ?? 0).toString());

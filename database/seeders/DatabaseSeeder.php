@@ -113,6 +113,7 @@ class DatabaseSeeder extends Seeder
             // 1. Filipino Cuisines (Ala Carte / Sharing Bowls)
             [
                 'name' => 'Kare-Kare',
+                'category' => 'Authentic Filipino Cuisine',
                 'description' => 'Traditional Filipino stew featuring tender meat in a rich, savory peanut sauce with fresh vegetables and bagoong.',
                 'price' => 180.00,
                 'price_bulihan' => 180.00,
@@ -125,6 +126,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Pork Adobo',
+                'category' => 'Authentic Filipino Cuisine',
                 'description' => 'Classic savory and tangy braised pork simmered in soy sauce, vinegar, garlic, and bay leaves.',
                 'price' => 120.00,
                 'price_bulihan' => 120.00,
@@ -137,6 +139,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Pork Sinigang',
+                'category' => 'Authentic Filipino Cuisine',
                 'description' => 'Comforting sour tamarind soup with succulent pork and fresh local vegetables.',
                 'price' => 150.00,
                 'price_bulihan' => 150.00,
@@ -151,6 +154,7 @@ class DatabaseSeeder extends Seeder
             // 2. Sizzling Menus (Solo Rice Meals)
             [
                 'name' => 'Sizzling Bangus',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Marinated milkfish seared on a smoking hot plate served with garlic rice.',
                 'price' => 125.00,
                 'price_bulihan' => 125.00,
@@ -163,6 +167,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Beef Teriyaki',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Tender slices of beef glazed with sweet-savory teriyaki sauce on a sizzling platter.',
                 'price' => 140.00,
                 'price_bulihan' => 140.00,
@@ -175,6 +180,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Burger Steak',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Juicy beef patty smothered with signature mushroom gravy on a sizzling hot plate.',
                 'price' => 95.00,
                 'price_bulihan' => 95.00,
@@ -187,6 +193,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Chicken Inasal',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Bacolod-style chargrilled chicken quarter served sizzling with savory chicken oil and garlic rice.',
                 'price' => 120.00,
                 'price_bulihan' => 120.00,
@@ -199,6 +206,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Porkchop',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Thick-cut grilled pork chop served with house gravy on cast iron.',
                 'price' => 120.00,
                 'price_bulihan' => 120.00,
@@ -211,6 +219,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Sisig (w/ Egg)',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Crispy chopped pork seasoned with onions, calamansi, and chili, topped with a fresh egg.',
                 'price' => 100.00,
                 'price_bulihan' => 100.00,
@@ -223,6 +232,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Spicy Beef',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Sliced tender beef tossed in spicy savory pepper gravy on a hot cast iron platter.',
                 'price' => 120.00,
                 'price_bulihan' => 120.00,
@@ -235,6 +245,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Tapsilog',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Cured beef tapa served with garlic fried rice and a sunny-side up egg.',
                 'price' => 100.00,
                 'price_bulihan' => 100.00,
@@ -247,6 +258,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sizzling Tilapia',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Crisp fried fresh tilapia on a sizzling platter with soy-calamansi dipping sauce.',
                 'price' => 85.00,
                 'price_bulihan' => 85.00,
@@ -259,6 +271,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Tocilog',
+                'category' => 'Sizzling Rice Meals',
                 'description' => 'Sweet cured pork tocino served with fragrant garlic rice and fried egg.',
                 'price' => 75.00,
                 'price_bulihan' => 75.00,
@@ -273,6 +286,7 @@ class DatabaseSeeder extends Seeder
             // 3. Rice & Drinks
             [
                 'name' => 'Extra Rice',
+                'category' => 'Drinks & Extra Rice',
                 'description' => 'Steaming hot serving of plain white rice.',
                 'price' => 15.00,
                 'price_bulihan' => 15.00,
@@ -285,6 +299,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Red Iced Tea (1 Litre Pitcher)',
+                'category' => 'Drinks & Extra Rice',
                 'description' => 'Sweet and refreshing house red iced tea in a 1-litre sharing pitcher.',
                 'price' => 50.00,
                 'price_bulihan' => 50.00,
@@ -297,6 +312,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Cucumber (1 Litre Pitcher)',
+                'category' => 'Drinks & Extra Rice',
                 'description' => 'Fresh cucumber lemonade cooler in a 1-litre sharing pitcher.',
                 'price' => 50.00,
                 'price_bulihan' => 50.00,
@@ -311,6 +327,7 @@ class DatabaseSeeder extends Seeder
             // 4. Barkada Platters
             [
                 'name' => 'Platter Sisig',
+                'category' => 'Barkada Platters',
                 'description' => 'Generous barkada-sized platter of sizzling crispy pork sisig.',
                 'price' => 200.00,
                 'price_bulihan' => 200.00,
@@ -323,6 +340,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Platter Tapa',
+                'category' => 'Barkada Platters',
                 'description' => 'Barkada-sized platter of savory cured beef tapa.',
                 'price' => 220.00,
                 'price_bulihan' => 220.00,
@@ -335,6 +353,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Platter Teriyaki',
+                'category' => 'Barkada Platters',
                 'description' => 'Large sharing platter of sizzling beef teriyaki with sweet glazed sauce.',
                 'price' => 250.00,
                 'price_bulihan' => 250.00,
