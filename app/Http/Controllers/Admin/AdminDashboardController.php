@@ -21,6 +21,7 @@ class AdminDashboardController extends Controller
         $auditLogs = AuditLog::with('user')->orderBy('created_at', 'desc')->get();
         $employees = \App\Models\User::orderBy('id', 'desc')->get();
         $vouchers = \App\Models\Voucher::orderBy('created_at', 'desc')->get();
+        $banners = \App\Models\PromoBanner::orderBy('display_order', 'asc')->get();
 
         return Inertia::render('Admin/Dashboard', [
             'initialOrders' => $orders,
@@ -28,6 +29,7 @@ class AdminDashboardController extends Controller
             'initialAuditLogs' => $auditLogs,
             'initialEmployees' => $employees,
             'initialVouchers' => $vouchers,
+            'initialBanners' => $banners,
         ]);
     }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { 
     Users, 
     Plus, 
@@ -8,7 +8,9 @@ import {
     Key,
     Shield,
     UserCheck,
-    Lock
+    Lock,
+    Trash2,
+    RefreshCw
 } from 'lucide-react';
 
 interface EmployeeUser {
@@ -26,6 +28,8 @@ interface EmployeesProps {
 export default function AdminEmployees({ employees = [] }: EmployeesProps) {
     const [showModal, setShowModal] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState<EmployeeUser | null>(null);
+    const [deletingEmployee, setDeletingEmployee] = useState<EmployeeUser | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
@@ -133,13 +137,23 @@ export default function AdminEmployees({ employees = [] }: EmployeesProps) {
                                         </td>
                                         <td className="py-4 text-[#a1a1aa]">{new Date(emp.created_at).toLocaleDateString()}</td>
                                         <td className="py-4 text-right">
-                                            <button
-                                                onClick={() => openEditModal(emp)}
-                                                className="px-3 py-1.5 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs flex items-center gap-1.5 ml-auto"
-                                            >
-                                                <Key className="w-3.5 h-3.5" />
-                                                <span>Reset Password</span>
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => openEditModal(emp)}
+                                                    className="px-3 py-1.5 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs flex items-center gap-1.5"
+                                                    title="Edit / Reset Password"
+                                                >
+                                                    <Key className="w-3.5 h-3.5" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeletingEmployee(emp)}
+                                                    className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20"
+                                                    title="Delete Account"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -231,6 +245,72 @@ export default function AdminEmployees({ employees = [] }: EmployeesProps) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* DELETE EMPLOYEE CONFIRMATION MODAL */}
+            {deletingEmployee && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <Trash2 className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Delete User Account</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-0.5">Remove staff access</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#27272a] space-y-2">
+                            <p className="text-xs text-[#f4f4f5] leading-relaxed">
+                                Are you sure you want to delete staff account <strong className="text-[#fbbf24] font-bold">{deletingEmployee.name}</strong> ({deletingEmployee.email})?
+                            </p>
+                            <p className="text-[11px] text-[#71717a]">
+                                This user will immediately lose access to the cashier/kitchen dashboard and admin portal.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={() => setDeletingEmployee(null)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={() => {
+                                    if (!deletingEmployee) return;
+                                    setIsDeleting(true);
+                                    router.delete(`/admin/employees/${deletingEmployee.id}`, {
+                                        onSuccess: () => {
+                                            setDeletingEmployee(null);
+                                            setIsDeleting(false);
+                                        },
+                                        onError: () => setIsDeleting(false),
+                                        onFinish: () => setIsDeleting(false),
+                                    });
+                                }}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Confirm Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

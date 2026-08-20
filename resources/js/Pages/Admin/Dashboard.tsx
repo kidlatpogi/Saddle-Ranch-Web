@@ -72,6 +72,7 @@ interface OrderItem {
 }
 
 interface BannerItem {
+    id?: number;
     slot: number; // 1, 2, 3, or 4
     title: string;
     subtitle: string;
@@ -124,9 +125,10 @@ interface AdminDashboardProps {
     initialAuditLogs?: any[];
     initialEmployees?: any[];
     initialVouchers?: any[];
+    initialBanners?: any[];
 }
 
-export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers }: AdminDashboardProps) {
+export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers, initialBanners }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -135,6 +137,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
 
     const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+    const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
 
     const formatEmployees = (rawEmps: any[]): EmployeeItem[] => {
         if (!rawEmps || rawEmps.length === 0) {
@@ -158,6 +161,12 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const [employees, setEmployees] = useState<EmployeeItem[]>(formatEmployees(initialEmployees || []));
+
+    React.useEffect(() => {
+        if (initialEmployees && initialEmployees.length > 0) {
+            setEmployees(formatEmployees(initialEmployees));
+        }
+    }, [initialEmployees]);
 
     const formatProducts = (rawProds: any[]): ProductItem[] => {
         if (!rawProds || rawProds.length === 0) return [];
@@ -230,42 +239,81 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         return () => clearInterval(interval);
     }, []);
 
+    const formatBanners = (rawBanners: any[]): Record<number, BannerItem> => {
+        const fallback: Record<number, BannerItem> = {
+            1: {
+                id: 1,
+                slot: 1,
+                title: 'Sisig Saturdays Deal',
+                subtitle: 'Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.',
+                tag: 'WEEKEND SPECIAL • 20% OFF',
+                branch: 'All',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
+                isActive: true
+            },
+            2: {
+                id: 2,
+                slot: 2,
+                title: 'Cowboy Ribeye Special',
+                subtitle: 'Bone-in, seared on smoking cast iron.',
+                tag: 'NEW ARRIVAL',
+                branch: 'Bulihan',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
+                isActive: true
+            },
+            3: {
+                id: 3,
+                slot: 3,
+                title: 'Unlimited Rice & Soup',
+                subtitle: 'Unli rice & soup at selected products for both branches — exclusive offer for only ₱79 at Dasmariñas Branch!',
+                tag: 'DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP',
+                branch: 'Dasma',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
+                isActive: true
+            },
+            4: {
+                id: 4,
+                slot: 4,
+                title: 'Pulutan Happy Hour Specials',
+                subtitle: "Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.",
+                tag: 'HAPPY HOUR • 4PM - 7PM DAILY',
+                branch: 'All',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+                ctaText: 'ORDER PULUTAN NOW →',
+                isActive: true
+            }
+        };
+
+        if (!rawBanners || rawBanners.length === 0) return fallback;
+
+        const result: Record<number, BannerItem> = { ...fallback };
+        rawBanners.forEach((b: any, index: number) => {
+            const slot = b.display_order || (index + 1);
+            if (slot >= 1 && slot <= 4) {
+                result[slot] = {
+                    id: b.id,
+                    slot: slot,
+                    title: b.title,
+                    subtitle: b.subtitle || fallback[slot]?.subtitle || '',
+                    tag: b.tag || fallback[slot]?.tag || 'SPECIAL DEAL',
+                    branch: b.branch === 'bulihan' ? 'Bulihan' : (b.branch === 'dasmarinas' ? 'Dasma' : 'All'),
+                    image: b.image_path || defaultBannerImg,
+                    ctaText: b.cta_text || fallback[slot]?.ctaText || 'VIEW PROMO',
+                    isActive: Boolean(b.is_active),
+                };
+            }
+        });
+        return result;
+    };
+
     // 4 PROMO BANNER SLOTS
-    const [banners, setBanners] = useState<Record<number, BannerItem>>({
-        1: {
-            slot: 1,
-            title: 'Sisig Saturdays Deal',
-            subtitle: 'Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.',
-            tag: 'WEEKEND SPECIAL • 20% OFF',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
-            isActive: true
-        },
-        2: {
-            slot: 2,
-            title: 'Cowboy Ribeye Special',
-            subtitle: 'Bone-in, seared on smoking cast iron.',
-            tag: 'NEW ARRIVAL',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
-            isActive: true
-        },
-        3: {
-            slot: 3,
-            title: 'Unlimited Rice & Soup',
-            subtitle: 'Unli rice & soup at selected products for both branches — exclusive offer for only ₱79 at Dasmariñas Branch!',
-            tag: 'DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
-            isActive: true
-        },
-        4: {
-            slot: 4,
-            title: 'Pulutan Happy Hour Specials',
-            subtitle: "Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.",
-            tag: 'HAPPY HOUR • 4PM - 7PM DAILY',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            ctaText: 'ORDER PULUTAN NOW →',
-            isActive: true
+    const [banners, setBanners] = useState<Record<number, BannerItem>>(formatBanners(initialBanners || []));
+
+    React.useEffect(() => {
+        if (initialBanners && initialBanners.length > 0) {
+            setBanners(formatBanners(initialBanners));
         }
-    });
+    }, [initialBanners]);
 
     const formatVouchers = (raw: any[]): VoucherItem[] => {
         if (!raw || raw.length === 0) {
@@ -292,6 +340,12 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const [vouchers, setVouchers] = useState<VoucherItem[]>(formatVouchers(initialVouchers || []));
+
+    React.useEffect(() => {
+        if (initialVouchers && initialVouchers.length > 0) {
+            setVouchers(formatVouchers(initialVouchers));
+        }
+    }, [initialVouchers]);
 
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
@@ -327,17 +381,56 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }
     }, [initialAuditLogs]);
 
-    // Modals & Forms State
+    // Add Product Modal & Form State
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [newProductName, setNewProductName] = useState('');
     const [newProductCategory, setNewProductCategory] = useState<ProductItem['category']>('Sizzling Rice Meals');
+    const [newProductDescription, setNewProductDescription] = useState('');
     const [newProductPrice, setNewProductPrice] = useState('');
+    const [newProductPriceBulihan, setNewProductPriceBulihan] = useState('');
+    const [newProductPriceDasmarinas, setNewProductPriceDasmarinas] = useState('');
     const [newProductStock, setNewProductStock] = useState('50');
-    const [newProductImage, setNewProductImage] = useState('');
+    const [newProductStockBulihan, setNewProductStockBulihan] = useState('30');
+    const [newProductStockDasmarinas, setNewProductStockDasmarinas] = useState('20');
+    const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
+    const [newProductImagePreview, setNewProductImagePreview] = useState<string | null>(null);
 
+    // Edit Product State
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+    const [editProductName, setEditProductName] = useState('');
+    const [editProductCategory, setEditProductCategory] = useState<ProductItem['category']>('Sizzling Rice Meals');
+    const [editProductDescription, setEditProductDescription] = useState('');
+    const [editProductPrice, setEditProductPrice] = useState('');
+    const [editProductPriceBulihan, setEditProductPriceBulihan] = useState('');
+    const [editProductPriceDasmarinas, setEditProductPriceDasmarinas] = useState('');
+    const [editProductStock, setEditProductStock] = useState('50');
+    const [editProductStockBulihan, setEditProductStockBulihan] = useState('30');
+    const [editProductStockDasmarinas, setEditProductStockDasmarinas] = useState('20');
+    const [editProductImageFile, setEditProductImageFile] = useState<File | null>(null);
+    const [editProductImagePreview, setEditProductImagePreview] = useState<string | null>(null);
+
+    // Form Loading and Errors
+    const [isSavingProduct, setIsSavingProduct] = useState(false);
+    const [productFormErrors, setProductFormErrors] = useState<Record<string, string>>({});
+
     const [deletingProduct, setDeletingProduct] = useState<ProductItem | null>(null);
     const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+
+    const openEditProductModal = (p: ProductItem) => {
+        setEditingProduct(p);
+        setEditProductName(p.name);
+        setEditProductCategory(p.category);
+        setEditProductDescription(p.description || '');
+        setEditProductPrice((p.price || 0).toString());
+        setEditProductPriceBulihan((p.priceBulihan ?? p.price ?? 0).toString());
+        setEditProductPriceDasmarinas((p.priceDasmarinas ?? p.price ?? 0).toString());
+        setEditProductStock((p.stock || 0).toString());
+        setEditProductStockBulihan((p.stockBulihan ?? Math.floor((p.stock || 0) * 0.6)).toString());
+        setEditProductStockDasmarinas((p.stockDasmarinas ?? Math.floor((p.stock || 0) * 0.4)).toString());
+        setEditProductImageFile(null);
+        setEditProductImagePreview(p.image || null);
+        setProductFormErrors({});
+    };
 
     // Products Category & Branch Sort Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
@@ -351,6 +444,10 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [newBannerTag, setNewBannerTag] = useState('');
     const [newBannerImage, setNewBannerImage] = useState('');
     const [newBannerCta, setNewBannerCta] = useState('');
+    const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+    const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+    const [isSavingBanner, setIsSavingBanner] = useState(false);
+    const [bannerErrors, setBannerErrors] = useState<Record<string, string>>({});
 
     // Voucher Modal State with Real-Time Preview
     const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
@@ -362,15 +459,23 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [newVoucherIsLimitedTime, setNewVoucherIsLimitedTime] = useState(false);
     const [newVoucherStartsAt, setNewVoucherStartsAt] = useState('');
     const [newVoucherExpiresAt, setNewVoucherExpiresAt] = useState('');
+    const [isSavingVoucher, setIsSavingVoucher] = useState(false);
+    const [voucherErrors, setVoucherErrors] = useState<Record<string, string>>({});
+    const [deletingVoucher, setDeletingVoucher] = useState<VoucherItem | null>(null);
+    const [isDeletingVoucher, setIsDeletingVoucher] = useState(false);
 
     // Employee CRUD Modals State
     const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
     const [newEmpName, setNewEmpName] = useState('');
     const [newEmpEmail, setNewEmpEmail] = useState('');
+    const [newEmpPassword, setNewEmpPassword] = useState('password123');
     const [newEmpRole, setNewEmpRole] = useState<'Admin' | 'Kitchen Staff' | 'Cashier'>('Cashier');
     const [newEmpBranch, setNewEmpBranch] = useState<'Bulihan' | 'Dasma'>('Bulihan');
-
+    const [isSavingEmployee, setIsSavingEmployee] = useState(false);
+    const [employeeErrors, setEmployeeErrors] = useState<Record<string, string>>({});
     const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
+    const [deletingEmployee, setDeletingEmployee] = useState<EmployeeItem | null>(null);
+    const [isDeletingEmployee, setIsDeletingEmployee] = useState(false);
     const [userRoleFilter, setUserRoleFilter] = useState<string>('All');
 
     // Audit Logs Filters & Pagination
@@ -419,22 +524,51 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const toggleProductStatus = (id: number) => {
-        setProducts(products.map(p => p.id === id ? { ...p, isActive: !p.isActive } : p));
+        router.post(`/admin/products/${id}/toggle`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setProducts((prev) => prev.map((p) => p.id === id ? { ...p, isActive: !p.isActive } : p));
+            }
+        });
     };
 
     const updateProductStock = (id: number, delta: number) => {
+        const prod = products.find(p => p.id === id);
+        if (!prod) return;
+
+        let nextStockBulihan = prod.stockBulihan ?? Math.floor(prod.stock * 0.6);
+        let nextStockDasma = prod.stockDasmarinas ?? Math.floor(prod.stock * 0.4);
+
+        if (productBranchFilter === 'Bulihan') {
+            nextStockBulihan = Math.max(0, nextStockBulihan + delta);
+        } else {
+            nextStockDasma = Math.max(0, nextStockDasma + delta);
+        }
+        const nextTotalStock = nextStockBulihan + nextStockDasma;
+
         setProducts(products.map(p => {
             if (p.id !== id) return p;
-            if (productBranchFilter === 'Bulihan') {
-                const currentBulihan = p.stockBulihan ?? Math.floor(p.stock * 0.6);
-                const nextBulihan = Math.max(0, currentBulihan + delta);
-                return { ...p, stockBulihan: nextBulihan, stock: (p.stockDasmarinas ?? Math.floor(p.stock * 0.4)) + nextBulihan };
-            } else {
-                const currentDasma = p.stockDasmarinas ?? Math.floor(p.stock * 0.4);
-                const nextDasma = Math.max(0, currentDasma + delta);
-                return { ...p, stockDasmarinas: nextDasma, stock: (p.stockBulihan ?? Math.floor(p.stock * 0.6)) + nextDasma };
-            }
+            return {
+                ...p,
+                stock: nextTotalStock,
+                stockBulihan: nextStockBulihan,
+                stockDasmarinas: nextStockDasma,
+            };
         }));
+
+        router.post(`/admin/products/${id}`, {
+            name: prod.name,
+            description: prod.description,
+            price: prod.price,
+            price_bulihan: prod.priceBulihan ?? prod.price,
+            price_dasmarinas: prod.priceDasmarinas ?? prod.price,
+            stock_quantity: nextTotalStock,
+            stock_bulihan: nextStockBulihan,
+            stock_dasmarinas: nextStockDasma,
+            is_active: prod.isActive,
+        }, {
+            preserveScroll: true,
+        });
     };
 
     const deleteProduct = (p: ProductItem) => {
@@ -461,50 +595,174 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         });
     };
 
-    const deleteVoucher = (id: number) => {
-        setVouchers(vouchers.filter(v => v.id !== id));
+    const deleteVoucher = (v: VoucherItem) => {
+        setDeletingVoucher(v);
     };
 
-    const deleteEmployee = (id: number) => {
-        setEmployees(employees.filter(e => e.id !== id));
+    const handleConfirmDeleteVoucher = () => {
+        if (!deletingVoucher) return;
+        setIsDeletingVoucher(true);
+        router.delete(`/admin/vouchers/${deletingVoucher.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setVouchers((prev) => prev.filter((v) => v.id !== deletingVoucher.id));
+                setDeletingVoucher(null);
+                setIsDeletingVoucher(false);
+            },
+            onError: (err) => {
+                console.error('Failed to delete voucher:', err);
+                setIsDeletingVoucher(false);
+            },
+            onFinish: () => {
+                setIsDeletingVoucher(false);
+            }
+        });
+    };
+
+    const deleteEmployee = (e: EmployeeItem) => {
+        setDeletingEmployee(e);
+    };
+
+    const handleConfirmDeleteEmployee = () => {
+        if (!deletingEmployee) return;
+        setIsDeletingEmployee(true);
+        router.delete(`/admin/employees/${deletingEmployee.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEmployees((prev) => prev.filter((emp) => emp.id !== deletingEmployee.id));
+                setDeletingEmployee(null);
+                setIsDeletingEmployee(false);
+            },
+            onError: (err) => {
+                console.error('Failed to delete employee:', err);
+                setIsDeletingEmployee(false);
+            },
+            onFinish: () => {
+                setIsDeletingEmployee(false);
+            }
+        });
     };
 
     const handleCreateProduct = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newProductName.trim()) return;
 
-        const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+        setIsSavingProduct(true);
+        setProductFormErrors({});
 
-        const newProd: ProductItem = {
-            id: Date.now(),
-            name: newProductName,
-            category: newProductCategory,
-            description: 'Delicious roadhouse sizzling meal prepared fresh upon order.',
-            price: parseFloat(newProductPrice) || 180,
-            stock: parseInt(newProductStock) || 50,
-            isActive: true,
-            image: newProductImage.trim() ? newProductImage : defaultImg
-        };
-        setProducts([newProd, ...products]);
-        setNewProductName('');
-        setNewProductImage('');
-        setShowAddProductModal(false);
+        const formData = new FormData();
+        formData.append('name', newProductName.trim());
+        formData.append('description', newProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
+        formData.append('price', newProductPrice || '180');
+        formData.append('price_bulihan', newProductPriceBulihan || newProductPrice || '180');
+        formData.append('price_dasmarinas', newProductPriceDasmarinas || newProductPrice || '195');
+        formData.append('stock_quantity', newProductStock || '50');
+        formData.append('stock_bulihan', newProductStockBulihan || '30');
+        formData.append('stock_dasmarinas', newProductStockDasmarinas || '20');
+        formData.append('is_active', '1');
+
+        if (newProductImageFile) {
+            formData.append('image', newProductImageFile);
+        }
+
+        router.post('/admin/products', formData, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setShowAddProductModal(false);
+                setNewProductName('');
+                setNewProductDescription('');
+                setNewProductPrice('');
+                setNewProductPriceBulihan('');
+                setNewProductPriceDasmarinas('');
+                setNewProductStock('50');
+                setNewProductStockBulihan('30');
+                setNewProductStockDasmarinas('20');
+                setNewProductImageFile(null);
+                setNewProductImagePreview(null);
+                setProductFormErrors({});
+                setIsSavingProduct(false);
+            },
+            onError: (errs) => {
+                setProductFormErrors(errs);
+                setIsSavingProduct(false);
+            },
+            onFinish: () => {
+                setIsSavingProduct(false);
+            },
+        });
     };
 
     const handleSaveEditProduct = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingProduct) return;
 
-        setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
-        setEditingProduct(null);
+        setIsSavingProduct(true);
+        setProductFormErrors({});
+
+        const formData = new FormData();
+        formData.append('name', editProductName.trim() || editingProduct.name);
+        formData.append('description', editProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
+        formData.append('price', editProductPrice || (editingProduct.price || 0).toString());
+        formData.append('price_bulihan', editProductPriceBulihan || editProductPrice || (editingProduct.priceBulihan ?? editingProduct.price ?? 0).toString());
+        formData.append('price_dasmarinas', editProductPriceDasmarinas || editProductPrice || (editingProduct.priceDasmarinas ?? editingProduct.price ?? 0).toString());
+        formData.append('stock_quantity', editProductStock || (editingProduct.stock || 0).toString());
+        formData.append('stock_bulihan', editProductStockBulihan || (editingProduct.stockBulihan ?? Math.floor((editingProduct.stock || 0) * 0.6)).toString());
+        formData.append('stock_dasmarinas', editProductStockDasmarinas || (editingProduct.stockDasmarinas ?? Math.floor((editingProduct.stock || 0) * 0.4)).toString());
+        formData.append('is_active', editingProduct.isActive ? '1' : '0');
+
+        if (editProductImageFile) {
+            formData.append('image', editProductImageFile);
+        }
+
+        router.post(`/admin/products/${editingProduct.id}`, formData, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setEditingProduct(null);
+                setEditProductImageFile(null);
+                setEditProductImagePreview(null);
+                setProductFormErrors({});
+                setIsSavingProduct(false);
+            },
+            onError: (errs) => {
+                setProductFormErrors(errs);
+                setIsSavingProduct(false);
+            },
+            onFinish: () => {
+                setIsSavingProduct(false);
+            },
+        });
     };
 
     const handleSaveEditEmployee = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingEmployee) return;
 
-        setEmployees(employees.map(emp => emp.id === editingEmployee.id ? editingEmployee : emp));
-        setEditingEmployee(null);
+        setIsSavingEmployee(true);
+        setEmployeeErrors({});
+
+        const mappedRole = editingEmployee.role === 'Kitchen Staff' ? 'kitchen' : (editingEmployee.role === 'Cashier' ? 'cashier' : (editingEmployee.role === 'Admin' ? 'admin' : 'employee'));
+
+        router.post(`/admin/employees/${editingEmployee.id}`, {
+            name: editingEmployee.name,
+            email: editingEmployee.email,
+            role: mappedRole,
+            branch: editingEmployee.branch === 'Dasma' ? 'dasmarinas' : 'bulihan',
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditingEmployee(null);
+                setIsSavingEmployee(false);
+            },
+            onError: (errs) => {
+                setEmployeeErrors(errs);
+                setIsSavingEmployee(false);
+            },
+            onFinish: () => {
+                setIsSavingEmployee(false);
+            }
+        });
     };
 
     const handleGenerateNewTableQR = () => {
@@ -518,18 +776,22 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
     const openSlotBannerModal = (slotNum: number) => {
         setTargetBannerSlot(slotNum);
+        setBannerErrors({});
+        setBannerImageFile(null);
         const existing = banners[slotNum];
         if (existing) {
             setNewBannerTitle(existing.title);
             setNewBannerSubtitle(existing.subtitle);
             setNewBannerTag(existing.tag);
             setNewBannerImage(existing.image);
+            setBannerImagePreview(existing.image);
             setNewBannerCta(existing.ctaText || '');
         } else {
             setNewBannerTitle('');
             setNewBannerSubtitle('');
             setNewBannerTag(slotNum === 1 ? 'WEEKEND SPECIAL • 20% OFF' : slotNum === 2 ? 'NEW ARRIVAL' : slotNum === 3 ? 'UNLIMITED REFILLS' : 'HAPPY HOUR');
             setNewBannerImage('');
+            setBannerImagePreview(null);
             setNewBannerCta('');
         }
     };
@@ -538,22 +800,38 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         e.preventDefault();
         if (targetBannerSlot === null || !newBannerTitle.trim()) return;
 
-        const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
+        setIsSavingBanner(true);
+        setBannerErrors({});
 
-        setBanners({
-            ...banners,
-            [targetBannerSlot]: {
-                slot: targetBannerSlot,
-                title: newBannerTitle,
-                subtitle: newBannerSubtitle,
-                tag: newBannerTag,
-                image: newBannerImage.trim() ? newBannerImage : defaultBannerImg,
-                ctaText: newBannerCta,
-                isActive: true
+        const formData = new FormData();
+        formData.append('title', newBannerTitle.trim());
+        formData.append('display_order', targetBannerSlot.toString());
+        formData.append('branch', productBranchFilter === 'Bulihan' ? 'bulihan' : (productBranchFilter === 'Dasma' ? 'dasmarinas' : 'all'));
+        formData.append('is_active', '1');
+        if (bannerImageFile) {
+            formData.append('image', bannerImageFile);
+        }
+
+        const existing = banners[targetBannerSlot];
+        const endpoint = (existing && existing.id) ? `/admin/banners/${existing.id}` : '/admin/banners';
+
+        router.post(endpoint, formData, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setTargetBannerSlot(null);
+                setBannerImageFile(null);
+                setBannerImagePreview(null);
+                setIsSavingBanner(false);
+            },
+            onError: (errs) => {
+                setBannerErrors(errs);
+                setIsSavingBanner(false);
+            },
+            onFinish: () => {
+                setIsSavingBanner(false);
             }
         });
-
-        setTargetBannerSlot(null);
     };
 
     const handleConfirmVoid = async (e: React.FormEvent) => {
@@ -635,6 +913,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         e.preventDefault();
         if (!newVoucherCode.trim()) return;
 
+        setIsSavingVoucher(true);
+        setVoucherErrors({});
+
         router.post('/admin/vouchers', {
             code: newVoucherCode.toUpperCase().trim(),
             discount_type: newVoucherDiscountType,
@@ -646,45 +927,60 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             expires_at: newVoucherExpiresAt || null,
             branch: productBranchFilter === 'Bulihan' ? 'bulihan' : (productBranchFilter === 'Dasma' ? 'dasmarinas' : 'all'),
         }, {
+            preserveScroll: true,
             onSuccess: () => {
-                const newVouch: VoucherItem = {
-                    id: Date.now(),
-                    code: newVoucherCode.toUpperCase().trim(),
-                    discount_type: newVoucherDiscountType,
-                    value: parseFloat(newVoucherValue) || 0,
-                    discountPercent: newVoucherDiscountType === 'percentage' ? parseFloat(newVoucherValue) : 0,
-                    minSpend: parseFloat(newVoucherMinSpend) || 0,
-                    is_one_time_use: newVoucherIsOneTime,
-                    is_limited_time: newVoucherIsLimitedTime,
-                    starts_at: newVoucherStartsAt || undefined,
-                    expires_at: newVoucherExpiresAt || undefined,
-                    usedCount: 0,
-                    isActive: true
-                };
-                setVouchers([newVouch, ...vouchers]);
-                setNewVoucherCode('');
                 setShowAddVoucherModal(false);
+                setNewVoucherCode('');
+                setNewVoucherValue('10');
+                setNewVoucherMinSpend('300');
+                setNewVoucherIsOneTime(true);
+                setNewVoucherIsLimitedTime(false);
+                setNewVoucherStartsAt('');
+                setNewVoucherExpiresAt('');
+                setIsSavingVoucher(false);
+            },
+            onError: (errs) => {
+                setVoucherErrors(errs);
+                setIsSavingVoucher(false);
+            },
+            onFinish: () => {
+                setIsSavingVoucher(false);
             }
         });
     };
 
     const handleCreateEmployee = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newEmpEmail.trim()) return;
+        if (!newEmpEmail.trim() || !newEmpName.trim()) return;
 
-        const newEmp: EmployeeItem = {
-            id: Date.now(),
-            name: newEmpName || 'Staff Member',
-            email: newEmpEmail,
-            role: newEmpRole,
-            branch: newEmpBranch,
-            status: 'Active',
-            createdAt: new Date().toISOString().split('T')[0]
-        };
-        setEmployees([...employees, newEmp]);
-        setNewEmpName('');
-        setNewEmpEmail('');
-        setShowAddEmployeeModal(false);
+        setIsSavingEmployee(true);
+        setEmployeeErrors({});
+
+        const mappedRole = newEmpRole === 'Kitchen Staff' ? 'kitchen' : (newEmpRole === 'Cashier' ? 'cashier' : (newEmpRole === 'Admin' ? 'admin' : 'employee'));
+
+        router.post('/admin/employees', {
+            name: newEmpName.trim(),
+            email: newEmpEmail.trim(),
+            role: mappedRole,
+            branch: newEmpBranch === 'Dasma' ? 'dasmarinas' : 'bulihan',
+            password: newEmpPassword || 'password123',
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowAddEmployeeModal(false);
+                setNewEmpName('');
+                setNewEmpEmail('');
+                setNewEmpPassword('password123');
+                setIsSavingEmployee(false);
+            },
+            onError: (errs) => {
+                setEmployeeErrors(errs);
+                setIsSavingEmployee(false);
+            },
+            onFinish: () => {
+                setIsSavingEmployee(false);
+            }
+        });
     };
 
     const copyTableLink = (tableNum: string) => {
@@ -1327,8 +1623,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                                                     <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() => setEditingProduct(p)}
-                                                            className="flex-1 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#fbbf24] hover:bg-[#3f3f46] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all"
+                                                            onClick={() => openEditProductModal(p)}
+                                                            className="flex-1 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#fbbf24] hover:bg-[#3f3f46] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all cursor-pointer"
                                                         >
                                                             <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
                                                             <span>Edit Dish</span>
@@ -1717,7 +2013,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                                                 <div className="w-24 flex flex-col justify-between items-end text-right pl-2">
                                                     <button
-                                                        onClick={() => deleteVoucher(v.id)}
+                                                        onClick={() => deleteVoucher(v)}
                                                         className="p-1.5 rounded-full text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                                                         title="Delete Voucher"
                                                     >
@@ -1860,7 +2156,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                     <Edit2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => deleteEmployee(e.id)}
+                                                                    onClick={() => deleteEmployee(e)}
                                                                     className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20"
                                                                     title="Delete User Account"
                                                                 >
@@ -2146,180 +2442,392 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
             {/* ADD PRODUCT MODAL */}
             {showAddProductModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <form onSubmit={handleCreateProduct} className="w-full max-w-md rounded-3xl bg-[#202024] border border-[#3f3f46] p-6 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between pb-2 border-b border-[#333338]">
-                            <h3 className="text-lg font-bold text-white font-domine">Add New Sizzling Dish</h3>
-                            <button type="button" onClick={() => setShowAddProductModal(false)} className="text-[#a1a1aa] hover:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+                    <div className="w-full max-w-xl rounded-3xl bg-[#18181b] border border-[#3f3f46] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#3f3f46]">
+                            <div>
+                                <h3 className="font-domine font-black text-white text-lg">Add New Sizzling Dish</h3>
+                                <p className="text-xs text-[#a1a1aa]">Create a new menu item with branch pricing & stock</p>
+                            </div>
+                            <button onClick={() => setShowAddProductModal(false)} className="text-[#a1a1aa] hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Name *</label>
-                            <input
-                                type="text"
-                                required
-                                value={newProductName}
-                                onChange={(e) => setNewProductName(e.target.value)}
-                                placeholder="e.g. Sizzling Ribeye Steak"
-                                className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white placeholder-[#71717a]"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Category *</label>
-                            <select
-                                value={newProductCategory}
-                                onChange={(e) => setNewProductCategory(e.target.value as any)}
-                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            >
-                                <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
-                                <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
-                                <option value="Barkada Platters">Barkada Platters</option>
-                                <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Upload Dish Image (Local File) *</label>
-                            <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#18181b] border border-dashed border-[#f59e0b]/50 text-xs font-bold text-[#fbbf24] hover:bg-[#27272a] cursor-pointer">
-                                <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                <span>{newProductImage ? 'Image Loaded! Click to replace' : 'Upload Image File'}</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(file, setNewProductImage);
-                                    }}
-                                    className="hidden"
-                                />
-                            </label>
-
-                            {newProductImage && (
-                                <img src={newProductImage} alt="Uploaded dish preview" className="w-24 h-24 object-cover rounded-xl mt-2 border border-[#3f3f46]" />
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                        <form onSubmit={handleCreateProduct} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Price (₱) *</label>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Product / Dish Name *</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     required
-                                    value={newProductPrice}
-                                    onChange={(e) => setNewProductPrice(e.target.value)}
-                                    placeholder="250.00"
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                    value={newProductName}
+                                    onChange={(e) => setNewProductName(e.target.value)}
+                                    placeholder="e.g. Sizzling Pork Sisig"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                 />
+                                {productFormErrors.name && (
+                                    <p className="text-xs text-rose-400 mt-1">{productFormErrors.name}</p>
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Stock Count *</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={newProductStock}
-                                    onChange={(e) => setNewProductStock(e.target.value)}
-                                    placeholder="50"
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="flex gap-2 pt-2">
-                            <button type="button" onClick={() => setShowAddProductModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Add Dish</button>
-                        </div>
-                    </form>
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Category</label>
+                                <select
+                                    value={newProductCategory}
+                                    onChange={(e) => setNewProductCategory(e.target.value as any)}
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
+                                >
+                                    <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                    <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                    <option value="Barkada Platters">Barkada Platters</option>
+                                    <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                                </select>
+                            </div>
+
+                            {/* Default Base Price & Stock */}
+                            <div className="grid grid-cols-2 gap-4 p-3 rounded-2xl bg-[#141416] border border-[#333338]">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Base Price (₱) *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={newProductPrice}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setNewProductPrice(val);
+                                            if (!newProductPriceBulihan) setNewProductPriceBulihan(val);
+                                            if (!newProductPriceDasmarinas) setNewProductPriceDasmarinas(val);
+                                        }}
+                                        placeholder="180.00"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.price && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.price}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Total Stock *</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={newProductStock}
+                                        onChange={(e) => setNewProductStock(e.target.value)}
+                                        placeholder="50"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.stock_quantity && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.stock_quantity}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Bulihan Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-amber-500/30 space-y-2">
+                                <span className="text-xs font-black text-[#fbbf24] uppercase tracking-wider block">Bulihan Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={newProductPriceBulihan}
+                                            onChange={(e) => setNewProductPriceBulihan(e.target.value)}
+                                            placeholder="180.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Stock</label>
+                                        <input
+                                            type="number"
+                                            value={newProductStockBulihan}
+                                            onChange={(e) => setNewProductStockBulihan(e.target.value)}
+                                            placeholder="30"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dasmarinas Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-blue-500/30 space-y-2">
+                                <span className="text-xs font-black text-blue-400 uppercase tracking-wider block">Dasmariñas Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={newProductPriceDasmarinas}
+                                            onChange={(e) => setNewProductPriceDasmarinas(e.target.value)}
+                                            placeholder="195.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Stock</label>
+                                        <input
+                                            type="number"
+                                            value={newProductStockDasmarinas}
+                                            onChange={(e) => setNewProductStockDasmarinas(e.target.value)}
+                                            placeholder="20"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dish Image Upload */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold text-[#a1a1aa]">Dish Image</label>
+                                    <span className="text-[10px] text-[#f59e0b] font-mono">WebP, PNG, JPG (Max 10 MB)</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {newProductImagePreview && (
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
+                                            <img src={newProductImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setNewProductImageFile(file);
+                                                setNewProductImagePreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46] cursor-pointer"
+                                    />
+                                </div>
+                                {productFormErrors.image && (
+                                    <p className="text-xs text-rose-400 mt-1.5 font-medium">{productFormErrors.image}</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    disabled={isSavingProduct}
+                                    onClick={() => setShowAddProductModal(false)}
+                                    className="flex-1 py-3 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSavingProduct}
+                                    className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                                >
+                                    {isSavingProduct ? (
+                                        <>
+                                            <RefreshCw className="w-4 h-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        <span>Save Dish</span>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {/* EDIT PRODUCT MODAL */}
             {editingProduct && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <form onSubmit={handleSaveEditProduct} className="w-full max-w-md rounded-3xl bg-[#202024] border border-[#3f3f46] p-6 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between pb-2 border-b border-[#333338]">
-                            <h3 className="text-lg font-bold text-white font-domine">Edit Product Details</h3>
-                            <button type="button" onClick={() => setEditingProduct(null)} className="text-[#a1a1aa] hover:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+                    <div className="w-full max-w-xl rounded-3xl bg-[#18181b] border border-[#3f3f46] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#3f3f46]">
+                            <div>
+                                <h3 className="font-domine font-black text-white text-lg">Edit Product Details</h3>
+                                <p className="text-xs text-[#a1a1aa]">Modify dish pricing, stock, and photography</p>
+                            </div>
+                            <button onClick={() => setEditingProduct(null)} className="text-[#a1a1aa] hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Name</label>
-                            <input
-                                type="text"
-                                required
-                                value={editingProduct.name}
-                                onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                                className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Category</label>
-                            <select
-                                value={editingProduct.category}
-                                onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value as any })}
-                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            >
-                                <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
-                                <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
-                                <option value="Barkada Platters">Barkada Platters</option>
-                                <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Replace Image File (Upload Blob)</label>
-                            <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#18181b] border border-dashed border-[#f59e0b]/50 text-xs font-bold text-[#fbbf24] hover:bg-[#27272a] cursor-pointer">
-                                <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                <span>Upload New Image File</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(file, (blobUrl) => setEditingProduct({ ...editingProduct, image: blobUrl }));
-                                    }}
-                                    className="hidden"
-                                />
-                            </label>
-
-                            {editingProduct.image && (
-                                <img src={editingProduct.image} alt="Dish preview" className="w-24 h-24 object-cover rounded-xl mt-2 border border-[#3f3f46]" />
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                        <form onSubmit={handleSaveEditProduct} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Price (₱)</label>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Product Name *</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     required
-                                    value={editingProduct.price}
-                                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                    value={editProductName}
+                                    onChange={(e) => setEditProductName(e.target.value)}
+                                    placeholder="e.g. Sizzling Pork Sisig"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                 />
+                                {productFormErrors.name && (
+                                    <p className="text-xs text-rose-400 mt-1">{productFormErrors.name}</p>
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Stock Count</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={editingProduct.stock}
-                                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="flex gap-2 pt-2">
-                            <button type="button" onClick={() => setEditingProduct(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Changes</button>
-                        </div>
-                    </form>
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Category</label>
+                                <select
+                                    value={editProductCategory}
+                                    onChange={(e) => setEditProductCategory(e.target.value as any)}
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
+                                >
+                                    <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                    <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                    <option value="Barkada Platters">Barkada Platters</option>
+                                    <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                                </select>
+                            </div>
+
+                            {/* Default Base Price & Stock */}
+                            <div className="grid grid-cols-2 gap-4 p-3 rounded-2xl bg-[#141416] border border-[#333338]">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Base Price (₱) *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={editProductPrice}
+                                        onChange={(e) => setEditProductPrice(e.target.value)}
+                                        placeholder="180.00"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.price && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.price}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Total Stock *</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={editProductStock}
+                                        onChange={(e) => setEditProductStock(e.target.value)}
+                                        placeholder="50"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.stock_quantity && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.stock_quantity}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Bulihan Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-amber-500/30 space-y-2">
+                                <span className="text-xs font-black text-[#fbbf24] uppercase tracking-wider block">Bulihan Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={editProductPriceBulihan}
+                                            onChange={(e) => setEditProductPriceBulihan(e.target.value)}
+                                            placeholder="180.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Stock</label>
+                                        <input
+                                            type="number"
+                                            value={editProductStockBulihan}
+                                            onChange={(e) => setEditProductStockBulihan(e.target.value)}
+                                            placeholder="30"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dasmarinas Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-blue-500/30 space-y-2">
+                                <span className="text-xs font-black text-blue-400 uppercase tracking-wider block">Dasmariñas Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={editProductPriceDasmarinas}
+                                            onChange={(e) => setEditProductPriceDasmarinas(e.target.value)}
+                                            placeholder="195.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Stock</label>
+                                        <input
+                                            type="number"
+                                            value={editProductStockDasmarinas}
+                                            onChange={(e) => setEditProductStockDasmarinas(e.target.value)}
+                                            placeholder="20"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Product Image */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold text-[#a1a1aa]">Product Image</label>
+                                    <span className="text-[10px] text-[#f59e0b] font-mono">WebP, PNG, JPG (Max 10 MB)</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {editProductImagePreview && (
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
+                                            <img src={editProductImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setEditProductImageFile(file);
+                                                setEditProductImagePreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46] cursor-pointer"
+                                    />
+                                </div>
+                                {productFormErrors.image && (
+                                    <p className="text-xs text-rose-400 mt-1.5 font-medium">{productFormErrors.image}</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    disabled={isSavingProduct}
+                                    onClick={() => setEditingProduct(null)}
+                                    className="flex-1 py-3 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSavingProduct}
+                                    className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                                >
+                                    {isSavingProduct ? (
+                                        <>
+                                            <RefreshCw className="w-4 h-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        <span>Save Changes</span>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
@@ -2381,8 +2889,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                             <div className="relative min-h-[160px] rounded-2xl overflow-hidden bg-[#18181b] border border-[#f59e0b]/40 shadow-lg flex flex-col justify-end p-4">
                                 <div className="absolute inset-0 vignette-overlay">
-                                    {newBannerImage ? (
-                                        <img className="w-full h-full object-cover opacity-60" alt="Preview" src={newBannerImage} />
+                                    {(bannerImagePreview || newBannerImage) ? (
+                                        <img className="w-full h-full object-cover opacity-60" alt="Preview" src={bannerImagePreview || newBannerImage} />
                                     ) : (
                                         <div className="w-full h-full bg-[#27272a] flex items-center justify-center text-[#71717a] text-xs font-bold">
                                             No Image File Uploaded
@@ -2415,6 +2923,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     placeholder="e.g. Sisig Saturdays Deal"
                                     className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                                 />
+                                {bannerErrors.title && <p className="text-[11px] text-rose-400 mt-1">{bannerErrors.title}</p>}
                             </div>
 
                             <div>
@@ -2440,26 +2949,39 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Upload Banner Image File (Blob File Upload) *</label>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Upload Banner Image File (WebP, PNG, JPG up to 10MB)</label>
                                 <label className="w-full flex items-center justify-center gap-2.5 p-3 rounded-xl bg-[#18181b] border-2 border-dashed border-[#f59e0b]/50 text-xs font-bold text-[#fbbf24] hover:bg-[#27272a] hover:border-[#f59e0b] cursor-pointer transition-all">
                                     <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                    <span>{newBannerImage ? 'Image Loaded! Click to replace' : 'Upload Banner Image File'}</span>
+                                    <span>{bannerImagePreview || newBannerImage ? 'Image Loaded! Click to replace' : 'Upload Banner Image File (WebP, PNG, JPG)'}</span>
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
-                                            if (file) handleFileUpload(file, setNewBannerImage);
+                                            if (file) {
+                                                setBannerImageFile(file);
+                                                setBannerImagePreview(URL.createObjectURL(file));
+                                            }
                                         }}
                                         className="hidden"
                                     />
                                 </label>
+                                {bannerErrors.image && <p className="text-[11px] text-rose-400 mt-1">{bannerErrors.image}</p>}
                             </div>
                         </div>
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setTargetBannerSlot(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Slot #{targetBannerSlot}</button>
+                            <button type="submit" disabled={isSavingBanner} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingBanner ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <span>Save Slot #{targetBannerSlot}</span>
+                                )}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -2513,6 +3035,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     placeholder="e.g. SUMMER15"
                                     className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white uppercase font-mono"
                                 />
+                                {voucherErrors.code && <p className="text-[11px] text-rose-400 mt-1">{voucherErrors.code}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
@@ -2537,6 +3060,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         placeholder={newVoucherDiscountType === 'percentage' ? '15' : '50'}
                                         className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
                                     />
+                                    {voucherErrors.value && <p className="text-[11px] text-rose-400 mt-1">{voucherErrors.value}</p>}
                                 </div>
                             </div>
 
@@ -2611,9 +3135,73 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddVoucherModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Create Ticket</button>
+                            <button type="submit" disabled={isSavingVoucher} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingVoucher ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Creating...</span>
+                                    </>
+                                ) : (
+                                    <span>Create Ticket</span>
+                                )}
+                            </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* DELETE VOUCHER CONFIRMATION MODAL */}
+            {deletingVoucher && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <Trash2 className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Delete Voucher Confirmation</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-0.5">Remove promo discount voucher coupon</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#27272a] space-y-2">
+                            <p className="text-xs text-[#f4f4f5] leading-relaxed">
+                                Are you sure you want to permanently delete coupon <strong className="text-[#fbbf24] font-mono font-bold">{deletingVoucher.code}</strong>?
+                            </p>
+                            <p className="text-[11px] text-[#71717a]">
+                                This promo ticket will immediately become invalid for all customer orders across all stores.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingVoucher}
+                                onClick={() => setDeletingVoucher(null)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingVoucher}
+                                onClick={handleConfirmDeleteVoucher}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeletingVoucher ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Confirm Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -2721,6 +3309,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 placeholder="Staff Name"
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.name && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.name}</p>}
                         </div>
 
                         <div>
@@ -2733,6 +3322,20 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 placeholder="staff@saddleranch.ph"
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.email && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.email}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Initial Password *</label>
+                            <input
+                                type="password"
+                                required
+                                value={newEmpPassword}
+                                onChange={(e) => setNewEmpPassword(e.target.value)}
+                                placeholder="Password (min 6 characters)"
+                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                            />
+                            {employeeErrors.password && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.password}</p>}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
@@ -2764,7 +3367,16 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddEmployeeModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Create Account</button>
+                            <button type="submit" disabled={isSavingEmployee} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingEmployee ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Creating...</span>
+                                    </>
+                                ) : (
+                                    <span>Create Account</span>
+                                )}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -2790,6 +3402,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.name && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.name}</p>}
                         </div>
 
                         <div>
@@ -2801,6 +3414,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.email && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.email}</p>}
                         </div>
 
                         <div>
@@ -2844,9 +3458,73 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setEditingEmployee(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Staff</button>
+                            <button type="submit" disabled={isSavingEmployee} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingEmployee ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <span>Save Staff</span>
+                                )}
+                            </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* DELETE EMPLOYEE CONFIRMATION MODAL */}
+            {deletingEmployee && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <Trash2 className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Delete User Account</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-0.5">Remove staff account</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#27272a] space-y-2">
+                            <p className="text-xs text-[#f4f4f5] leading-relaxed">
+                                Are you sure you want to delete staff account <strong className="text-[#fbbf24] font-bold">{deletingEmployee.name}</strong> ({deletingEmployee.email})?
+                            </p>
+                            <p className="text-[11px] text-[#71717a]">
+                                This user will immediately lose access to the cashier/kitchen dashboard and admin portal.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingEmployee}
+                                onClick={() => setDeletingEmployee(null)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingEmployee}
+                                onClick={handleConfirmDeleteEmployee}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeletingEmployee ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Confirm Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
