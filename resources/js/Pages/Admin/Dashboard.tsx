@@ -139,6 +139,28 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
     const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
 
+    const resolveImageUrl = (img?: string | null): string => {
+        if (!img) return defaultImg;
+        if (img.startsWith('http://localhost') || img.startsWith('http://127.0.0.1')) {
+            try {
+                const urlObj = new URL(img);
+                return urlObj.pathname;
+            } catch {
+                return defaultImg;
+            }
+        }
+        if (img.startsWith('http://') || img.startsWith('https://')) {
+            return img;
+        }
+        if (img.startsWith('/images/') || img.startsWith('/storage/')) {
+            return img;
+        }
+        if (img.startsWith('/')) {
+            return img;
+        }
+        return `/images/${img}`;
+    };
+
     const formatEmployees = (rawEmps: any[]): EmployeeItem[] => {
         if (!rawEmps || rawEmps.length === 0) {
             return [
@@ -182,7 +204,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             priceDasmarinas: Number(p.price_dasmarinas ?? p.price ?? 0),
             stockDasmarinas: Number(p.stock_dasmarinas ?? p.stock_quantity ?? 50),
             isActive: Boolean(p.is_active),
-            image: p.image_path || defaultImg,
+            image: resolveImageUrl(p.image_path) || defaultImg,
         }));
     };
 
@@ -1548,7 +1570,15 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                             <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg space-y-4 flex flex-col justify-between">
                                                 <div className="space-y-3">
                                                     <div className="relative h-40 w-full rounded-2xl overflow-hidden border border-[#3f3f46] bg-[#18181b]">
-                                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                        <img 
+                                                            src={resolveImageUrl(p.image)} 
+                                                            alt={p.name} 
+                                                            className="w-full h-full object-cover" 
+                                                            onError={(e) => {
+                                                                e.currentTarget.onerror = null;
+                                                                e.currentTarget.src = defaultImg;
+                                                            }}
+                                                        />
                                                         
                                                         {/* Dynamic Branch Tag & Price Badge */}
                                                         <div className="absolute top-2 right-2 flex items-center gap-1.5">
@@ -1810,7 +1840,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <img
                                                         className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-700 group-hover:scale-105"
                                                         alt={banners[1].title}
-                                                        src={banners[1].image}
+                                                        src={resolveImageUrl(banners[1].image)}
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = defaultBannerImg;
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="relative z-10 w-full bg-gradient-to-t from-[#141416] via-[#141416]/85 to-transparent pt-8">
@@ -1846,7 +1880,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <img
                                                         className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
                                                         alt={banners[2].title}
-                                                        src={banners[2].image}
+                                                        src={resolveImageUrl(banners[2].image)}
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = defaultBannerImg;
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="relative z-10 w-full bg-gradient-to-t from-[#141416] via-[#141416]/80 to-transparent pt-4">
@@ -1878,7 +1916,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <img
                                                         className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-500 group-hover:scale-105"
                                                         alt={banners[3].title}
-                                                        src={banners[3].image}
+                                                        src={resolveImageUrl(banners[3].image)}
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = defaultBannerImg;
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="relative z-10 w-full bg-gradient-to-t from-[#141416] via-[#141416]/80 to-transparent pt-4">
@@ -1920,7 +1962,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <img
                                                         className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-500"
                                                         alt={banners[4].title}
-                                                        src={banners[4].image}
+                                                        src={resolveImageUrl(banners[4].image)}
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = defaultBannerImg;
+                                                        }}
                                                     />
                                                 </div>
                                             </>
@@ -2588,7 +2634,15 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 <div className="flex items-center gap-4">
                                     {newProductImagePreview && (
                                         <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
-                                            <img src={newProductImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <img 
+                                                src={resolveImageUrl(newProductImagePreview)} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover" 
+                                                onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = defaultImg;
+                                                }}
+                                            />
                                         </div>
                                     )}
                                     <input
@@ -2781,7 +2835,15 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 <div className="flex items-center gap-4">
                                     {editProductImagePreview && (
                                         <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
-                                            <img src={editProductImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <img 
+                                                src={resolveImageUrl(editProductImagePreview)} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover" 
+                                                onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = defaultImg;
+                                                }}
+                                            />
                                         </div>
                                     )}
                                     <input
@@ -2890,7 +2952,15 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             <div className="relative min-h-[160px] rounded-2xl overflow-hidden bg-[#18181b] border border-[#f59e0b]/40 shadow-lg flex flex-col justify-end p-4">
                                 <div className="absolute inset-0 vignette-overlay">
                                     {(bannerImagePreview || newBannerImage) ? (
-                                        <img className="w-full h-full object-cover opacity-60" alt="Preview" src={bannerImagePreview || newBannerImage} />
+                                        <img 
+                                            className="w-full h-full object-cover opacity-60" 
+                                            alt="Preview" 
+                                            src={resolveImageUrl(bannerImagePreview || newBannerImage)} 
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = defaultBannerImg;
+                                            }}
+                                        />
                                     ) : (
                                         <div className="w-full h-full bg-[#27272a] flex items-center justify-center text-[#71717a] text-xs font-bold">
                                             No Image File Uploaded

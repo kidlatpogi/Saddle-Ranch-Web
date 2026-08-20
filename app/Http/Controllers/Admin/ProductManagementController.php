@@ -45,9 +45,30 @@ class ProductManagementController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imagePath = Storage::url($path);
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension() ?: 'webp';
+            $filename = time() . '_' . \Illuminate\Support\Str::random(12) . '.' . $extension;
+
+            $targetDir = public_path('images/products');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            $file->move($targetDir, $filename);
+            $imagePath = '/images/products/' . $filename;
+
+            try {
+                $storageDir = storage_path('app/public/products');
+                if (!file_exists($storageDir)) {
+                    mkdir($storageDir, 0755, true);
+                }
+                copy($targetDir . '/' . $filename, $storageDir . '/' . $filename);
+            } catch (\Throwable $e) {
+                // ignore
+            }
         }
+
+        $defaultDishImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
 
         $product = Product::create([
             'name' => $validated['name'],
@@ -59,7 +80,7 @@ class ProductManagementController extends Controller
             'stock_bulihan' => $validated['stock_bulihan'] ?? $validated['stock_quantity'],
             'stock_dasmarinas' => $validated['stock_dasmarinas'] ?? $validated['stock_quantity'],
             'is_active' => $validated['is_active'] ?? true,
-            'image_path' => $imagePath ?? '/images/sisig.webp',
+            'image_path' => $imagePath ?? $defaultDishImg,
         ]);
 
         // Audit Log Trigger
@@ -101,14 +122,39 @@ class ProductManagementController extends Controller
         $oldPrice = $product->price;
 
         if ($request->hasFile('image')) {
-            // Delete old file if stored locally
+            // Delete old file if stored in public/images/products
+            if ($product->image_path && str_starts_with($product->image_path, '/images/products/')) {
+                $oldFile = public_path(ltrim($product->image_path, '/'));
+                if (file_exists($oldFile)) {
+                    @unlink($oldFile);
+                }
+            }
             if ($product->image_path && str_contains($product->image_path, '/storage/')) {
                 $oldRelative = str_replace('/storage/', '', $product->image_path);
                 Storage::disk('public')->delete($oldRelative);
             }
 
-            $path = $request->file('image')->store('products', 'public');
-            $product->image_path = Storage::url($path);
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension() ?: 'webp';
+            $filename = time() . '_' . \Illuminate\Support\Str::random(12) . '.' . $extension;
+
+            $targetDir = public_path('images/products');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            $file->move($targetDir, $filename);
+            $product->image_path = '/images/products/' . $filename;
+
+            try {
+                $storageDir = storage_path('app/public/products');
+                if (!file_exists($storageDir)) {
+                    mkdir($storageDir, 0755, true);
+                }
+                copy($targetDir . '/' . $filename, $storageDir . '/' . $filename);
+            } catch (\Throwable $e) {
+                // ignore
+            }
         }
 
         $product->name = $validated['name'];

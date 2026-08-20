@@ -148,8 +148,16 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
         if (name.includes('inasal') || name.includes('chicken')) return '/images/chicken_inasal.webp';
         if (name.includes('sisig')) return '/images/sisig.webp';
         if (name.includes('beef') || name.includes('spicy') || name.includes('pepper') || name.includes('steak')) return '/images/spicy_beef.webp';
-        if (product.image_path && !product.image_path.includes('googleusercontent') && !product.image_path.includes('unsplash')) {
-            return product.image_path.startsWith('/images/') ? product.image_path : (product.image_path.startsWith('/') ? `/images${product.image_path}` : `/images/${product.image_path}`);
+        if (product.image_path) {
+            let img = product.image_path;
+            if (img.startsWith('http://localhost') || img.startsWith('http://127.0.0.1')) {
+                try {
+                    img = new URL(img).pathname;
+                } catch {}
+            }
+            if (img.startsWith('http') || img.startsWith('/images/') || img.startsWith('/storage/')) return img;
+            if (img.startsWith('/')) return img;
+            return `/images/${img}`;
         }
         return featuredImages[index % featuredImages.length];
     };

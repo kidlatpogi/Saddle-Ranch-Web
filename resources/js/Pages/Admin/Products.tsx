@@ -35,6 +35,30 @@ interface ProductsProps {
 }
 
 export default function AdminProducts({ products = [] }: ProductsProps) {
+    const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+
+    const resolveImageUrl = (img?: string | null): string => {
+        if (!img) return defaultImg;
+        if (img.startsWith('http://localhost') || img.startsWith('http://127.0.0.1')) {
+            try {
+                const urlObj = new URL(img);
+                return urlObj.pathname;
+            } catch {
+                return defaultImg;
+            }
+        }
+        if (img.startsWith('http://') || img.startsWith('https://')) {
+            return img;
+        }
+        if (img.startsWith('/images/') || img.startsWith('/storage/')) {
+            return img;
+        }
+        if (img.startsWith('/')) {
+            return img;
+        }
+        return `/images/${img}`;
+    };
+
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Out of Stock'>('All');
     const [branchFilter, setBranchFilter] = useState<'Bulihan' | 'Dasmarinas'>('Bulihan');
@@ -235,7 +259,15 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                             <div key={p.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-xl flex flex-col justify-between space-y-4">
                                 <div className="space-y-3">
                                     <div className="relative h-44 w-full rounded-2xl overflow-hidden bg-[#18181b] border border-[#3f3f46]">
-                                        <img src={p.image_path} alt={p.name} className="w-full h-full object-cover" />
+                                        <img 
+                                            src={resolveImageUrl(p.image_path)} 
+                                            alt={p.name} 
+                                            className="w-full h-full object-cover" 
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = defaultImg;
+                                            }}
+                                        />
                                         <span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase ${
                                             p.is_active ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'
                                         }`}>
@@ -419,7 +451,15 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                 <div className="flex items-center gap-4">
                                     {imagePreview && (
                                         <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
-                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <img 
+                                                src={resolveImageUrl(imagePreview)} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover" 
+                                                onError={(e) => {
+                                                    e.currentTarget.onerror = null;
+                                                    e.currentTarget.src = defaultImg;
+                                                }}
+                                            />
                                         </div>
                                     )}
                                     <input

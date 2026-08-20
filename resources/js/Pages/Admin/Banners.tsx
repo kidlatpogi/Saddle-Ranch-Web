@@ -24,6 +24,30 @@ interface BannersProps {
 }
 
 export default function AdminBanners({ banners = [] }: BannersProps) {
+    const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
+
+    const resolveImageUrl = (img?: string | null): string => {
+        if (!img) return defaultBannerImg;
+        if (img.startsWith('http://localhost') || img.startsWith('http://127.0.0.1')) {
+            try {
+                const urlObj = new URL(img);
+                return urlObj.pathname;
+            } catch {
+                return defaultBannerImg;
+            }
+        }
+        if (img.startsWith('http://') || img.startsWith('https://')) {
+            return img;
+        }
+        if (img.startsWith('/images/') || img.startsWith('/storage/')) {
+            return img;
+        }
+        if (img.startsWith('/')) {
+            return img;
+        }
+        return `/images/${img}`;
+    };
+
     const [showModal, setShowModal] = useState(false);
     const [editingBanner, setEditingBanner] = useState<BannerItem | null>(null);
 
@@ -105,7 +129,15 @@ export default function AdminBanners({ banners = [] }: BannersProps) {
                             <div key={b.id} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-xl flex flex-col justify-between space-y-4">
                                 <div className="space-y-3">
                                     <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-[#18181b] border border-[#3f3f46]">
-                                        <img src={b.image_path} alt={b.title} className="w-full h-full object-cover" />
+                                        <img 
+                                            src={resolveImageUrl(b.image_path)} 
+                                            alt={b.title} 
+                                            className="w-full h-full object-cover" 
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = defaultBannerImg;
+                                            }}
+                                        />
                                         <span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase ${
                                             b.is_active ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'
                                         }`}>
