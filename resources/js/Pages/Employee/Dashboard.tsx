@@ -160,14 +160,35 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const [cancelLoading, setCancelLoading] = useState(false);
 
     const getProductCategory = (name: string): string => {
-        const n = name.toLowerCase();
-        if ((n.includes('rice') && !n.includes('pepper') && !n.includes('inasal') && !n.includes('meal')) || n.includes('tea') || n.includes('cucumber') || n.includes('pitcher') || n.includes('beverage') || n.includes('juice') || n.includes('drink')) {
+        const n = (name || '').toLowerCase().trim();
+        if (
+            n === 'extra rice' ||
+            n.includes('extra rice') ||
+            n.includes('plain rice') ||
+            n.includes('garlic rice') ||
+            n.includes('tea') ||
+            n.includes('cucumber') ||
+            n.includes('pitcher') ||
+            n.includes('beverage') ||
+            n.includes('drink') ||
+            n.includes('juice') ||
+            n.includes('soda') ||
+            n.includes('water')
+        ) {
             return 'Drinks & Extra Rice';
         }
-        if (n.includes('platter') || n.includes('barkada')) {
+        if (n.includes('platter') || n.includes('barkada') || n.includes('sharing') || n.includes('bilao')) {
             return 'Barkada Platters';
         }
-        if (n.includes('kare') || n.includes('adobo') || n.includes('sinigang') || n.includes('filipino') || n.includes('bulalo')) {
+        if (
+            n.includes('kare') ||
+            n.includes('adobo') ||
+            n.includes('sinigang') ||
+            n.includes('bulalo') ||
+            n.includes('lechon') ||
+            n.includes('pinakbet') ||
+            n.includes('filipino')
+        ) {
             return 'Authentic Filipino Cuisine';
         }
         return 'Sizzling Rice Meals';

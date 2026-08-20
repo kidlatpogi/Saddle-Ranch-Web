@@ -20,9 +20,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
     Route::get('/admin/orders', function () {
         $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        $products = Product::orderBy('id', 'desc')->get();
+        $auditLogs = \App\Models\AuditLog::with('user')->orderBy('id', 'desc')->limit(100)->get();
         return response()->json([
             'status' => 'success',
             'data' => $orders,
+            'products' => $products,
+            'audit_logs' => $auditLogs,
         ]);
     });
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);

@@ -368,7 +368,15 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                         step="0.01"
                                         required
                                         value={data.price}
-                                        onChange={(e) => setData('price', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setData((prev) => ({
+                                                ...prev,
+                                                price: val,
+                                                price_bulihan: val,
+                                                price_dasmarinas: val,
+                                            }));
+                                        }}
                                         placeholder="180.00"
                                         className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />
@@ -380,7 +388,16 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                         type="number"
                                         required
                                         value={data.stock_quantity}
-                                        onChange={(e) => setData('stock_quantity', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const num = parseInt(val, 10);
+                                            setData((prev) => ({
+                                                ...prev,
+                                                stock_quantity: val,
+                                                stock_bulihan: !isNaN(num) ? Math.round(num * 0.6).toString() : '',
+                                                stock_dasmarinas: !isNaN(num) ? Math.round(num * 0.4).toString() : '',
+                                            }));
+                                        }}
                                         placeholder="50"
                                         className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />

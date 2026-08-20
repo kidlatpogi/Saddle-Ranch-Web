@@ -187,16 +187,45 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const allProducts = products && products.length > 0 ? products : fallbackProducts;
 
     const getProductCategory = (p: Product): CategoryType => {
-        const name = (p.name || '').toLowerCase();
-        if ((name.includes('rice') && !name.includes('pepper') && !name.includes('inasal') && !name.includes('meals')) || name.includes('tea') || name.includes('cucumber') || name.includes('pitcher') || name.includes('beverage') || name.includes('drink')) {
+        const name = (p.name || '').toLowerCase().trim();
+
+        // 1. Drinks & Extra Rice (Only extra rice portions and beverages)
+        if (
+            name === 'extra rice' ||
+            name.includes('extra rice') ||
+            name.includes('plain rice') ||
+            name.includes('garlic rice') ||
+            name.includes('tea') ||
+            name.includes('cucumber') ||
+            name.includes('pitcher') ||
+            name.includes('beverage') ||
+            name.includes('drink') ||
+            name.includes('juice') ||
+            name.includes('soda') ||
+            name.includes('water')
+        ) {
             return 'Drinks & Extra Rice';
         }
-        if (name.includes('platter') || name.includes('barkada')) {
+
+        // 2. Barkada Platters (Group sharing platters)
+        if (name.includes('platter') || name.includes('barkada') || name.includes('sharing') || name.includes('bilao')) {
             return 'Barkada Platters';
         }
-        if (name.includes('kare') || name.includes('adobo') || name.includes('sinigang') || name.includes('filipino') || name.includes('bulalo')) {
+
+        // 3. Authentic Filipino (Ala Carte / Sharing Bowls)
+        if (
+            name.includes('kare') ||
+            name.includes('adobo') ||
+            name.includes('sinigang') ||
+            name.includes('bulalo') ||
+            name.includes('lechon') ||
+            name.includes('pinakbet') ||
+            name.includes('filipino')
+        ) {
             return 'Authentic Filipino';
         }
+
+        // 4. Rice Meals (All solo sizzling meals, burger steak, silogs, inasal)
         return 'Rice Meals';
     };
 
