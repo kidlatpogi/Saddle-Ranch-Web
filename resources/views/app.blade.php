@@ -7,6 +7,11 @@
         <title inertia>{{ config('app.name', 'Saddle Ranch') }}</title>
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        <!-- Browser Tab Logo / Favicon -->
+        <link rel="icon" type="image/png" href="/saddle_ranch_logo.png">
+        <link rel="shortcut icon" type="image/png" href="/saddle_ranch_logo.png">
+        <link rel="apple-touch-icon" href="/saddle_ranch_logo.png">
+
         <!-- Google Fonts: Domine, Work Sans, JetBrains Mono -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
