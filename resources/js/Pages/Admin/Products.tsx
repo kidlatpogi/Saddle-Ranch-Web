@@ -19,6 +19,7 @@ import {
 interface ProductItem {
     id: number;
     name: string;
+    category?: string;
     description?: string;
     price: number;
     price_bulihan?: number;
@@ -74,6 +75,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
+        category: 'Sizzling Rice Meals',
         description: '',
         price: '',
         price_bulihan: '',
@@ -97,6 +99,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
         setImagePreview(product.image_path || null);
         setData({
             name: product.name,
+            category: product.category || 'Sizzling Rice Meals',
             description: product.description || '',
             price: product.price.toString(),
             price_bulihan: (product.price_bulihan ?? product.price).toString(),
@@ -359,6 +362,20 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                 />
                             </div>
 
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Category</label>
+                                <select
+                                    value={data.category}
+                                    onChange={(e) => setData('category', e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
+                                >
+                                    <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                    <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                    <option value="Barkada Platters">Barkada Platters</option>
+                                    <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                                </select>
+                            </div>
+
                             {/* Default Base Price & Stock */}
                             <div className="grid grid-cols-2 gap-4 p-3 rounded-2xl bg-[#141416] border border-[#333338]">
                                 <div>
@@ -368,7 +385,15 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                         step="0.01"
                                         required
                                         value={data.price}
-                                        onChange={(e) => setData('price', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setData((prev) => ({
+                                                ...prev,
+                                                price: val,
+                                                price_bulihan: val,
+                                                price_dasmarinas: val,
+                                            }));
+                                        }}
                                         placeholder="180.00"
                                         className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />
@@ -380,7 +405,16 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                         type="number"
                                         required
                                         value={data.stock_quantity}
-                                        onChange={(e) => setData('stock_quantity', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const num = parseInt(val, 10);
+                                            setData((prev) => ({
+                                                ...prev,
+                                                stock_quantity: val,
+                                                stock_bulihan: !isNaN(num) ? Math.round(num * 0.6).toString() : '',
+                                                stock_dasmarinas: !isNaN(num) ? Math.round(num * 0.4).toString() : '',
+                                            }));
+                                        }}
                                         placeholder="50"
                                         className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />

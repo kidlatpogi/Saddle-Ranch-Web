@@ -32,6 +32,7 @@ class ProductManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'price_bulihan' => 'nullable|numeric|min:0',
@@ -72,6 +73,7 @@ class ProductManagementController extends Controller
 
         $product = Product::create([
             'name' => $validated['name'],
+            'category' => $validated['category'] ?? null,
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'price_bulihan' => $validated['price_bulihan'] ?? $validated['price'],
@@ -108,6 +110,7 @@ class ProductManagementController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'price_bulihan' => 'nullable|numeric|min:0',
@@ -158,6 +161,9 @@ class ProductManagementController extends Controller
         }
 
         $product->name = $validated['name'];
+        if (array_key_exists('category', $validated)) {
+            $product->category = $validated['category'];
+        }
         $product->description = $validated['description'] ?? null;
         $product->price = $validated['price'];
         $product->price_bulihan = $validated['price_bulihan'] ?? $validated['price'];

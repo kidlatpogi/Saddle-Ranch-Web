@@ -42,11 +42,15 @@ class OrderCheckoutTest extends TestCase
 
         $product->refresh();
         $this->assertEquals($initialStock - 2, $product->stock_quantity);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => "Order #{$order->order_number} placed by Juan Dela Cruz (pickup) - Total: ₱" . number_format($order->total_amount, 2),
+        ]);
     }
 
     public function test_delivery_order_flow(): void
     {
-        $product = Product::where('name', 'like', '%T-Bone%')->first();
+        $product = Product::where('name', 'like', '%Chicken Inasal%')->first();
         $initialStock = $product->stock_quantity;
 
         $response = $this->post('/order/checkout', [
@@ -69,11 +73,15 @@ class OrderCheckoutTest extends TestCase
 
         $product->refresh();
         $this->assertEquals($initialStock - 1, $product->stock_quantity);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => "Order #{$order->order_number} placed by Maria Clara (delivery) - Total: ₱" . number_format($order->total_amount, 2),
+        ]);
     }
 
     public function test_dine_in_qr_order_flow(): void
     {
-        $product = Product::where('name', 'like', '%Bulalo%')->first();
+        $product = Product::where('name', 'like', '%Kare-Kare%')->first();
         $initialStock = $product->stock_quantity;
 
         $response = $this->post('/order/checkout', [
@@ -95,5 +103,9 @@ class OrderCheckoutTest extends TestCase
 
         $product->refresh();
         $this->assertEquals($initialStock - 3, $product->stock_quantity);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => "Order #{$order->order_number} placed by Seated Guest (dine_in) - Total: ₱" . number_format($order->total_amount, 2),
+        ]);
     }
 }

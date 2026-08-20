@@ -190,12 +190,55 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }
     }, [initialEmployees]);
 
+    const getProductCategory = (name: string, category?: string): ProductItem['category'] => {
+        if (category) {
+            const cat = category.toLowerCase().trim();
+            if (cat.includes('filipino') || cat.includes('authentic')) return 'Authentic Filipino Cuisine';
+            if (cat.includes('platter') || cat.includes('barkada')) return 'Barkada Platters';
+            if (cat.includes('drink') || cat.includes('extra rice') || cat.includes('beverage')) return 'Drinks & Extra Rice';
+            if (cat.includes('sizzling') || cat.includes('rice meal') || cat.includes('meal')) return 'Sizzling Rice Meals';
+        }
+
+        const n = (name || '').toLowerCase().trim();
+        if (
+            n === 'extra rice' ||
+            n.includes('extra rice') ||
+            n.includes('plain rice') ||
+            n.includes('garlic rice') ||
+            n.includes('tea') ||
+            n.includes('cucumber') ||
+            n.includes('pitcher') ||
+            n.includes('beverage') ||
+            n.includes('drink') ||
+            n.includes('juice') ||
+            n.includes('soda') ||
+            n.includes('water')
+        ) {
+            return 'Drinks & Extra Rice';
+        }
+        if (n.includes('platter') || n.includes('barkada') || n.includes('sharing') || n.includes('bilao')) {
+            return 'Barkada Platters';
+        }
+        if (
+            n.includes('kare') ||
+            n.includes('adobo') ||
+            n.includes('sinigang') ||
+            n.includes('bulalo') ||
+            n.includes('lechon') ||
+            n.includes('pinakbet') ||
+            n.includes('filipino')
+        ) {
+            return 'Authentic Filipino Cuisine';
+        }
+        return 'Sizzling Rice Meals';
+    };
+
     const formatProducts = (rawProds: any[]): ProductItem[] => {
         if (!rawProds || rawProds.length === 0) return [];
         return rawProds.map((p: any) => ({
             id: p.id,
             name: p.name,
-            category: p.category || 'Sizzling Rice Meals',
+            category: getProductCategory(p.name, p.category),
             description: p.description || 'Delicious roadhouse sizzling meal.',
             price: Number(p.price || 0),
             stock: Number(p.stock_quantity ?? 50),
@@ -248,6 +291,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                 }
                 if (json.products && json.products.length > 0) {
                     setProducts(formatProducts(json.products));
+                }
+                if (json.audit_logs && json.audit_logs.length > 0) {
+                    setAuditLogs(formatAuditLogs(json.audit_logs));
                 }
             }
         } catch (e) {
@@ -385,14 +431,29 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     // Expanded Audit Logs Dataset
     const formatAuditLogs = (rawLogs: any[]): AuditLogItem[] => {
         if (!rawLogs || rawLogs.length === 0) return [];
-        return rawLogs.map((log: any) => ({
-            id: log.id,
-            timestamp: log.created_at ? new Date(log.created_at).toISOString().replace('T', ' ').substring(0, 19) : '',
-            user: log.user ? log.user.email : 'System',
-            role: log.user ? (log.user.role === 'admin' ? 'Admin' : 'Staff') : 'System',
-            action: log.action || '',
-            module: 'Order Queue / Sales',
-        }));
+        return rawLogs.map((log: any) => {
+            const actionText = log.action || '';
+            let mod: AuditLogItem['module'] = 'Order Queue / Sales';
+            const lower = actionText.toLowerCase();
+            if (lower.includes('product') || lower.includes('dish') || lower.includes('stock')) {
+                mod = 'Products & Stock';
+            } else if (lower.includes('banner') || lower.includes('promo')) {
+                mod = 'Promo Banners';
+            } else if (lower.includes('voucher') || lower.includes('coupon')) {
+                mod = 'Vouchers';
+            } else if (lower.includes('user') || lower.includes('employee') || lower.includes('account')) {
+                mod = 'Employees';
+            }
+
+            return {
+                id: log.id,
+                timestamp: log.created_at ? new Date(log.created_at).toISOString().replace('T', ' ').substring(0, 19) : '',
+                user: log.user ? log.user.email : (log.ip_address ? `Guest (${log.ip_address})` : 'System'),
+                role: log.user ? (log.user.role === 'admin' ? 'Admin' : (log.user.role === 'kitchen' ? 'Kitchen Staff' : (log.user.role === 'cashier' ? 'Cashier' : 'Staff'))) : 'Customer / System',
+                action: actionText,
+                module: mod,
+            };
+        });
     };
 
     const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(formatAuditLogs(initialAuditLogs || []));
@@ -454,9 +515,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         setProductFormErrors({});
     };
 
-    // Products Category & Branch Sort Filter & 10-Item Pagination
+    // Products Category, Branch, Sort Filter, Status Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
     const [productBranchFilter, setProductBranchFilter] = useState<string>('Bulihan');
+    const [productStatusFilter, setProductStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
+    const [productSortBy, setProductSortBy] = useState<'default' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc'>('default');
     const [productPage, setProductPage] = useState<number>(1);
 
     // Slot-based Banner Modal State with Real-Time Preview
@@ -674,6 +737,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
         const formData = new FormData();
         formData.append('name', newProductName.trim());
+        formData.append('category', newProductCategory);
         formData.append('description', newProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
         formData.append('price', newProductPrice || '180');
         formData.append('price_bulihan', newProductPriceBulihan || newProductPrice || '180');
@@ -724,6 +788,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
         const formData = new FormData();
         formData.append('name', editProductName.trim() || editingProduct.name);
+        formData.append('category', editProductCategory);
         formData.append('description', editProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
         formData.append('price', editProductPrice || (editingProduct.price || 0).toString());
         formData.append('price_bulihan', editProductPriceBulihan || editProductPrice || (editingProduct.priceBulihan ?? editingProduct.price ?? 0).toString());
@@ -1025,14 +1090,54 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         return true;
     });
 
-    // Filtered Products by Category, Branch & Search
-    const filteredProducts = products.filter(p => {
-        if (productCategoryFilter !== 'All' && p.category !== productCategoryFilter) return false;
-        if (productBranchFilter === 'Bulihan' && (p.stockBulihan !== undefined && p.stockBulihan <= 0)) return false;
-        if (productBranchFilter === 'Dasma' && (p.stockDasmarinas !== undefined && p.stockDasmarinas <= 0)) return false;
-        if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-        return true;
-    });
+    // Filtered & Sorted Products by Category, Branch, Status, Sort & Search
+    const filteredProducts = React.useMemo(() => {
+        let list = [...products];
+
+        // 1. Category Filter
+        if (productCategoryFilter !== 'All') {
+            list = list.filter(p => p.category === productCategoryFilter);
+        }
+
+        // 2. Status Filter
+        if (productStatusFilter !== 'All') {
+            const isActive = productStatusFilter === 'Active';
+            list = list.filter(p => p.isActive === isActive);
+        }
+
+        // 3. Search Query
+        if (searchQuery && searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            list = list.filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
+        }
+
+        // 4. Sorting
+        list.sort((a, b) => {
+            const priceA = productBranchFilter === 'Bulihan' ? (a.priceBulihan ?? a.price) : (a.priceDasmarinas ?? a.price);
+            const priceB = productBranchFilter === 'Bulihan' ? (b.priceBulihan ?? b.price) : (b.priceDasmarinas ?? b.price);
+            const stockA = productBranchFilter === 'Bulihan' ? (a.stockBulihan ?? Math.floor(a.stock * 0.6)) : (a.stockDasmarinas ?? Math.floor(a.stock * 0.4));
+            const stockB = productBranchFilter === 'Bulihan' ? (b.stockBulihan ?? Math.floor(b.stock * 0.6)) : (b.stockDasmarinas ?? Math.floor(b.stock * 0.4));
+
+            switch (productSortBy) {
+                case 'name-asc':
+                    return a.name.localeCompare(b.name);
+                case 'name-desc':
+                    return b.name.localeCompare(a.name);
+                case 'price-asc':
+                    return priceA - priceB;
+                case 'price-desc':
+                    return priceB - priceA;
+                case 'stock-asc':
+                    return stockA - stockB;
+                case 'stock-desc':
+                    return stockB - stockA;
+                default:
+                    return b.id - a.id;
+            }
+        });
+
+        return list;
+    }, [products, productCategoryFilter, productStatusFilter, productBranchFilter, productSortBy, searchQuery]);
 
     const totalProductItems = filteredProducts.length;
     const totalProductPages = Math.max(1, Math.ceil(totalProductItems / 10));
@@ -1551,6 +1656,43 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                             >
                                                 <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
                                                 <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <TrendingUp className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Sort By:</span>
+                                            <select
+                                                value={productSortBy}
+                                                onChange={(e) => {
+                                                    setProductSortBy(e.target.value as any);
+                                                    setProductPage(1);
+                                                }}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="default" className="bg-[#18181b]">Default (Newest First)</option>
+                                                <option value="name-asc" className="bg-[#18181b]">Name (A - Z)</option>
+                                                <option value="name-desc" className="bg-[#18181b]">Name (Z - A)</option>
+                                                <option value="price-asc" className="bg-[#18181b]">Price: Low to High</option>
+                                                <option value="price-desc" className="bg-[#18181b]">Price: High to Low</option>
+                                                <option value="stock-asc" className="bg-[#18181b]">Stock: Low to High</option>
+                                                <option value="stock-desc" className="bg-[#18181b]">Stock: High to Low</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <CheckCircle2 className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Status:</span>
+                                            <select
+                                                value={productStatusFilter}
+                                                onChange={(e) => {
+                                                    setProductStatusFilter(e.target.value as any);
+                                                    setProductPage(1);
+                                                }}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Status</option>
+                                                <option value="Active" className="bg-[#18181b]">Active Only</option>
+                                                <option value="Inactive" className="bg-[#18181b]">Inactive / Disabled</option>
                                             </select>
                                         </div>
                                     </div>
@@ -2542,8 +2684,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             setNewProductPrice(val);
-                                            if (!newProductPriceBulihan) setNewProductPriceBulihan(val);
-                                            if (!newProductPriceDasmarinas) setNewProductPriceDasmarinas(val);
+                                            setNewProductPriceBulihan(val);
+                                            setNewProductPriceDasmarinas(val);
                                         }}
                                         placeholder="180.00"
                                         className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
@@ -2559,7 +2701,18 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         type="number"
                                         required
                                         value={newProductStock}
-                                        onChange={(e) => setNewProductStock(e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setNewProductStock(val);
+                                            const num = parseInt(val, 10);
+                                            if (!isNaN(num)) {
+                                                setNewProductStockBulihan(Math.round(num * 0.6).toString());
+                                                setNewProductStockDasmarinas(Math.round(num * 0.4).toString());
+                                            } else {
+                                                setNewProductStockBulihan('');
+                                                setNewProductStockDasmarinas('');
+                                            }
+                                        }}
                                         placeholder="50"
                                         className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
                                     />
