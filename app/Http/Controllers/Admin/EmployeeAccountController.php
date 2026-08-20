@@ -28,6 +28,7 @@ class EmployeeAccountController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'role' => 'required|in:user,employee,kitchen,cashier,admin',
+            'branch' => 'nullable|string',
             'password' => 'required|string|min:6',
         ]);
 
@@ -35,14 +36,15 @@ class EmployeeAccountController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
+            'branch' => $validated['branch'] ?? 'Bulihan',
             'password' => Hash::make($validated['password']),
         ]);
 
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "Created Account '{$employee->email}' as role '{$employee->role}'",
+            'action' => "Created Account '{$employee->email}' as role '{$employee->role}' (Branch: {$employee->branch})",
             'ip_address' => $request->ip(),
-            'payload' => ['employee_id' => $employee->id, 'email' => $employee->email, 'role' => $employee->role],
+            'payload' => ['employee_id' => $employee->id, 'email' => $employee->email, 'role' => $employee->role, 'branch' => $employee->branch],
         ]);
 
         return back()->with('success', 'Account created successfully.');
@@ -56,12 +58,16 @@ class EmployeeAccountController extends Controller
             'name' => 'required|string|max:255',
             'email' => "required|email|unique:users,email,{$id}",
             'role' => 'required|in:user,employee,kitchen,cashier,admin',
+            'branch' => 'nullable|string',
             'password' => 'nullable|string|min:6',
         ]);
 
         $employee->name = $validated['name'];
         $employee->email = $validated['email'];
         $employee->role = $validated['role'];
+        if ($request->has('branch')) {
+            $employee->branch = $validated['branch'];
+        }
 
         if (!empty($validated['password'])) {
             $employee->password = Hash::make($validated['password']);
@@ -71,7 +77,7 @@ class EmployeeAccountController extends Controller
 
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "Updated Account '{$employee->email}' (Role: {$employee->role})",
+            'action' => "Updated Account '{$employee->email}' (Role: {$employee->role}, Branch: {$employee->branch})",
             'ip_address' => $request->ip(),
             'payload' => ['employee_id' => $employee->id, 'email' => $employee->email],
         ]);

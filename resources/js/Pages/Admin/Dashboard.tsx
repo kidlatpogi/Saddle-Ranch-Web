@@ -72,6 +72,7 @@ interface OrderItem {
 }
 
 interface BannerItem {
+    id?: number;
     slot: number; // 1, 2, 3, or 4
     title: string;
     subtitle: string;
@@ -124,9 +125,10 @@ interface AdminDashboardProps {
     initialAuditLogs?: any[];
     initialEmployees?: any[];
     initialVouchers?: any[];
+    initialBanners?: any[];
 }
 
-export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers }: AdminDashboardProps) {
+export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers, initialBanners }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -135,6 +137,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
 
     const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+    const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
 
     const formatEmployees = (rawEmps: any[]): EmployeeItem[] => {
         if (!rawEmps || rawEmps.length === 0) {
@@ -158,6 +161,12 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const [employees, setEmployees] = useState<EmployeeItem[]>(formatEmployees(initialEmployees || []));
+
+    React.useEffect(() => {
+        if (initialEmployees && initialEmployees.length > 0) {
+            setEmployees(formatEmployees(initialEmployees));
+        }
+    }, [initialEmployees]);
 
     const formatProducts = (rawProds: any[]): ProductItem[] => {
         if (!rawProds || rawProds.length === 0) return [];
@@ -230,42 +239,81 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         return () => clearInterval(interval);
     }, []);
 
+    const formatBanners = (rawBanners: any[]): Record<number, BannerItem> => {
+        const fallback: Record<number, BannerItem> = {
+            1: {
+                id: 1,
+                slot: 1,
+                title: 'Sisig Saturdays Deal',
+                subtitle: 'Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.',
+                tag: 'WEEKEND SPECIAL • 20% OFF',
+                branch: 'All',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
+                isActive: true
+            },
+            2: {
+                id: 2,
+                slot: 2,
+                title: 'Cowboy Ribeye Special',
+                subtitle: 'Bone-in, seared on smoking cast iron.',
+                tag: 'NEW ARRIVAL',
+                branch: 'Bulihan',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
+                isActive: true
+            },
+            3: {
+                id: 3,
+                slot: 3,
+                title: 'Unlimited Rice & Soup',
+                subtitle: 'Unli rice & soup at selected products for both branches — exclusive offer for only ₱79 at Dasmariñas Branch!',
+                tag: 'DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP',
+                branch: 'Dasma',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
+                isActive: true
+            },
+            4: {
+                id: 4,
+                slot: 4,
+                title: 'Pulutan Happy Hour Specials',
+                subtitle: "Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.",
+                tag: 'HAPPY HOUR • 4PM - 7PM DAILY',
+                branch: 'All',
+                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
+                ctaText: 'ORDER PULUTAN NOW →',
+                isActive: true
+            }
+        };
+
+        if (!rawBanners || rawBanners.length === 0) return fallback;
+
+        const result: Record<number, BannerItem> = { ...fallback };
+        rawBanners.forEach((b: any, index: number) => {
+            const slot = b.display_order || (index + 1);
+            if (slot >= 1 && slot <= 4) {
+                result[slot] = {
+                    id: b.id,
+                    slot: slot,
+                    title: b.title,
+                    subtitle: b.subtitle || fallback[slot]?.subtitle || '',
+                    tag: b.tag || fallback[slot]?.tag || 'SPECIAL DEAL',
+                    branch: b.branch === 'bulihan' ? 'Bulihan' : (b.branch === 'dasmarinas' ? 'Dasma' : 'All'),
+                    image: b.image_path || defaultBannerImg,
+                    ctaText: b.cta_text || fallback[slot]?.ctaText || 'VIEW PROMO',
+                    isActive: Boolean(b.is_active),
+                };
+            }
+        });
+        return result;
+    };
+
     // 4 PROMO BANNER SLOTS
-    const [banners, setBanners] = useState<Record<number, BannerItem>>({
-        1: {
-            slot: 1,
-            title: 'Sisig Saturdays Deal',
-            subtitle: 'Enjoy 20% off our legendary 24-hour marinated Pork Sisig served on a smoking hot skillet with raw egg and calamansi.',
-            tag: 'WEEKEND SPECIAL • 20% OFF',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
-            isActive: true
-        },
-        2: {
-            slot: 2,
-            title: 'Cowboy Ribeye Special',
-            subtitle: 'Bone-in, seared on smoking cast iron.',
-            tag: 'NEW ARRIVAL',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
-            isActive: true
-        },
-        3: {
-            slot: 3,
-            title: 'Unlimited Rice & Soup',
-            subtitle: 'Unli rice & soup at selected products for both branches — exclusive offer for only ₱79 at Dasmariñas Branch!',
-            tag: 'DASMARIÑAS BRANCH • ₱79 UNLI RICE & SOUP',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
-            isActive: true
-        },
-        4: {
-            slot: 4,
-            title: 'Pulutan Happy Hour Specials',
-            subtitle: "Gather 'round the roadhouse hearth with ice-cold beverages and piping hot sizzling pulutan platters.",
-            tag: 'HAPPY HOUR • 4PM - 7PM DAILY',
-            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            ctaText: 'ORDER PULUTAN NOW →',
-            isActive: true
+    const [banners, setBanners] = useState<Record<number, BannerItem>>(formatBanners(initialBanners || []));
+
+    React.useEffect(() => {
+        if (initialBanners && initialBanners.length > 0) {
+            setBanners(formatBanners(initialBanners));
         }
-    });
+    }, [initialBanners]);
 
     const formatVouchers = (raw: any[]): VoucherItem[] => {
         if (!raw || raw.length === 0) {
@@ -292,6 +340,12 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const [vouchers, setVouchers] = useState<VoucherItem[]>(formatVouchers(initialVouchers || []));
+
+    React.useEffect(() => {
+        if (initialVouchers && initialVouchers.length > 0) {
+            setVouchers(formatVouchers(initialVouchers));
+        }
+    }, [initialVouchers]);
 
     const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
@@ -390,6 +444,10 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [newBannerTag, setNewBannerTag] = useState('');
     const [newBannerImage, setNewBannerImage] = useState('');
     const [newBannerCta, setNewBannerCta] = useState('');
+    const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+    const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+    const [isSavingBanner, setIsSavingBanner] = useState(false);
+    const [bannerErrors, setBannerErrors] = useState<Record<string, string>>({});
 
     // Voucher Modal State with Real-Time Preview
     const [showAddVoucherModal, setShowAddVoucherModal] = useState(false);
@@ -401,15 +459,23 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [newVoucherIsLimitedTime, setNewVoucherIsLimitedTime] = useState(false);
     const [newVoucherStartsAt, setNewVoucherStartsAt] = useState('');
     const [newVoucherExpiresAt, setNewVoucherExpiresAt] = useState('');
+    const [isSavingVoucher, setIsSavingVoucher] = useState(false);
+    const [voucherErrors, setVoucherErrors] = useState<Record<string, string>>({});
+    const [deletingVoucher, setDeletingVoucher] = useState<VoucherItem | null>(null);
+    const [isDeletingVoucher, setIsDeletingVoucher] = useState(false);
 
     // Employee CRUD Modals State
     const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
     const [newEmpName, setNewEmpName] = useState('');
     const [newEmpEmail, setNewEmpEmail] = useState('');
+    const [newEmpPassword, setNewEmpPassword] = useState('password123');
     const [newEmpRole, setNewEmpRole] = useState<'Admin' | 'Kitchen Staff' | 'Cashier'>('Cashier');
     const [newEmpBranch, setNewEmpBranch] = useState<'Bulihan' | 'Dasma'>('Bulihan');
-
+    const [isSavingEmployee, setIsSavingEmployee] = useState(false);
+    const [employeeErrors, setEmployeeErrors] = useState<Record<string, string>>({});
     const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
+    const [deletingEmployee, setDeletingEmployee] = useState<EmployeeItem | null>(null);
+    const [isDeletingEmployee, setIsDeletingEmployee] = useState(false);
     const [userRoleFilter, setUserRoleFilter] = useState<string>('All');
 
     // Audit Logs Filters & Pagination
@@ -529,12 +595,52 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         });
     };
 
-    const deleteVoucher = (id: number) => {
-        setVouchers(vouchers.filter(v => v.id !== id));
+    const deleteVoucher = (v: VoucherItem) => {
+        setDeletingVoucher(v);
     };
 
-    const deleteEmployee = (id: number) => {
-        setEmployees(employees.filter(e => e.id !== id));
+    const handleConfirmDeleteVoucher = () => {
+        if (!deletingVoucher) return;
+        setIsDeletingVoucher(true);
+        router.delete(`/admin/vouchers/${deletingVoucher.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setVouchers((prev) => prev.filter((v) => v.id !== deletingVoucher.id));
+                setDeletingVoucher(null);
+                setIsDeletingVoucher(false);
+            },
+            onError: (err) => {
+                console.error('Failed to delete voucher:', err);
+                setIsDeletingVoucher(false);
+            },
+            onFinish: () => {
+                setIsDeletingVoucher(false);
+            }
+        });
+    };
+
+    const deleteEmployee = (e: EmployeeItem) => {
+        setDeletingEmployee(e);
+    };
+
+    const handleConfirmDeleteEmployee = () => {
+        if (!deletingEmployee) return;
+        setIsDeletingEmployee(true);
+        router.delete(`/admin/employees/${deletingEmployee.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEmployees((prev) => prev.filter((emp) => emp.id !== deletingEmployee.id));
+                setDeletingEmployee(null);
+                setIsDeletingEmployee(false);
+            },
+            onError: (err) => {
+                console.error('Failed to delete employee:', err);
+                setIsDeletingEmployee(false);
+            },
+            onFinish: () => {
+                setIsDeletingEmployee(false);
+            }
+        });
     };
 
     const handleCreateProduct = (e: React.FormEvent) => {
@@ -633,8 +739,30 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         e.preventDefault();
         if (!editingEmployee) return;
 
-        setEmployees(employees.map(emp => emp.id === editingEmployee.id ? editingEmployee : emp));
-        setEditingEmployee(null);
+        setIsSavingEmployee(true);
+        setEmployeeErrors({});
+
+        const mappedRole = editingEmployee.role === 'Kitchen Staff' ? 'kitchen' : (editingEmployee.role === 'Cashier' ? 'cashier' : (editingEmployee.role === 'Admin' ? 'admin' : 'employee'));
+
+        router.post(`/admin/employees/${editingEmployee.id}`, {
+            name: editingEmployee.name,
+            email: editingEmployee.email,
+            role: mappedRole,
+            branch: editingEmployee.branch === 'Dasma' ? 'dasmarinas' : 'bulihan',
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditingEmployee(null);
+                setIsSavingEmployee(false);
+            },
+            onError: (errs) => {
+                setEmployeeErrors(errs);
+                setIsSavingEmployee(false);
+            },
+            onFinish: () => {
+                setIsSavingEmployee(false);
+            }
+        });
     };
 
     const handleGenerateNewTableQR = () => {
@@ -648,18 +776,22 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
     const openSlotBannerModal = (slotNum: number) => {
         setTargetBannerSlot(slotNum);
+        setBannerErrors({});
+        setBannerImageFile(null);
         const existing = banners[slotNum];
         if (existing) {
             setNewBannerTitle(existing.title);
             setNewBannerSubtitle(existing.subtitle);
             setNewBannerTag(existing.tag);
             setNewBannerImage(existing.image);
+            setBannerImagePreview(existing.image);
             setNewBannerCta(existing.ctaText || '');
         } else {
             setNewBannerTitle('');
             setNewBannerSubtitle('');
             setNewBannerTag(slotNum === 1 ? 'WEEKEND SPECIAL • 20% OFF' : slotNum === 2 ? 'NEW ARRIVAL' : slotNum === 3 ? 'UNLIMITED REFILLS' : 'HAPPY HOUR');
             setNewBannerImage('');
+            setBannerImagePreview(null);
             setNewBannerCta('');
         }
     };
@@ -668,22 +800,38 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         e.preventDefault();
         if (targetBannerSlot === null || !newBannerTitle.trim()) return;
 
-        const defaultBannerImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY';
+        setIsSavingBanner(true);
+        setBannerErrors({});
 
-        setBanners({
-            ...banners,
-            [targetBannerSlot]: {
-                slot: targetBannerSlot,
-                title: newBannerTitle,
-                subtitle: newBannerSubtitle,
-                tag: newBannerTag,
-                image: newBannerImage.trim() ? newBannerImage : defaultBannerImg,
-                ctaText: newBannerCta,
-                isActive: true
+        const formData = new FormData();
+        formData.append('title', newBannerTitle.trim());
+        formData.append('display_order', targetBannerSlot.toString());
+        formData.append('branch', productBranchFilter === 'Bulihan' ? 'bulihan' : (productBranchFilter === 'Dasma' ? 'dasmarinas' : 'all'));
+        formData.append('is_active', '1');
+        if (bannerImageFile) {
+            formData.append('image', bannerImageFile);
+        }
+
+        const existing = banners[targetBannerSlot];
+        const endpoint = (existing && existing.id) ? `/admin/banners/${existing.id}` : '/admin/banners';
+
+        router.post(endpoint, formData, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setTargetBannerSlot(null);
+                setBannerImageFile(null);
+                setBannerImagePreview(null);
+                setIsSavingBanner(false);
+            },
+            onError: (errs) => {
+                setBannerErrors(errs);
+                setIsSavingBanner(false);
+            },
+            onFinish: () => {
+                setIsSavingBanner(false);
             }
         });
-
-        setTargetBannerSlot(null);
     };
 
     const handleConfirmVoid = async (e: React.FormEvent) => {
@@ -765,6 +913,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         e.preventDefault();
         if (!newVoucherCode.trim()) return;
 
+        setIsSavingVoucher(true);
+        setVoucherErrors({});
+
         router.post('/admin/vouchers', {
             code: newVoucherCode.toUpperCase().trim(),
             discount_type: newVoucherDiscountType,
@@ -776,45 +927,60 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             expires_at: newVoucherExpiresAt || null,
             branch: productBranchFilter === 'Bulihan' ? 'bulihan' : (productBranchFilter === 'Dasma' ? 'dasmarinas' : 'all'),
         }, {
+            preserveScroll: true,
             onSuccess: () => {
-                const newVouch: VoucherItem = {
-                    id: Date.now(),
-                    code: newVoucherCode.toUpperCase().trim(),
-                    discount_type: newVoucherDiscountType,
-                    value: parseFloat(newVoucherValue) || 0,
-                    discountPercent: newVoucherDiscountType === 'percentage' ? parseFloat(newVoucherValue) : 0,
-                    minSpend: parseFloat(newVoucherMinSpend) || 0,
-                    is_one_time_use: newVoucherIsOneTime,
-                    is_limited_time: newVoucherIsLimitedTime,
-                    starts_at: newVoucherStartsAt || undefined,
-                    expires_at: newVoucherExpiresAt || undefined,
-                    usedCount: 0,
-                    isActive: true
-                };
-                setVouchers([newVouch, ...vouchers]);
-                setNewVoucherCode('');
                 setShowAddVoucherModal(false);
+                setNewVoucherCode('');
+                setNewVoucherValue('10');
+                setNewVoucherMinSpend('300');
+                setNewVoucherIsOneTime(true);
+                setNewVoucherIsLimitedTime(false);
+                setNewVoucherStartsAt('');
+                setNewVoucherExpiresAt('');
+                setIsSavingVoucher(false);
+            },
+            onError: (errs) => {
+                setVoucherErrors(errs);
+                setIsSavingVoucher(false);
+            },
+            onFinish: () => {
+                setIsSavingVoucher(false);
             }
         });
     };
 
     const handleCreateEmployee = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newEmpEmail.trim()) return;
+        if (!newEmpEmail.trim() || !newEmpName.trim()) return;
 
-        const newEmp: EmployeeItem = {
-            id: Date.now(),
-            name: newEmpName || 'Staff Member',
-            email: newEmpEmail,
-            role: newEmpRole,
-            branch: newEmpBranch,
-            status: 'Active',
-            createdAt: new Date().toISOString().split('T')[0]
-        };
-        setEmployees([...employees, newEmp]);
-        setNewEmpName('');
-        setNewEmpEmail('');
-        setShowAddEmployeeModal(false);
+        setIsSavingEmployee(true);
+        setEmployeeErrors({});
+
+        const mappedRole = newEmpRole === 'Kitchen Staff' ? 'kitchen' : (newEmpRole === 'Cashier' ? 'cashier' : (newEmpRole === 'Admin' ? 'admin' : 'employee'));
+
+        router.post('/admin/employees', {
+            name: newEmpName.trim(),
+            email: newEmpEmail.trim(),
+            role: mappedRole,
+            branch: newEmpBranch === 'Dasma' ? 'dasmarinas' : 'bulihan',
+            password: newEmpPassword || 'password123',
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowAddEmployeeModal(false);
+                setNewEmpName('');
+                setNewEmpEmail('');
+                setNewEmpPassword('password123');
+                setIsSavingEmployee(false);
+            },
+            onError: (errs) => {
+                setEmployeeErrors(errs);
+                setIsSavingEmployee(false);
+            },
+            onFinish: () => {
+                setIsSavingEmployee(false);
+            }
+        });
     };
 
     const copyTableLink = (tableNum: string) => {
@@ -1847,7 +2013,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                                                 <div className="w-24 flex flex-col justify-between items-end text-right pl-2">
                                                     <button
-                                                        onClick={() => deleteVoucher(v.id)}
+                                                        onClick={() => deleteVoucher(v)}
                                                         className="p-1.5 rounded-full text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                                                         title="Delete Voucher"
                                                     >
@@ -1990,7 +2156,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                     <Edit2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => deleteEmployee(e.id)}
+                                                                    onClick={() => deleteEmployee(e)}
                                                                     className="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20"
                                                                     title="Delete User Account"
                                                                 >
@@ -2723,8 +2889,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                             <div className="relative min-h-[160px] rounded-2xl overflow-hidden bg-[#18181b] border border-[#f59e0b]/40 shadow-lg flex flex-col justify-end p-4">
                                 <div className="absolute inset-0 vignette-overlay">
-                                    {newBannerImage ? (
-                                        <img className="w-full h-full object-cover opacity-60" alt="Preview" src={newBannerImage} />
+                                    {(bannerImagePreview || newBannerImage) ? (
+                                        <img className="w-full h-full object-cover opacity-60" alt="Preview" src={bannerImagePreview || newBannerImage} />
                                     ) : (
                                         <div className="w-full h-full bg-[#27272a] flex items-center justify-center text-[#71717a] text-xs font-bold">
                                             No Image File Uploaded
@@ -2757,6 +2923,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     placeholder="e.g. Sisig Saturdays Deal"
                                     className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                                 />
+                                {bannerErrors.title && <p className="text-[11px] text-rose-400 mt-1">{bannerErrors.title}</p>}
                             </div>
 
                             <div>
@@ -2782,26 +2949,39 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Upload Banner Image File (Blob File Upload) *</label>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Upload Banner Image File (WebP, PNG, JPG up to 10MB)</label>
                                 <label className="w-full flex items-center justify-center gap-2.5 p-3 rounded-xl bg-[#18181b] border-2 border-dashed border-[#f59e0b]/50 text-xs font-bold text-[#fbbf24] hover:bg-[#27272a] hover:border-[#f59e0b] cursor-pointer transition-all">
                                     <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                    <span>{newBannerImage ? 'Image Loaded! Click to replace' : 'Upload Banner Image File'}</span>
+                                    <span>{bannerImagePreview || newBannerImage ? 'Image Loaded! Click to replace' : 'Upload Banner Image File (WebP, PNG, JPG)'}</span>
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
-                                            if (file) handleFileUpload(file, setNewBannerImage);
+                                            if (file) {
+                                                setBannerImageFile(file);
+                                                setBannerImagePreview(URL.createObjectURL(file));
+                                            }
                                         }}
                                         className="hidden"
                                     />
                                 </label>
+                                {bannerErrors.image && <p className="text-[11px] text-rose-400 mt-1">{bannerErrors.image}</p>}
                             </div>
                         </div>
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setTargetBannerSlot(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Slot #{targetBannerSlot}</button>
+                            <button type="submit" disabled={isSavingBanner} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingBanner ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <span>Save Slot #{targetBannerSlot}</span>
+                                )}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -2855,6 +3035,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     placeholder="e.g. SUMMER15"
                                     className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white uppercase font-mono"
                                 />
+                                {voucherErrors.code && <p className="text-[11px] text-rose-400 mt-1">{voucherErrors.code}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
@@ -2879,6 +3060,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         placeholder={newVoucherDiscountType === 'percentage' ? '15' : '50'}
                                         className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
                                     />
+                                    {voucherErrors.value && <p className="text-[11px] text-rose-400 mt-1">{voucherErrors.value}</p>}
                                 </div>
                             </div>
 
@@ -2953,9 +3135,73 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddVoucherModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Create Ticket</button>
+                            <button type="submit" disabled={isSavingVoucher} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingVoucher ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Creating...</span>
+                                    </>
+                                ) : (
+                                    <span>Create Ticket</span>
+                                )}
+                            </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* DELETE VOUCHER CONFIRMATION MODAL */}
+            {deletingVoucher && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <Trash2 className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Delete Voucher Confirmation</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-0.5">Remove promo discount voucher coupon</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#27272a] space-y-2">
+                            <p className="text-xs text-[#f4f4f5] leading-relaxed">
+                                Are you sure you want to permanently delete coupon <strong className="text-[#fbbf24] font-mono font-bold">{deletingVoucher.code}</strong>?
+                            </p>
+                            <p className="text-[11px] text-[#71717a]">
+                                This promo ticket will immediately become invalid for all customer orders across all stores.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingVoucher}
+                                onClick={() => setDeletingVoucher(null)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingVoucher}
+                                onClick={handleConfirmDeleteVoucher}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeletingVoucher ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Confirm Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -3063,6 +3309,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 placeholder="Staff Name"
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.name && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.name}</p>}
                         </div>
 
                         <div>
@@ -3075,6 +3322,20 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 placeholder="staff@saddleranch.ph"
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.email && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.email}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Initial Password *</label>
+                            <input
+                                type="password"
+                                required
+                                value={newEmpPassword}
+                                onChange={(e) => setNewEmpPassword(e.target.value)}
+                                placeholder="Password (min 6 characters)"
+                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                            />
+                            {employeeErrors.password && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.password}</p>}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
@@ -3106,7 +3367,16 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setShowAddEmployeeModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Create Account</button>
+                            <button type="submit" disabled={isSavingEmployee} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingEmployee ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Creating...</span>
+                                    </>
+                                ) : (
+                                    <span>Create Account</span>
+                                )}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -3132,6 +3402,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.name && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.name}</p>}
                         </div>
 
                         <div>
@@ -3143,6 +3414,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                 onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
                                 className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
                             />
+                            {employeeErrors.email && <p className="text-[11px] text-rose-400 mt-1">{employeeErrors.email}</p>}
                         </div>
 
                         <div>
@@ -3186,9 +3458,73 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                         <div className="flex gap-2 pt-2">
                             <button type="button" onClick={() => setEditingEmployee(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Staff</button>
+                            <button type="submit" disabled={isSavingEmployee} className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel disabled:opacity-50 flex items-center justify-center gap-2">
+                                {isSavingEmployee ? (
+                                    <>
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <span>Save Staff</span>
+                                )}
+                            </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* DELETE EMPLOYEE CONFIRMATION MODAL */}
+            {deletingEmployee && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <Trash2 className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Delete User Account</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-0.5">Remove staff account</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#27272a] space-y-2">
+                            <p className="text-xs text-[#f4f4f5] leading-relaxed">
+                                Are you sure you want to delete staff account <strong className="text-[#fbbf24] font-bold">{deletingEmployee.name}</strong> ({deletingEmployee.email})?
+                            </p>
+                            <p className="text-[11px] text-[#71717a]">
+                                This user will immediately lose access to the cashier/kitchen dashboard and admin portal.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingEmployee}
+                                onClick={() => setDeletingEmployee(null)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingEmployee}
+                                onClick={handleConfirmDeleteEmployee}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeletingEmployee ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Confirm Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
