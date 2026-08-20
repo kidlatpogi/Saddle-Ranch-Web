@@ -22,6 +22,23 @@ Route::get('/order', [OrderController::class, 'order'])->name('order');
 Route::get('/dine-in', [OrderController::class, 'dineIn'])->name('dine-in');
 Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 
+// Storage & Images Dynamic Asset Serving Fallback (Works seamlessly across local and production on Render)
+Route::get('/storage/{path}', function (string $path) {
+    $storageFile = storage_path('app/public/' . $path);
+    if (file_exists($storageFile)) {
+        return response()->file($storageFile);
+    }
+    $imagesFile = public_path('images/' . $path);
+    if (file_exists($imagesFile)) {
+        return response()->file($imagesFile);
+    }
+    $publicFile = public_path($path);
+    if (file_exists($publicFile)) {
+        return response()->file($publicFile);
+    }
+    abort(404);
+})->where('path', '.*');
+
 // Public/API fallback routes for order status updates & cancellations
 Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus'])->name('orders.update-status');
 Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel'])->name('orders.cancel');

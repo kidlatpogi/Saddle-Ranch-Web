@@ -280,9 +280,15 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
     const getProductImage = (p: Product) => {
         if (p.image_path) {
-            if (p.image_path.startsWith('http') || p.image_path.startsWith('/images/')) return p.image_path;
-            if (p.image_path.startsWith('/')) return `/images${p.image_path}`;
-            return `/images/${p.image_path}`;
+            let img = p.image_path;
+            if (img.startsWith('http://localhost') || img.startsWith('http://127.0.0.1')) {
+                try {
+                    img = new URL(img).pathname;
+                } catch {}
+            }
+            if (img.startsWith('http') || img.startsWith('/images/') || img.startsWith('/storage/')) return img;
+            if (img.startsWith('/')) return img;
+            return `/images/${img}`;
         }
         const name = (p.name || '').toLowerCase();
         if (name.includes('inasal') || name.includes('chicken')) return '/images/chicken_inasal.webp';

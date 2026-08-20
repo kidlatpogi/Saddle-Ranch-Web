@@ -184,6 +184,28 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         { id: 8, name: 'Signature Red Iced Tea (1 Litro)', category: 'Drinks & Extra Rice', price: 95, stock: 60, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
     ];
 
+    const resolveImageUrl = (img?: string | null): string => {
+        if (!img) return fallbackProducts[0].image;
+        if (img.startsWith('http://localhost') || img.startsWith('http://127.0.0.1')) {
+            try {
+                const urlObj = new URL(img);
+                return urlObj.pathname;
+            } catch {
+                return fallbackProducts[0].image;
+            }
+        }
+        if (img.startsWith('http://') || img.startsWith('https://')) {
+            return img;
+        }
+        if (img.startsWith('/images/') || img.startsWith('/storage/')) {
+            return img;
+        }
+        if (img.startsWith('/')) {
+            return img;
+        }
+        return `/images/${img}`;
+    };
+
     const products: ProductItem[] = React.useMemo(() => {
         if (serverProducts && serverProducts.length > 0) {
             return serverProducts.map((p) => ({
@@ -193,7 +215,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                 price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
                 stock: p.stock_quantity ?? p.stock ?? 50,
                 isActive: p.is_active ?? true,
-                image: p.image_path || p.image || fallbackProducts[0].image,
+                image: resolveImageUrl(p.image_path || p.image),
             }));
         }
         return fallbackProducts;
@@ -530,7 +552,15 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                                 )}
 
                                                 <div className="h-36 sm:h-40 w-full rounded-2xl overflow-hidden bg-[#18181b] border border-[#3f3f46] relative z-10">
-                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                    <img 
+                                                        src={resolveImageUrl(product.image)} 
+                                                        alt={product.name} 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = fallbackProducts[0].image;
+                                                        }}
+                                                    />
                                                 </div>
 
                                                 <div className="space-y-1">
