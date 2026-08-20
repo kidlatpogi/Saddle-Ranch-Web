@@ -141,9 +141,57 @@ class ProductManagementController extends Controller
     }
 
     /**
-     * Soft-delete or toggle active state.
+     * Permanently delete product or deactivate if historical orders exist.
      */
     public function destroy(Request $request, int $id): RedirectResponse
+    {
+        $product = Product::findOrFail($id);
+        $productName = $product->name;
+
+        try {
+            // Delete product image if stored in local public disk
+            if ($product->image_path && str_contains($product->image_path, '/storage/')) {
+                $oldRelative = str_replace('/storage/', '', $product->image_path);
+                Storage::disk('public')->delete($oldRelative);
+            }
+
+            $product->delete();
+
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'action' => "Permanently deleted Product '{$productName}'",
+                'ip_address' => $request->ip(),
+                'payload' => [
+                    'product_id' => $id,
+                    'name' => $productName,
+                ],
+            ]);
+
+            return back()->with('success', "Product '{$productName}' deleted successfully.");
+        } catch (\Throwable $e) {
+            // If historical foreign key constraints prevent hard delete, deactivate
+            $product->is_active = false;
+            $product->save();
+
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'action' => "Deactivated Product '{$productName}' (Preserved order history)",
+                'ip_address' => $request->ip(),
+                'payload' => [
+                    'product_id' => $id,
+                    'name' => $productName,
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+
+            return back()->with('success', "Product '{$productName}' has past order records so it was deactivated and removed from the active menu.");
+        }
+    }
+
+    /**
+     * Toggle product active/inactive state.
+     */
+    public function toggleStatus(Request $request, int $id): RedirectResponse
     {
         $product = Product::findOrFail($id);
         $product->is_active = !$product->is_active;

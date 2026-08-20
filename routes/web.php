@@ -41,6 +41,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/products', [ProductManagementController::class, 'index'])->name('admin.products');
     Route::post('/admin/products', [ProductManagementController::class, 'store'])->name('admin.products.store');
     Route::post('/admin/products/{id}', [ProductManagementController::class, 'update'])->name('admin.products.update');
+    Route::post('/admin/products/{id}/toggle', [ProductManagementController::class, 'toggleStatus'])->name('admin.products.toggle');
     Route::delete('/admin/products/{id}', [ProductManagementController::class, 'destroy'])->name('admin.products.destroy');
 
     // Promo Banners & Vouchers CRUD
