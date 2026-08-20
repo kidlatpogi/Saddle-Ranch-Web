@@ -388,7 +388,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     {/* Menu Items Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
                         {displayedProducts.map((product, index) => {
                             const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                             const isOutOfStock = product.stock_quantity <= 0;
@@ -400,28 +400,28 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     key={product.id || index}
                                     className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all duration-300 shadow-xl group"
                                 >
-                                    {/* Product Image Showcase */}
-                                    <div className="h-44 sm:h-48 md:h-52 lg:h-56 w-full relative vignette-overlay overflow-hidden bg-[#121213]">
+                                    {/* Product Image Showcase with exact 16:9 aspect ratio */}
+                                    <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                         <img
                                             src={productImage}
                                             alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        <div className="absolute top-3 right-3 z-10">
-                                            <span className="font-mono text-xs sm:text-sm font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow-md">
-                                                ₱{numPrice.toFixed(2)}
-                                            </span>
-                                        </div>
                                     </div>
 
                                     {/* Product Details */}
-                                    <div className="p-4 sm:p-5 md:p-6 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
+                                    <div className="p-4 sm:p-5 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
                                         <div>
-                                            <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
-                                                {product.name}
-                                            </h3>
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="font-domine text-base sm:text-lg lg:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
+                                                    {product.name}
+                                                </h3>
+                                                <span className="font-mono text-xs sm:text-sm font-black text-[#ffc174] bg-[#261e15] border border-[#534434] px-2 py-0.5 rounded whitespace-nowrap shrink-0 shadow">
+                                                    ₱{numPrice.toFixed(2)}
+                                                </span>
+                                            </div>
                                             {product.description && (
-                                                <p className="font-sans text-xs text-[#d8c3ad] mt-1.5 line-clamp-2 leading-relaxed">
+                                                <p className="font-sans text-xs text-[#d8c3ad] mt-2 line-clamp-2 leading-relaxed">
                                                     {product.description}
                                                 </p>
                                             )}
@@ -488,9 +488,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
                         {/* Category 1: Sizzling Rice Meals (sisig.webp) */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
-                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay bg-[#121213]">
+                            <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                 <img
-                                    className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Sizzling Rice Meals category"
                                     src="/sisig.webp"
                                 />
@@ -513,9 +513,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Category 2: Authentic Filipino Cuisine (pork_sinigang.webp) */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
-                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay bg-[#121213]">
+                            <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                 <img
-                                    className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Authentic Filipino Cuisine category"
                                     src="/pork_sinigang.webp"
                                 />
@@ -538,9 +538,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                         {/* Category 3: Barkada Platters (platter_sisig.webp) */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl sm:col-span-2 md:col-span-1">
-                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay bg-[#121213]">
+                            <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                 <img
-                                    className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Barkada Platters category"
                                     src="/platter_sisig.webp"
                                 />
