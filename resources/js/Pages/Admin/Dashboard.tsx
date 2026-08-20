@@ -327,17 +327,56 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }
     }, [initialAuditLogs]);
 
-    // Modals & Forms State
+    // Add Product Modal & Form State
     const [showAddProductModal, setShowAddProductModal] = useState(false);
     const [newProductName, setNewProductName] = useState('');
     const [newProductCategory, setNewProductCategory] = useState<ProductItem['category']>('Sizzling Rice Meals');
+    const [newProductDescription, setNewProductDescription] = useState('');
     const [newProductPrice, setNewProductPrice] = useState('');
+    const [newProductPriceBulihan, setNewProductPriceBulihan] = useState('');
+    const [newProductPriceDasmarinas, setNewProductPriceDasmarinas] = useState('');
     const [newProductStock, setNewProductStock] = useState('50');
-    const [newProductImage, setNewProductImage] = useState('');
+    const [newProductStockBulihan, setNewProductStockBulihan] = useState('30');
+    const [newProductStockDasmarinas, setNewProductStockDasmarinas] = useState('20');
+    const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
+    const [newProductImagePreview, setNewProductImagePreview] = useState<string | null>(null);
 
+    // Edit Product State
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+    const [editProductName, setEditProductName] = useState('');
+    const [editProductCategory, setEditProductCategory] = useState<ProductItem['category']>('Sizzling Rice Meals');
+    const [editProductDescription, setEditProductDescription] = useState('');
+    const [editProductPrice, setEditProductPrice] = useState('');
+    const [editProductPriceBulihan, setEditProductPriceBulihan] = useState('');
+    const [editProductPriceDasmarinas, setEditProductPriceDasmarinas] = useState('');
+    const [editProductStock, setEditProductStock] = useState('50');
+    const [editProductStockBulihan, setEditProductStockBulihan] = useState('30');
+    const [editProductStockDasmarinas, setEditProductStockDasmarinas] = useState('20');
+    const [editProductImageFile, setEditProductImageFile] = useState<File | null>(null);
+    const [editProductImagePreview, setEditProductImagePreview] = useState<string | null>(null);
+
+    // Form Loading and Errors
+    const [isSavingProduct, setIsSavingProduct] = useState(false);
+    const [productFormErrors, setProductFormErrors] = useState<Record<string, string>>({});
+
     const [deletingProduct, setDeletingProduct] = useState<ProductItem | null>(null);
     const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+
+    const openEditProductModal = (p: ProductItem) => {
+        setEditingProduct(p);
+        setEditProductName(p.name);
+        setEditProductCategory(p.category);
+        setEditProductDescription(p.description || '');
+        setEditProductPrice((p.price || 0).toString());
+        setEditProductPriceBulihan((p.priceBulihan ?? p.price ?? 0).toString());
+        setEditProductPriceDasmarinas((p.priceDasmarinas ?? p.price ?? 0).toString());
+        setEditProductStock((p.stock || 0).toString());
+        setEditProductStockBulihan((p.stockBulihan ?? Math.floor((p.stock || 0) * 0.6)).toString());
+        setEditProductStockDasmarinas((p.stockDasmarinas ?? Math.floor((p.stock || 0) * 0.4)).toString());
+        setEditProductImageFile(null);
+        setEditProductImagePreview(p.image || null);
+        setProductFormErrors({});
+    };
 
     // Products Category & Branch Sort Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
@@ -419,22 +458,51 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const toggleProductStatus = (id: number) => {
-        setProducts(products.map(p => p.id === id ? { ...p, isActive: !p.isActive } : p));
+        router.post(`/admin/products/${id}/toggle`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setProducts((prev) => prev.map((p) => p.id === id ? { ...p, isActive: !p.isActive } : p));
+            }
+        });
     };
 
     const updateProductStock = (id: number, delta: number) => {
+        const prod = products.find(p => p.id === id);
+        if (!prod) return;
+
+        let nextStockBulihan = prod.stockBulihan ?? Math.floor(prod.stock * 0.6);
+        let nextStockDasma = prod.stockDasmarinas ?? Math.floor(prod.stock * 0.4);
+
+        if (productBranchFilter === 'Bulihan') {
+            nextStockBulihan = Math.max(0, nextStockBulihan + delta);
+        } else {
+            nextStockDasma = Math.max(0, nextStockDasma + delta);
+        }
+        const nextTotalStock = nextStockBulihan + nextStockDasma;
+
         setProducts(products.map(p => {
             if (p.id !== id) return p;
-            if (productBranchFilter === 'Bulihan') {
-                const currentBulihan = p.stockBulihan ?? Math.floor(p.stock * 0.6);
-                const nextBulihan = Math.max(0, currentBulihan + delta);
-                return { ...p, stockBulihan: nextBulihan, stock: (p.stockDasmarinas ?? Math.floor(p.stock * 0.4)) + nextBulihan };
-            } else {
-                const currentDasma = p.stockDasmarinas ?? Math.floor(p.stock * 0.4);
-                const nextDasma = Math.max(0, currentDasma + delta);
-                return { ...p, stockDasmarinas: nextDasma, stock: (p.stockBulihan ?? Math.floor(p.stock * 0.6)) + nextDasma };
-            }
+            return {
+                ...p,
+                stock: nextTotalStock,
+                stockBulihan: nextStockBulihan,
+                stockDasmarinas: nextStockDasma,
+            };
         }));
+
+        router.post(`/admin/products/${id}`, {
+            name: prod.name,
+            description: prod.description,
+            price: prod.price,
+            price_bulihan: prod.priceBulihan ?? prod.price,
+            price_dasmarinas: prod.priceDasmarinas ?? prod.price,
+            stock_quantity: nextTotalStock,
+            stock_bulihan: nextStockBulihan,
+            stock_dasmarinas: nextStockDasma,
+            is_active: prod.isActive,
+        }, {
+            preserveScroll: true,
+        });
     };
 
     const deleteProduct = (p: ProductItem) => {
@@ -473,30 +541,92 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         e.preventDefault();
         if (!newProductName.trim()) return;
 
-        const defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t';
+        setIsSavingProduct(true);
+        setProductFormErrors({});
 
-        const newProd: ProductItem = {
-            id: Date.now(),
-            name: newProductName,
-            category: newProductCategory,
-            description: 'Delicious roadhouse sizzling meal prepared fresh upon order.',
-            price: parseFloat(newProductPrice) || 180,
-            stock: parseInt(newProductStock) || 50,
-            isActive: true,
-            image: newProductImage.trim() ? newProductImage : defaultImg
-        };
-        setProducts([newProd, ...products]);
-        setNewProductName('');
-        setNewProductImage('');
-        setShowAddProductModal(false);
+        const formData = new FormData();
+        formData.append('name', newProductName.trim());
+        formData.append('description', newProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
+        formData.append('price', newProductPrice || '180');
+        formData.append('price_bulihan', newProductPriceBulihan || newProductPrice || '180');
+        formData.append('price_dasmarinas', newProductPriceDasmarinas || newProductPrice || '195');
+        formData.append('stock_quantity', newProductStock || '50');
+        formData.append('stock_bulihan', newProductStockBulihan || '30');
+        formData.append('stock_dasmarinas', newProductStockDasmarinas || '20');
+        formData.append('is_active', '1');
+
+        if (newProductImageFile) {
+            formData.append('image', newProductImageFile);
+        }
+
+        router.post('/admin/products', formData, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setShowAddProductModal(false);
+                setNewProductName('');
+                setNewProductDescription('');
+                setNewProductPrice('');
+                setNewProductPriceBulihan('');
+                setNewProductPriceDasmarinas('');
+                setNewProductStock('50');
+                setNewProductStockBulihan('30');
+                setNewProductStockDasmarinas('20');
+                setNewProductImageFile(null);
+                setNewProductImagePreview(null);
+                setProductFormErrors({});
+                setIsSavingProduct(false);
+            },
+            onError: (errs) => {
+                setProductFormErrors(errs);
+                setIsSavingProduct(false);
+            },
+            onFinish: () => {
+                setIsSavingProduct(false);
+            },
+        });
     };
 
     const handleSaveEditProduct = (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingProduct) return;
 
-        setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
-        setEditingProduct(null);
+        setIsSavingProduct(true);
+        setProductFormErrors({});
+
+        const formData = new FormData();
+        formData.append('name', editProductName.trim() || editingProduct.name);
+        formData.append('description', editProductDescription.trim() || 'Delicious roadhouse sizzling meal prepared fresh upon order.');
+        formData.append('price', editProductPrice || (editingProduct.price || 0).toString());
+        formData.append('price_bulihan', editProductPriceBulihan || editProductPrice || (editingProduct.priceBulihan ?? editingProduct.price ?? 0).toString());
+        formData.append('price_dasmarinas', editProductPriceDasmarinas || editProductPrice || (editingProduct.priceDasmarinas ?? editingProduct.price ?? 0).toString());
+        formData.append('stock_quantity', editProductStock || (editingProduct.stock || 0).toString());
+        formData.append('stock_bulihan', editProductStockBulihan || (editingProduct.stockBulihan ?? Math.floor((editingProduct.stock || 0) * 0.6)).toString());
+        formData.append('stock_dasmarinas', editProductStockDasmarinas || (editingProduct.stockDasmarinas ?? Math.floor((editingProduct.stock || 0) * 0.4)).toString());
+        formData.append('is_active', editingProduct.isActive ? '1' : '0');
+
+        if (editProductImageFile) {
+            formData.append('image', editProductImageFile);
+        }
+
+        router.post(`/admin/products/${editingProduct.id}`, formData, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setEditingProduct(null);
+                setEditProductImageFile(null);
+                setEditProductImagePreview(null);
+                setProductFormErrors({});
+                setIsSavingProduct(false);
+            },
+            onError: (errs) => {
+                setProductFormErrors(errs);
+                setIsSavingProduct(false);
+            },
+            onFinish: () => {
+                setIsSavingProduct(false);
+            },
+        });
     };
 
     const handleSaveEditEmployee = (e: React.FormEvent) => {
@@ -1327,8 +1457,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                                                     <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() => setEditingProduct(p)}
-                                                            className="flex-1 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#fbbf24] hover:bg-[#3f3f46] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all"
+                                                            onClick={() => openEditProductModal(p)}
+                                                            className="flex-1 py-2 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#fbbf24] hover:bg-[#3f3f46] text-xs font-bold flex items-center justify-center gap-1.5 btn-bevel transition-all cursor-pointer"
                                                         >
                                                             <Edit2 className="w-3.5 h-3.5 text-[#f59e0b]" />
                                                             <span>Edit Dish</span>
@@ -2146,180 +2276,392 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
             {/* ADD PRODUCT MODAL */}
             {showAddProductModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <form onSubmit={handleCreateProduct} className="w-full max-w-md rounded-3xl bg-[#202024] border border-[#3f3f46] p-6 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between pb-2 border-b border-[#333338]">
-                            <h3 className="text-lg font-bold text-white font-domine">Add New Sizzling Dish</h3>
-                            <button type="button" onClick={() => setShowAddProductModal(false)} className="text-[#a1a1aa] hover:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+                    <div className="w-full max-w-xl rounded-3xl bg-[#18181b] border border-[#3f3f46] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#3f3f46]">
+                            <div>
+                                <h3 className="font-domine font-black text-white text-lg">Add New Sizzling Dish</h3>
+                                <p className="text-xs text-[#a1a1aa]">Create a new menu item with branch pricing & stock</p>
+                            </div>
+                            <button onClick={() => setShowAddProductModal(false)} className="text-[#a1a1aa] hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Name *</label>
-                            <input
-                                type="text"
-                                required
-                                value={newProductName}
-                                onChange={(e) => setNewProductName(e.target.value)}
-                                placeholder="e.g. Sizzling Ribeye Steak"
-                                className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white placeholder-[#71717a]"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Category *</label>
-                            <select
-                                value={newProductCategory}
-                                onChange={(e) => setNewProductCategory(e.target.value as any)}
-                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            >
-                                <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
-                                <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
-                                <option value="Barkada Platters">Barkada Platters</option>
-                                <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Upload Dish Image (Local File) *</label>
-                            <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#18181b] border border-dashed border-[#f59e0b]/50 text-xs font-bold text-[#fbbf24] hover:bg-[#27272a] cursor-pointer">
-                                <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                <span>{newProductImage ? 'Image Loaded! Click to replace' : 'Upload Image File'}</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(file, setNewProductImage);
-                                    }}
-                                    className="hidden"
-                                />
-                            </label>
-
-                            {newProductImage && (
-                                <img src={newProductImage} alt="Uploaded dish preview" className="w-24 h-24 object-cover rounded-xl mt-2 border border-[#3f3f46]" />
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                        <form onSubmit={handleCreateProduct} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Price (₱) *</label>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Product / Dish Name *</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     required
-                                    value={newProductPrice}
-                                    onChange={(e) => setNewProductPrice(e.target.value)}
-                                    placeholder="250.00"
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                    value={newProductName}
+                                    onChange={(e) => setNewProductName(e.target.value)}
+                                    placeholder="e.g. Sizzling Pork Sisig"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                 />
+                                {productFormErrors.name && (
+                                    <p className="text-xs text-rose-400 mt-1">{productFormErrors.name}</p>
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Stock Count *</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={newProductStock}
-                                    onChange={(e) => setNewProductStock(e.target.value)}
-                                    placeholder="50"
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="flex gap-2 pt-2">
-                            <button type="button" onClick={() => setShowAddProductModal(false)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Add Dish</button>
-                        </div>
-                    </form>
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Category</label>
+                                <select
+                                    value={newProductCategory}
+                                    onChange={(e) => setNewProductCategory(e.target.value as any)}
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
+                                >
+                                    <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                    <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                    <option value="Barkada Platters">Barkada Platters</option>
+                                    <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                                </select>
+                            </div>
+
+                            {/* Default Base Price & Stock */}
+                            <div className="grid grid-cols-2 gap-4 p-3 rounded-2xl bg-[#141416] border border-[#333338]">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Base Price (₱) *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={newProductPrice}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setNewProductPrice(val);
+                                            if (!newProductPriceBulihan) setNewProductPriceBulihan(val);
+                                            if (!newProductPriceDasmarinas) setNewProductPriceDasmarinas(val);
+                                        }}
+                                        placeholder="180.00"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.price && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.price}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Total Stock *</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={newProductStock}
+                                        onChange={(e) => setNewProductStock(e.target.value)}
+                                        placeholder="50"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.stock_quantity && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.stock_quantity}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Bulihan Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-amber-500/30 space-y-2">
+                                <span className="text-xs font-black text-[#fbbf24] uppercase tracking-wider block">Bulihan Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={newProductPriceBulihan}
+                                            onChange={(e) => setNewProductPriceBulihan(e.target.value)}
+                                            placeholder="180.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Stock</label>
+                                        <input
+                                            type="number"
+                                            value={newProductStockBulihan}
+                                            onChange={(e) => setNewProductStockBulihan(e.target.value)}
+                                            placeholder="30"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dasmarinas Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-blue-500/30 space-y-2">
+                                <span className="text-xs font-black text-blue-400 uppercase tracking-wider block">Dasmariñas Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={newProductPriceDasmarinas}
+                                            onChange={(e) => setNewProductPriceDasmarinas(e.target.value)}
+                                            placeholder="195.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Stock</label>
+                                        <input
+                                            type="number"
+                                            value={newProductStockDasmarinas}
+                                            onChange={(e) => setNewProductStockDasmarinas(e.target.value)}
+                                            placeholder="20"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dish Image Upload */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold text-[#a1a1aa]">Dish Image</label>
+                                    <span className="text-[10px] text-[#f59e0b] font-mono">WebP, PNG, JPG (Max 10 MB)</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {newProductImagePreview && (
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
+                                            <img src={newProductImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setNewProductImageFile(file);
+                                                setNewProductImagePreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46] cursor-pointer"
+                                    />
+                                </div>
+                                {productFormErrors.image && (
+                                    <p className="text-xs text-rose-400 mt-1.5 font-medium">{productFormErrors.image}</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    disabled={isSavingProduct}
+                                    onClick={() => setShowAddProductModal(false)}
+                                    className="flex-1 py-3 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSavingProduct}
+                                    className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                                >
+                                    {isSavingProduct ? (
+                                        <>
+                                            <RefreshCw className="w-4 h-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        <span>Save Dish</span>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {/* EDIT PRODUCT MODAL */}
             {editingProduct && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <form onSubmit={handleSaveEditProduct} className="w-full max-w-md rounded-3xl bg-[#202024] border border-[#3f3f46] p-6 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between pb-2 border-b border-[#333338]">
-                            <h3 className="text-lg font-bold text-white font-domine">Edit Product Details</h3>
-                            <button type="button" onClick={() => setEditingProduct(null)} className="text-[#a1a1aa] hover:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+                    <div className="w-full max-w-xl rounded-3xl bg-[#18181b] border border-[#3f3f46] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#3f3f46]">
+                            <div>
+                                <h3 className="font-domine font-black text-white text-lg">Edit Product Details</h3>
+                                <p className="text-xs text-[#a1a1aa]">Modify dish pricing, stock, and photography</p>
+                            </div>
+                            <button onClick={() => setEditingProduct(null)} className="text-[#a1a1aa] hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Name</label>
-                            <input
-                                type="text"
-                                required
-                                value={editingProduct.name}
-                                onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                                className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Dish Category</label>
-                            <select
-                                value={editingProduct.category}
-                                onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value as any })}
-                                className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                            >
-                                <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
-                                <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
-                                <option value="Barkada Platters">Barkada Platters</option>
-                                <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Replace Image File (Upload Blob)</label>
-                            <label className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#18181b] border border-dashed border-[#f59e0b]/50 text-xs font-bold text-[#fbbf24] hover:bg-[#27272a] cursor-pointer">
-                                <Upload className="w-4 h-4 text-[#f59e0b]" />
-                                <span>Upload New Image File</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(file, (blobUrl) => setEditingProduct({ ...editingProduct, image: blobUrl }));
-                                    }}
-                                    className="hidden"
-                                />
-                            </label>
-
-                            {editingProduct.image && (
-                                <img src={editingProduct.image} alt="Dish preview" className="w-24 h-24 object-cover rounded-xl mt-2 border border-[#3f3f46]" />
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                        <form onSubmit={handleSaveEditProduct} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Price (₱)</label>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Product Name *</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     required
-                                    value={editingProduct.price}
-                                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
+                                    value={editProductName}
+                                    onChange={(e) => setEditProductName(e.target.value)}
+                                    placeholder="e.g. Sizzling Pork Sisig"
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
                                 />
+                                {productFormErrors.name && (
+                                    <p className="text-xs text-rose-400 mt-1">{productFormErrors.name}</p>
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Stock Count</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={editingProduct.stock}
-                                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-3 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="flex gap-2 pt-2">
-                            <button type="button" onClick={() => setEditingProduct(null)} className="w-1/2 py-2.5 rounded-xl bg-[#27272a] text-[#a1a1aa] text-xs font-bold">Cancel</button>
-                            <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Changes</button>
-                        </div>
-                    </form>
+                            <div>
+                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Category</label>
+                                <select
+                                    value={editProductCategory}
+                                    onChange={(e) => setEditProductCategory(e.target.value as any)}
+                                    className="w-full px-4 py-2.5 rounded-xl bg-[#141416] border border-[#3f3f46] text-xs text-white focus:border-[#f59e0b] focus:outline-none"
+                                >
+                                    <option value="Sizzling Rice Meals">Sizzling Rice Meals</option>
+                                    <option value="Authentic Filipino Cuisine">Authentic Filipino Cuisine</option>
+                                    <option value="Barkada Platters">Barkada Platters</option>
+                                    <option value="Drinks & Extra Rice">Drinks & Extra Rice</option>
+                                </select>
+                            </div>
+
+                            {/* Default Base Price & Stock */}
+                            <div className="grid grid-cols-2 gap-4 p-3 rounded-2xl bg-[#141416] border border-[#333338]">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Base Price (₱) *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={editProductPrice}
+                                        onChange={(e) => setEditProductPrice(e.target.value)}
+                                        placeholder="180.00"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.price && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.price}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-[#a1a1aa] mb-1">Default Total Stock *</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={editProductStock}
+                                        onChange={(e) => setEditProductStock(e.target.value)}
+                                        placeholder="50"
+                                        className="w-full px-3.5 py-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono focus:border-[#f59e0b] focus:outline-none"
+                                    />
+                                    {productFormErrors.stock_quantity && (
+                                        <p className="text-xs text-rose-400 mt-1">{productFormErrors.stock_quantity}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Bulihan Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-amber-500/30 space-y-2">
+                                <span className="text-xs font-black text-[#fbbf24] uppercase tracking-wider block">Bulihan Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={editProductPriceBulihan}
+                                            onChange={(e) => setEditProductPriceBulihan(e.target.value)}
+                                            placeholder="180.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Bulihan Stock</label>
+                                        <input
+                                            type="number"
+                                            value={editProductStockBulihan}
+                                            onChange={(e) => setEditProductStockBulihan(e.target.value)}
+                                            placeholder="30"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dasmarinas Branch Price & Stock */}
+                            <div className="p-3.5 rounded-2xl bg-[#141416] border border-blue-500/30 space-y-2">
+                                <span className="text-xs font-black text-blue-400 uppercase tracking-wider block">Dasmariñas Branch Details</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Price (₱)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={editProductPriceDasmarinas}
+                                            onChange={(e) => setEditProductPriceDasmarinas(e.target.value)}
+                                            placeholder="195.00"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-[#a1a1aa] mb-1">Dasmariñas Stock</label>
+                                        <input
+                                            type="number"
+                                            value={editProductStockDasmarinas}
+                                            onChange={(e) => setEditProductStockDasmarinas(e.target.value)}
+                                            placeholder="20"
+                                            className="w-full px-3 py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-xs text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Product Image */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold text-[#a1a1aa]">Product Image</label>
+                                    <span className="text-[10px] text-[#f59e0b] font-mono">WebP, PNG, JPG (Max 10 MB)</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {editProductImagePreview && (
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
+                                            <img src={editProductImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setEditProductImageFile(file);
+                                                setEditProductImagePreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46] cursor-pointer"
+                                    />
+                                </div>
+                                {productFormErrors.image && (
+                                    <p className="text-xs text-rose-400 mt-1.5 font-medium">{productFormErrors.image}</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    disabled={isSavingProduct}
+                                    onClick={() => setEditingProduct(null)}
+                                    className="flex-1 py-3 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-bold text-xs cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSavingProduct}
+                                    className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                                >
+                                    {isSavingProduct ? (
+                                        <>
+                                            <RefreshCw className="w-4 h-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        <span>Save Changes</span>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
