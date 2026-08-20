@@ -279,8 +279,18 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     }, [cart.length, totalCartPages]);
 
     const getProductImage = (p: Product) => {
-        if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
-        return fallbackProducts[0].image_path;
+        if (p.image_path) {
+            if (p.image_path.startsWith('http') || p.image_path.startsWith('/images/')) return p.image_path;
+            if (p.image_path.startsWith('/')) return `/images${p.image_path}`;
+            return `/images/${p.image_path}`;
+        }
+        const name = (p.name || '').toLowerCase();
+        if (name.includes('inasal') || name.includes('chicken')) return '/images/chicken_inasal.webp';
+        if (name.includes('sisig')) return '/images/sisig.webp';
+        if (name.includes('beef') || name.includes('pepper') || name.includes('spicy')) return '/images/spicy_beef.webp';
+        if (name.includes('sinigang') || name.includes('bulalo')) return '/images/pork_sinigang.webp';
+        if (name.includes('platter') || name.includes('t-bone') || name.includes('steak')) return '/images/platter_sisig.webp';
+        return '/images/sisig.webp';
     };
 
     useEffect(() => {

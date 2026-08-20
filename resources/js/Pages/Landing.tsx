@@ -118,7 +118,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             name: 'Sizzling Chicken Inasal Platter',
             description: 'Chargrilled Bacolod-style chicken served sizzling hot with garlic rice and house-blend sauce.',
             price: 220.00,
-            image_path: '/chicken_inasal.webp',
+            image_path: '/images/chicken_inasal.webp',
             stock_quantity: 40,
             is_active: true,
         },
@@ -127,7 +127,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             name: 'Sizzling Pork Sisig',
             description: 'Crispy pork belly seasoned with local spices, served on a smoking hot skillet with raw egg and calamansi.',
             price: 180.00,
-            image_path: '/sisig.webp',
+            image_path: '/images/sisig.webp',
             stock_quantity: 50,
             is_active: true,
         },
@@ -136,20 +136,20 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
             name: 'Sizzling Spicy Beef Pepper Rice',
             description: 'Thinly sliced tender spicy beef with freshly cracked black pepper and garlic rice on hot cast iron.',
             price: 195.00,
-            image_path: '/spicy_beef.webp',
+            image_path: '/images/spicy_beef.webp',
             stock_quantity: 35,
             is_active: true,
         },
     ];
 
     const getFeaturedProductImage = (product: Product, index: number): string => {
-        const featuredImages = ['/chicken_inasal.webp', '/sisig.webp', '/spicy_beef.webp'];
+        const featuredImages = ['/images/chicken_inasal.webp', '/images/sisig.webp', '/images/spicy_beef.webp'];
         const name = (product.name || '').toLowerCase();
-        if (name.includes('inasal') || name.includes('chicken')) return '/chicken_inasal.webp';
-        if (name.includes('sisig')) return '/sisig.webp';
-        if (name.includes('beef') || name.includes('spicy') || name.includes('pepper') || name.includes('steak')) return '/spicy_beef.webp';
+        if (name.includes('inasal') || name.includes('chicken')) return '/images/chicken_inasal.webp';
+        if (name.includes('sisig')) return '/images/sisig.webp';
+        if (name.includes('beef') || name.includes('spicy') || name.includes('pepper') || name.includes('steak')) return '/images/spicy_beef.webp';
         if (product.image_path && !product.image_path.includes('googleusercontent') && !product.image_path.includes('unsplash')) {
-            return product.image_path;
+            return product.image_path.startsWith('/images/') ? product.image_path : (product.image_path.startsWith('/') ? `/images${product.image_path}` : `/images/${product.image_path}`);
         }
         return featuredImages[index % featuredImages.length];
     };
@@ -211,9 +211,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     <div className="absolute top-24 sm:top-28 left-4 sm:left-8 lg:left-16 z-20 flex items-center justify-center">
                         <a href="/" className="group block" aria-label="Saddle Ranch Home">
                             <img
-                                src="/saddle_ranch_logo.png"
+                                src="/images/saddle_ranch_logo.png"
                                 alt="Saddle Ranch Logo"
-                                className="w-28 sm:w-36 md:w-44 lg:w-48 h-auto object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)] transition-transform duration-300 group-hover:scale-105"
+                                className="w-24 xs:w-28 sm:w-36 md:w-44 lg:w-48 max-w-[38vw] h-auto object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)] transition-transform duration-300 group-hover:scale-105"
                             />
                         </a>
                     </div>
@@ -390,7 +390,6 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     {/* Menu Items Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
                         {displayedProducts.map((product, index) => {
-                            const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
                             const isOutOfStock = product.stock_quantity <= 0;
                             const isAdded = addedProductId === product.id;
                             const productImage = getFeaturedProductImage(product, index);
@@ -412,14 +411,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                     {/* Product Details */}
                                     <div className="p-4 sm:p-5 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
                                         <div>
-                                            <div className="flex items-start justify-between gap-2">
-                                                <h3 className="font-domine text-base sm:text-lg lg:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
-                                                    {product.name}
-                                                </h3>
-                                                <span className="font-mono text-xs sm:text-sm font-black text-[#ffc174] bg-[#261e15] border border-[#534434] px-2 py-0.5 rounded whitespace-nowrap shrink-0 shadow">
-                                                    ₱{numPrice.toFixed(2)}
-                                                </span>
-                                            </div>
+                                            <h3 className="font-domine text-base sm:text-lg lg:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
+                                                {product.name}
+                                            </h3>
                                             {product.description && (
                                                 <p className="font-sans text-xs text-[#d8c3ad] mt-2 line-clamp-2 leading-relaxed">
                                                     {product.description}
@@ -492,22 +486,16 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 <img
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Sizzling Rice Meals category"
-                                    src="/sisig.webp"
+                                    src="/images/sisig.webp"
                                 />
                             </div>
-                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Sizzling Rice Meals
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
-                                        Complete hearty platters with garlic rice, topped with tender meats and savory gravies on hot cast iron.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">BEEF PEPPER</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">PORK CHOP</span>
-                                </div>
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-center space-y-2">
+                                <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] border-b border-[#534434] pb-1 inline-block">
+                                    Sizzling Rice Meals
+                                </h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
+                                    Complete hearty platters with garlic rice, topped with tender meats and savory gravies on hot cast iron.
+                                </p>
                             </div>
                         </div>
 
@@ -517,22 +505,16 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 <img
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Authentic Filipino Cuisine category"
-                                    src="/pork_sinigang.webp"
+                                    src="/images/pork_sinigang.webp"
                                 />
                             </div>
-                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Authentic Filipino Cuisine
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
-                                        Time-honored Filipino heritage recipes cooked sizzling hot with bold local seasonings and native flair.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SISIG</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SINIGANG</span>
-                                </div>
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-center space-y-2">
+                                <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] border-b border-[#534434] pb-1 inline-block">
+                                    Authentic Filipino Cuisine
+                                </h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
+                                    Time-honored Filipino heritage recipes cooked sizzling hot with bold local seasonings and native flair.
+                                </p>
                             </div>
                         </div>
 
@@ -542,22 +524,16 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                                 <img
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Barkada Platters category"
-                                    src="/platter_sisig.webp"
+                                    src="/images/platter_sisig.webp"
                                 />
                             </div>
-                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Barkada Platters
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
-                                        Generous sharing platters made for group feasts, family gatherings, and roadhouse celebrations.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SHARING</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">FEAST</span>
-                                </div>
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-center space-y-2">
+                                <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] border-b border-[#534434] pb-1 inline-block">
+                                    Barkada Platters
+                                </h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
+                                    Generous sharing platters made for group feasts, family gatherings, and roadhouse celebrations.
+                                </p>
                             </div>
                         </div>
                     </div>
