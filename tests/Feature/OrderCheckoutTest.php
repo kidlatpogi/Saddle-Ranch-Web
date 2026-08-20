@@ -46,7 +46,7 @@ class OrderCheckoutTest extends TestCase
 
     public function test_delivery_order_flow(): void
     {
-        $product = Product::where('name', 'like', '%T-Bone%')->first();
+        $product = Product::where('name', 'like', '%Chicken Inasal%')->first();
         $initialStock = $product->stock_quantity;
 
         $response = $this->post('/order/checkout', [
@@ -73,7 +73,7 @@ class OrderCheckoutTest extends TestCase
 
     public function test_dine_in_qr_order_flow(): void
     {
-        $product = Product::where('name', 'like', '%Bulalo%')->first();
+        $product = Product::where('name', 'like', '%Kare-Kare%')->first();
         $initialStock = $product->stock_quantity;
 
         $response = $this->post('/order/checkout', [

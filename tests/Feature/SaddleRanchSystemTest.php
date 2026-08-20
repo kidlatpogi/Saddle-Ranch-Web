@@ -32,15 +32,15 @@ class SaddleRanchSystemTest extends TestCase
     {
         $this->assertDatabaseHas('users', ['email' => 'admin@saddleranch.ph', 'role' => 'admin']);
         $this->assertDatabaseHas('users', ['email' => 'cashier@saddleranch.ph', 'role' => 'employee']);
-        $this->assertDatabaseHas('products', ['name' => 'Sizzling Pork Sisig']);
+        $this->assertDatabaseHas('products', ['name' => 'Sizzling Sisig (w/ Egg)']);
         $this->assertDatabaseHas('vouchers', ['code' => 'SADDLE10']);
         $this->assertDatabaseHas('promo_banners', ['title' => 'Weekend Sizzling Specials']);
 
-        $sisig = Product::where('name', 'Sizzling Pork Sisig')->first();
-        $this->assertEquals(180.00, $sisig->price_bulihan);
-        $this->assertEquals(195.00, $sisig->price_dasmarinas);
-        $this->assertEquals(30, $sisig->stock_bulihan);
-        $this->assertEquals(20, $sisig->stock_dasmarinas);
+        $sisig = Product::where('name', 'Sizzling Sisig (w/ Egg)')->first();
+        $this->assertEquals(100.00, $sisig->price_bulihan);
+        $this->assertEquals(100.00, $sisig->price_dasmarinas);
+        $this->assertEquals(35, $sisig->stock_bulihan);
+        $this->assertEquals(25, $sisig->stock_dasmarinas);
 
         $this->assertDatabaseHas('vouchers', ['code' => 'BULIHANFREE', 'branch' => 'bulihan']);
         $this->assertDatabaseHas('vouchers', ['code' => 'DASMAFEAST', 'branch' => 'dasmarinas']);
@@ -55,7 +55,7 @@ class SaddleRanchSystemTest extends TestCase
      */
     public function test_phase_2_checkout_and_qr_session()
     {
-        $product = Product::where('name', 'Sizzling Pork Sisig')->first();
+        $product = Product::where('name', 'Sizzling Sisig (w/ Egg)')->first();
         $initialStock = $product->stock_quantity;
 
         // Pickup order requires name, phone

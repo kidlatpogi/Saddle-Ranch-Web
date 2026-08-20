@@ -236,95 +236,39 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     }, []);
 
     const fallbackProducts: Product[] = [
-        {
-            id: 1,
-            name: 'Sizzling Pork Sisig',
-            description: 'Crispy pork belly seasoned with local spices, served on a sizzling cast-iron skillet.',
-            price: 180.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
-            stock_quantity: 50,
-            is_active: true,
-        },
-        {
-            id: 2,
-            name: 'Sizzling Pork T-Bone Steak',
-            description: 'Tender T-Bone steak seared hard on cast iron, topped with rich roadhouse gravy.',
-            price: 280.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
-            stock_quantity: 30,
-            is_active: true,
-        },
-        {
-            id: 3,
-            name: 'Sizzling Bulalo Steak',
-            description: 'Rich beef shank served with simmering bone marrow gravy.',
-            price: 450.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC',
-            stock_quantity: 15,
-            is_active: true,
-        },
-        {
-            id: 4,
-            name: 'Sizzling Chicken Inasal Platter',
-            description: 'Chargrilled Bacolod-style chicken served sizzling hot with garlic rice.',
-            price: 220.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx',
-            stock_quantity: 40,
-            is_active: true,
-        },
-        {
-            id: 5,
-            name: 'Sizzling Beef Pepper Rice',
-            description: 'Thinly sliced tender beef with ground black pepper and garlic rice.',
-            price: 195.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
-            stock_quantity: 35,
-            is_active: true,
-        },
-        {
-            id: 6,
-            name: 'Sizzling Gambas Al Ajillo',
-            description: 'Succulent shrimp sautéed in garlic oil and chili flakes.',
-            price: 260.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            stock_quantity: 25,
-            is_active: true,
-        },
-        {
-            id: 7,
-            name: 'Extra Garlic Rice',
-            description: 'Fragrant fried garlic rice served piping hot.',
-            price: 35.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ',
-            stock_quantity: 100,
-            is_active: true,
-        },
-        {
-            id: 8,
-            name: 'Signature Red Iced Tea (1 Litro)',
-            description: 'Chilled house-brewed red iced tea pitcher (1 Litro).',
-            price: 95.00,
-            image_path: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl',
-            stock_quantity: 60,
-            is_active: true,
-        },
+        { id: 1, name: 'Kare-Kare', description: 'Traditional Filipino stew featuring tender meat in a rich, savory peanut sauce with fresh vegetables and bagoong.', price: 180.00, image_path: '/images/FilipinoCousines/kare-kare.webp', stock_quantity: 50, is_active: true },
+        { id: 2, name: 'Pork Adobo', description: 'Classic savory and tangy braised pork simmered in soy sauce, vinegar, garlic, and bay leaves.', price: 120.00, image_path: '/images/FilipinoCousines/pork_adobo.webp', stock_quantity: 50, is_active: true },
+        { id: 3, name: 'Pork Sinigang', description: 'Comforting sour tamarind soup with succulent pork and fresh local vegetables.', price: 150.00, image_path: '/images/FilipinoCousines/pork_sinigang.webp', stock_quantity: 50, is_active: true },
+        { id: 4, name: 'Sizzling Bangus', description: 'Marinated milkfish seared on a smoking hot plate served with garlic rice.', price: 125.00, image_path: '/images/Menu/bangus.webp', stock_quantity: 50, is_active: true },
+        { id: 5, name: 'Sizzling Beef Teriyaki', description: 'Tender slices of beef glazed with sweet-savory teriyaki sauce on a sizzling platter.', price: 140.00, image_path: '/images/Menu/beef_teriyaki.webp', stock_quantity: 50, is_active: true },
+        { id: 6, name: 'Sizzling Burger Steak', description: 'Juicy beef patty smothered with signature mushroom gravy on a sizzling hot plate.', price: 95.00, image_path: '/images/Menu/burger_steak.webp', stock_quantity: 50, is_active: true },
+        { id: 7, name: 'Sizzling Chicken Inasal', description: 'Bacolod-style chargrilled chicken quarter served sizzling with savory chicken oil and garlic rice.', price: 120.00, image_path: '/images/Menu/chicken_inasal.webp', stock_quantity: 50, is_active: true },
+        { id: 8, name: 'Sizzling Porkchop', description: 'Thick-cut grilled pork chop served with house gravy on cast iron.', price: 120.00, image_path: '/images/Menu/porkchop.webp', stock_quantity: 50, is_active: true },
+        { id: 9, name: 'Sizzling Sisig (w/ Egg)', description: 'Crispy chopped pork seasoned with onions, calamansi, and chili, topped with a fresh egg.', price: 100.00, image_path: '/images/Menu/sisig.webp', stock_quantity: 60, is_active: true },
+        { id: 10, name: 'Sizzling Spicy Beef', description: 'Sliced tender beef tossed in spicy savory pepper gravy on a hot cast iron platter.', price: 120.00, image_path: '/images/Menu/spicy_beef.webp', stock_quantity: 50, is_active: true },
+        { id: 11, name: 'Tapsilog', description: 'Cured beef tapa served with garlic fried rice and a sunny-side up egg.', price: 100.00, image_path: '/images/Menu/tapsilog.webp', stock_quantity: 50, is_active: true },
+        { id: 12, name: 'Sizzling Tilapia', description: 'Crisp fried fresh tilapia on a sizzling platter with soy-calamansi dipping sauce.', price: 85.00, image_path: '/images/Menu/tilapia.webp', stock_quantity: 40, is_active: true },
+        { id: 13, name: 'Tocilog', description: 'Sweet cured pork tocino served with fragrant garlic rice and fried egg.', price: 75.00, image_path: '/images/Menu/tocilog.webp', stock_quantity: 50, is_active: true },
+        { id: 14, name: 'Extra Rice', description: 'Steaming hot serving of plain white rice.', price: 15.00, image_path: '/images/RiceAndDrinks/extra_rice.webp', stock_quantity: 150, is_active: true },
+        { id: 15, name: 'Red Iced Tea (1 Litre Pitcher)', description: 'Sweet and refreshing house red iced tea in a 1-litre sharing pitcher.', price: 50.00, image_path: '/images/RiceAndDrinks/beverages_iced_tea.webp', stock_quantity: 80, is_active: true },
+        { id: 16, name: 'Cucumber (1 Litre Pitcher)', description: 'Fresh cucumber lemonade cooler in a 1-litre sharing pitcher.', price: 50.00, image_path: '/images/RiceAndDrinks/beverages_cucumber.webp', stock_quantity: 80, is_active: true },
+        { id: 17, name: 'Platter Sisig', description: 'Generous barkada-sized platter of sizzling crispy pork sisig.', price: 200.00, image_path: '/images/Platters/platter_sisig.webp', stock_quantity: 30, is_active: true },
+        { id: 18, name: 'Platter Tapa', description: 'Barkada-sized platter of savory cured beef tapa.', price: 220.00, image_path: '/images/Platters/platter_tapa.webp', stock_quantity: 30, is_active: true },
+        { id: 19, name: 'Platter Teriyaki', description: 'Large sharing platter of sizzling beef teriyaki with sweet glazed sauce.', price: 250.00, image_path: '/images/Platters/platter_tereyaki.webp', stock_quantity: 30, is_active: true },
     ];
 
     const allProducts = products && products.length > 0 ? products : fallbackProducts;
 
     const getProductCategory = (p: Product): CategoryType => {
-        const name = p.name.toLowerCase();
-        if (name.includes('tea') || name.includes('juice') || name.includes('extra garlic rice') || name.includes('beverage')) {
+        const name = (p.name || '').toLowerCase();
+        if ((name.includes('rice') && !name.includes('pepper') && !name.includes('inasal') && !name.includes('meals')) || name.includes('tea') || name.includes('cucumber') || name.includes('pitcher') || name.includes('beverage') || name.includes('drink')) {
             return 'Drinks & Extra Rice';
         }
-        if (name.includes('pepper rice') || name.includes('pork chop supreme') || name.includes('inasal')) {
-            return 'Rice Meals';
-        }
-        if (name.includes('sisig') || name.includes('lechon') || name.includes('bulalo')) {
-            return 'Authentic Filipino';
-        }
-        if (name.includes('ribeye') || name.includes('t-bone') || name.includes('gambas') || name.includes('squid')) {
+        if (name.includes('platter') || name.includes('barkada')) {
             return 'Barkada Platters';
+        }
+        if (name.includes('kare') || name.includes('adobo') || name.includes('sinigang') || name.includes('filipino') || name.includes('bulalo')) {
+            return 'Authentic Filipino';
         }
         return 'Rice Meals';
     };

@@ -161,27 +161,38 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
 
     const getProductCategory = (name: string): string => {
         const n = name.toLowerCase();
-        if (n.includes('tea') || (n.includes('rice') && !n.includes('pepper')) || n.includes('beverage') || n.includes('juice')) {
+        if ((n.includes('rice') && !n.includes('pepper') && !n.includes('inasal') && !n.includes('meal')) || n.includes('tea') || n.includes('cucumber') || n.includes('pitcher') || n.includes('beverage') || n.includes('juice') || n.includes('drink')) {
             return 'Drinks & Extra Rice';
         }
-        if (n.includes('pepper') || n.includes('inasal') || n.includes('rice meal')) {
-            return 'Sizzling Rice Meals';
-        }
-        if (n.includes('t-bone') || n.includes('platter') || n.includes('barkada') || n.includes('ribeye')) {
+        if (n.includes('platter') || n.includes('barkada')) {
             return 'Barkada Platters';
         }
-        return 'Authentic Filipino Cuisine';
+        if (n.includes('kare') || n.includes('adobo') || n.includes('sinigang') || n.includes('filipino') || n.includes('bulalo')) {
+            return 'Authentic Filipino Cuisine';
+        }
+        return 'Sizzling Rice Meals';
     };
 
     const fallbackProducts: ProductItem[] = [
-        { id: 1, name: 'Sizzling Pork Sisig', category: 'Authentic Filipino Cuisine', price: 180, stock: 50, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t' },
-        { id: 2, name: 'Sizzling Pork T-Bone Steak', category: 'Barkada Platters', price: 280, stock: 30, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY' },
-        { id: 3, name: 'Sizzling Bulalo Steak', category: 'Authentic Filipino Cuisine', price: 450, stock: 15, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatSLXJ-mynm_AwjLXsdG9xKbMwziehShgiNtyXaX2NZEeZFhSXaTmHMgLuACAitSC3WZ0g_9lSTavvnqO4eKFlaC0pnnA9OngEMtRicl0vfSF2_t4WqzxTKxW-H-X0i_tppiClzEOZ-fAuu1ezCbRVOcdVdwZHokttY1ATDIO4BuA185dwrm0QDuPpYjQ7qD9ybH5bl0WPn1wHJ3S5pB6JuCOoocWTfZ95cB0Lfqx1KbjbUwqGJxkhwxmqypEJta64yq1PajT3oWC' },
-        { id: 4, name: 'Sizzling Chicken Inasal Platter', category: 'Sizzling Rice Meals', price: 220, stock: 40, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB6QEUONokTX7mi1M1Wrie14cxeoNfVq5HyIS1sLOLWKbzZyh6OfegCBaNeH6E7uS37ugVc6jjmILNzIrmvE0tpXkOBCDP29HO1WZL69MsOd6lpwp4oX6ezfDjuAsLMCu57vBpiHDupWu3yDATuk2k_HgpQMi23Y7mifgQKqPJhc0GqDXCCk1tPooIkFyBCXPiESBHm8HKF8cp1ctvD0RZ39YNVxKG_2cPaPyfryUGBbaoIHhqqhq5R9BflPtI6jMfzsP3W6QStlttx' },
-        { id: 5, name: 'Sizzling Beef Pepper Rice', category: 'Sizzling Rice Meals', price: 195, stock: 35, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ' },
-        { id: 6, name: 'Sizzling Gambas Al Ajillo', category: 'Authentic Filipino Cuisine', price: 260, stock: 25, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
-        { id: 7, name: 'Extra Garlic Rice', category: 'Drinks & Extra Rice', price: 35, stock: 100, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ' },
-        { id: 8, name: 'Signature Red Iced Tea (1 Litro)', category: 'Drinks & Extra Rice', price: 95, stock: 60, isActive: true, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCPuMIwhrcJTtw4asxssNVZ2VWGxMaovy2G1K8R0Ix8yDYIZmMquCCDp47-9iSZeRJZPGoqUA_gstmSpYFxDQdS1nDIkmXqLfi-tQLTneA4ORWkxGtLYbCbkjLJ2sZcAuvum0fGxFxM8i2GzRSAaFKYWHdOIp6HsbA9GRrg84sBVlnpzrm4YyuS53vG9_x_SOV-OQNPEsIkecPojkMz-8yFDwZ07jXZ3SnUf-A_tEyuljflrAP4mCwWgHiFNvHAbJt-LBV66MAiCwKl' },
+        { id: 1, name: 'Kare-Kare', category: 'Authentic Filipino Cuisine', price: 180, stock: 50, isActive: true, image: '/images/FilipinoCousines/kare-kare.webp' },
+        { id: 2, name: 'Pork Adobo', category: 'Authentic Filipino Cuisine', price: 120, stock: 50, isActive: true, image: '/images/FilipinoCousines/pork_adobo.webp' },
+        { id: 3, name: 'Pork Sinigang', category: 'Authentic Filipino Cuisine', price: 150, stock: 50, isActive: true, image: '/images/FilipinoCousines/pork_sinigang.webp' },
+        { id: 4, name: 'Sizzling Bangus', category: 'Sizzling Rice Meals', price: 125, stock: 50, isActive: true, image: '/images/Menu/bangus.webp' },
+        { id: 5, name: 'Sizzling Beef Teriyaki', category: 'Sizzling Rice Meals', price: 140, stock: 50, isActive: true, image: '/images/Menu/beef_teriyaki.webp' },
+        { id: 6, name: 'Sizzling Burger Steak', category: 'Sizzling Rice Meals', price: 95, stock: 50, isActive: true, image: '/images/Menu/burger_steak.webp' },
+        { id: 7, name: 'Sizzling Chicken Inasal', category: 'Sizzling Rice Meals', price: 120, stock: 50, isActive: true, image: '/images/Menu/chicken_inasal.webp' },
+        { id: 8, name: 'Sizzling Porkchop', category: 'Sizzling Rice Meals', price: 120, stock: 50, isActive: true, image: '/images/Menu/porkchop.webp' },
+        { id: 9, name: 'Sizzling Sisig (w/ Egg)', category: 'Sizzling Rice Meals', price: 100, stock: 60, isActive: true, image: '/images/Menu/sisig.webp' },
+        { id: 10, name: 'Sizzling Spicy Beef', category: 'Sizzling Rice Meals', price: 120, stock: 50, isActive: true, image: '/images/Menu/spicy_beef.webp' },
+        { id: 11, name: 'Tapsilog', category: 'Sizzling Rice Meals', price: 100, stock: 50, isActive: true, image: '/images/Menu/tapsilog.webp' },
+        { id: 12, name: 'Sizzling Tilapia', category: 'Sizzling Rice Meals', price: 85, stock: 40, isActive: true, image: '/images/Menu/tilapia.webp' },
+        { id: 13, name: 'Tocilog', category: 'Sizzling Rice Meals', price: 75, stock: 50, isActive: true, image: '/images/Menu/tocilog.webp' },
+        { id: 14, name: 'Extra Rice', category: 'Drinks & Extra Rice', price: 15, stock: 150, isActive: true, image: '/images/RiceAndDrinks/extra_rice.webp' },
+        { id: 15, name: 'Red Iced Tea (1 Litre Pitcher)', category: 'Drinks & Extra Rice', price: 50, stock: 80, isActive: true, image: '/images/RiceAndDrinks/beverages_iced_tea.webp' },
+        { id: 16, name: 'Cucumber (1 Litre Pitcher)', category: 'Drinks & Extra Rice', price: 50, stock: 80, isActive: true, image: '/images/RiceAndDrinks/beverages_cucumber.webp' },
+        { id: 17, name: 'Platter Sisig', category: 'Barkada Platters', price: 200, stock: 30, isActive: true, image: '/images/Platters/platter_sisig.webp' },
+        { id: 18, name: 'Platter Tapa', category: 'Barkada Platters', price: 220, stock: 30, isActive: true, image: '/images/Platters/platter_tapa.webp' },
+        { id: 19, name: 'Platter Teriyaki', category: 'Barkada Platters', price: 250, stock: 30, isActive: true, image: '/images/Platters/platter_tereyaki.webp' },
     ];
 
     const resolveImageUrl = (img?: string | null): string => {
