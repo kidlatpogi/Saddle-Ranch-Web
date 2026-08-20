@@ -180,6 +180,12 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     // Menu Products Dataset with Branch-Specific Stock & Prices (Bulihan vs Dasmariñas)
     const [products, setProducts] = useState<ProductItem[]>(formatProducts(initialProducts || []));
 
+    React.useEffect(() => {
+        if (initialProducts && initialProducts.length > 0) {
+            setProducts(formatProducts(initialProducts));
+        }
+    }, [initialProducts]);
+
     const formatOrders = (rawOrders: any[]): OrderItem[] => {
         if (!rawOrders) return [];
         return rawOrders.map((o: any) => ({
@@ -330,6 +336,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [newProductImage, setNewProductImage] = useState('');
 
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+    const [deletingProduct, setDeletingProduct] = useState<ProductItem | null>(null);
+    const [isDeletingProduct, setIsDeletingProduct] = useState(false);
 
     // Products Category & Branch Sort Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
@@ -429,8 +437,28 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }));
     };
 
-    const deleteProduct = (id: number) => {
-        setProducts(products.filter(p => p.id !== id));
+    const deleteProduct = (p: ProductItem) => {
+        setDeletingProduct(p);
+    };
+
+    const handleConfirmDeleteProduct = () => {
+        if (!deletingProduct) return;
+        setIsDeletingProduct(true);
+        router.delete(`/admin/products/${deletingProduct.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setProducts((prev) => prev.filter((p) => p.id !== deletingProduct.id));
+                setDeletingProduct(null);
+                setIsDeletingProduct(false);
+            },
+            onError: (err) => {
+                console.error('Failed to delete product:', err);
+                setIsDeletingProduct(false);
+            },
+            onFinish: () => {
+                setIsDeletingProduct(false);
+            }
+        });
     };
 
     const deleteVoucher = (id: number) => {
@@ -1306,8 +1334,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                             <span>Edit Dish</span>
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteProduct(p.id)}
-                                                            className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all"
+                                                            onClick={() => deleteProduct(p)}
+                                                            className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
+                                                            title="Delete Product"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -2818,6 +2847,61 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-[#f59e0b] text-[#3f2000] text-xs font-black uppercase btn-bevel">Save Staff</button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* Delete Product Confirmation Modal */}
+            {deletingProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-[#1f1f23] border border-[#333338] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 transform transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                                <Trash2 className="w-6 h-6 text-rose-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black font-domine text-white">Delete Product Confirmation</h3>
+                                <p className="text-xs text-[#a1a1aa] mt-0.5">Remove item from menu & inventory</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#141416] border border-[#27272a] space-y-2">
+                            <p className="text-xs text-[#f4f4f5] leading-relaxed">
+                                Are you sure you want to permanently delete <strong className="text-[#fbbf24] font-semibold">{deletingProduct.name}</strong>?
+                            </p>
+                            <p className="text-[11px] text-[#71717a]">
+                                This will remove the dish from customer ordering and inventory stock across all branches.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeletingProduct}
+                                onClick={() => setDeletingProduct(null)}
+                                className="px-5 py-2.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeletingProduct}
+                                onClick={handleConfirmDeleteProduct}
+                                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeletingProduct ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        <span>Deleting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Confirm Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

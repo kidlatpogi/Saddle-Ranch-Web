@@ -95,4 +95,39 @@ class AdminProductWebpUploadTest extends TestCase
 
         $response->assertSessionHasErrors(['image']);
     }
+
+    public function test_admin_can_permanently_delete_product()
+    {
+        $admin = User::where('role', 'admin')->first();
+        $product = Product::create([
+            'name' => 'Temporary Sizzling T-Bone',
+            'price' => 450.00,
+            'stock_quantity' => 20,
+            'is_active' => true,
+            'image_path' => '/images/sisig.webp',
+        ]);
+
+        $response = $this->actingAs($admin)->delete("/admin/products/{$product->id}");
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => "Permanently deleted Product 'Temporary Sizzling T-Bone'",
+        ]);
+    }
+
+    public function test_admin_can_toggle_product_status()
+    {
+        $admin = User::where('role', 'admin')->first();
+        $product = Product::first();
+        $initialStatus = $product->is_active;
+
+        $response = $this->actingAs($admin)->post("/admin/products/{$product->id}/toggle");
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $product->refresh();
+        $this->assertEquals(!$initialStatus, $product->is_active);
+    }
 }
