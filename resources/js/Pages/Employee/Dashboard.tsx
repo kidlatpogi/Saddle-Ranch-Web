@@ -159,8 +159,49 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const [cancelError, setCancelError] = useState('');
     const [cancelLoading, setCancelLoading] = useState(false);
 
-    const getProductCategory = (name: string): string => {
+    const getProductCategory = (name: string, category?: string): string => {
+        if (category) {
+            const cat = category.toLowerCase().trim();
+            if (cat.includes('filipino') || cat.includes('authentic')) return 'Authentic Filipino Cuisine';
+            if (cat.includes('platter') || cat.includes('barkada')) return 'Barkada Platters';
+            if (cat.includes('drink') || cat.includes('extra rice') || cat.includes('beverage')) return 'Drinks & Extra Rice';
+            if (cat.includes('sizzling') || cat.includes('rice meal') || cat.includes('meal')) return 'Sizzling Rice Meals';
+        }
+
         const n = (name || '').toLowerCase().trim();
+
+        // Explicit Sizzling Meal / Burger Protection
+        if (
+            n.includes('burger') ||
+            n.includes('steak') ||
+            n.includes('bangus') ||
+            n.includes('inasal') ||
+            n.includes('porkchop') ||
+            (n.includes('sisig') && !n.includes('platter')) ||
+            n.includes('beef teriyaki') ||
+            n.includes('spicy beef') ||
+            n.includes('tapsilog') ||
+            n.includes('silog') ||
+            n.includes('tilapia') ||
+            n.includes('tocilog')
+        ) {
+            return 'Sizzling Rice Meals';
+        }
+
+        if (n.includes('platter') || n.includes('barkada') || n.includes('sharing') || n.includes('bilao')) {
+            return 'Barkada Platters';
+        }
+        if (
+            n.includes('kare') ||
+            n.includes('adobo') ||
+            n.includes('sinigang') ||
+            n.includes('bulalo') ||
+            n.includes('lechon') ||
+            n.includes('pinakbet') ||
+            n.includes('filipino')
+        ) {
+            return 'Authentic Filipino Cuisine';
+        }
         if (
             n === 'extra rice' ||
             n.includes('extra rice') ||
@@ -176,20 +217,6 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
             n.includes('water')
         ) {
             return 'Drinks & Extra Rice';
-        }
-        if (n.includes('platter') || n.includes('barkada') || n.includes('sharing') || n.includes('bilao')) {
-            return 'Barkada Platters';
-        }
-        if (
-            n.includes('kare') ||
-            n.includes('adobo') ||
-            n.includes('sinigang') ||
-            n.includes('bulalo') ||
-            n.includes('lechon') ||
-            n.includes('pinakbet') ||
-            n.includes('filipino')
-        ) {
-            return 'Authentic Filipino Cuisine';
         }
         return 'Sizzling Rice Meals';
     };
@@ -243,7 +270,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
             return serverProducts.map((p) => ({
                 id: p.id,
                 name: p.name,
-                category: p.category || getProductCategory(p.name),
+                category: getProductCategory(p.name, p.category),
                 price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
                 stock: p.stock_quantity ?? p.stock ?? 50,
                 isActive: p.is_active ?? true,

@@ -36,6 +36,7 @@ import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 interface Product {
     id: number;
     name: string;
+    category?: string;
     description: string;
     price: number | string;
     image_path?: string;
@@ -260,9 +261,54 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const allProducts = products && products.length > 0 ? products : fallbackProducts;
 
     const getProductCategory = (p: Product): CategoryType => {
+        // 1. Database-backed Category Mapping
+        if (p.category) {
+            const cat = p.category.toLowerCase().trim();
+            if (cat.includes('drink') || cat.includes('extra rice') || cat.includes('beverage')) return 'Drinks & Extra Rice';
+            if (cat.includes('platter') || cat.includes('barkada')) return 'Barkada Platters';
+            if (cat.includes('filipino') || cat.includes('authentic')) return 'Authentic Filipino';
+            if (cat.includes('sizzling') || cat.includes('rice meal') || cat.includes('meal')) return 'Rice Meals';
+        }
+
         const name = (p.name || '').toLowerCase().trim();
 
-        // 1. Drinks & Extra Rice (Only extra rice portions and beverages)
+        // 2. Explicit Sizzling Meal / Burger Protection (Never matches Drinks & Extra Rice)
+        if (
+            name.includes('burger') ||
+            name.includes('steak') ||
+            name.includes('bangus') ||
+            name.includes('inasal') ||
+            name.includes('porkchop') ||
+            (name.includes('sisig') && !name.includes('platter')) ||
+            name.includes('beef teriyaki') ||
+            name.includes('spicy beef') ||
+            name.includes('tapsilog') ||
+            name.includes('silog') ||
+            name.includes('tilapia') ||
+            name.includes('tocilog')
+        ) {
+            return 'Rice Meals';
+        }
+
+        // 3. Barkada Platters (Group sharing platters)
+        if (name.includes('platter') || name.includes('barkada') || name.includes('sharing') || name.includes('bilao')) {
+            return 'Barkada Platters';
+        }
+
+        // 4. Authentic Filipino (Ala Carte / Sharing Bowls)
+        if (
+            name.includes('kare') ||
+            name.includes('adobo') ||
+            name.includes('sinigang') ||
+            name.includes('bulalo') ||
+            name.includes('lechon') ||
+            name.includes('pinakbet') ||
+            name.includes('filipino')
+        ) {
+            return 'Authentic Filipino';
+        }
+
+        // 5. Drinks & Extra Rice (Only beverages and extra rice portions)
         if (
             name === 'extra rice' ||
             name.includes('extra rice') ||
@@ -280,25 +326,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             return 'Drinks & Extra Rice';
         }
 
-        // 2. Barkada Platters (Group sharing platters)
-        if (name.includes('platter') || name.includes('barkada') || name.includes('sharing') || name.includes('bilao')) {
-            return 'Barkada Platters';
-        }
-
-        // 3. Authentic Filipino (Ala Carte / Sharing Bowls)
-        if (
-            name.includes('kare') ||
-            name.includes('adobo') ||
-            name.includes('sinigang') ||
-            name.includes('bulalo') ||
-            name.includes('lechon') ||
-            name.includes('pinakbet') ||
-            name.includes('filipino')
-        ) {
-            return 'Authentic Filipino';
-        }
-
-        // 4. Rice Meals (All solo sizzling meals, burger steak, silogs, inasal)
+        // Default to Rice Meals
         return 'Rice Meals';
     };
 
