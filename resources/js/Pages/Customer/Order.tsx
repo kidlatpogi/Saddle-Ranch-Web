@@ -357,8 +357,18 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     }, [cart.length, totalCartPages]);
 
     const getProductImage = (p: Product) => {
-        if (p.image_path && p.image_path.startsWith('http')) return p.image_path;
-        return fallbackProducts[0].image_path;
+        if (p.image_path) {
+            if (p.image_path.startsWith('http') || p.image_path.startsWith('/images/')) return p.image_path;
+            if (p.image_path.startsWith('/')) return `/images${p.image_path}`;
+            return `/images/${p.image_path}`;
+        }
+        const name = (p.name || '').toLowerCase();
+        if (name.includes('inasal') || name.includes('chicken')) return '/images/chicken_inasal.webp';
+        if (name.includes('sisig')) return '/images/sisig.webp';
+        if (name.includes('beef') || name.includes('pepper') || name.includes('spicy')) return '/images/spicy_beef.webp';
+        if (name.includes('sinigang') || name.includes('bulalo')) return '/images/pork_sinigang.webp';
+        if (name.includes('platter') || name.includes('t-bone') || name.includes('steak')) return '/images/platter_sisig.webp';
+        return '/images/sisig.webp';
     };
 
     useEffect(() => {
@@ -741,24 +751,24 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 key={product.id}
                                                 className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
                                             >
-                                                <div className="h-44 w-full relative vignette-overlay overflow-hidden">
+                                                <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                     />
-                                                    <div className="absolute top-3 right-3 z-10">
-                                                        <span className="font-mono text-xs font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow">
-                                                            ₱{numPrice.toFixed(2)}
-                                                        </span>
-                                                    </div>
                                                 </div>
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                                                     <div>
-                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
-                                                            {product.name}
-                                                        </h3>
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
+                                                                {product.name}
+                                                            </h3>
+                                                            <span className="font-mono text-xs font-black text-[#ffc174] bg-[#261e15] border border-[#534434] px-2 py-0.5 rounded whitespace-nowrap shrink-0 shadow">
+                                                                ₱{numPrice.toFixed(2)}
+                                                            </span>
+                                                        </div>
                                                     </div>
 
                                                     <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">

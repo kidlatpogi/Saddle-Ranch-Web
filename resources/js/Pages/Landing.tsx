@@ -112,7 +112,63 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
         },
     ];
 
-    const displayedProducts = (products && products.length > 0 ? products : []).slice(0, 6);
+    const defaultFeaturedProducts: Product[] = [
+        {
+            id: 101,
+            name: 'Sizzling Chicken Inasal Platter',
+            description: 'Chargrilled Bacolod-style chicken served sizzling hot with garlic rice and house-blend sauce.',
+            price: 220.00,
+            image_path: '/images/chicken_inasal.webp',
+            stock_quantity: 40,
+            is_active: true,
+        },
+        {
+            id: 102,
+            name: 'Sizzling Pork Sisig',
+            description: 'Crispy pork belly seasoned with local spices, served on a smoking hot skillet with raw egg and calamansi.',
+            price: 180.00,
+            image_path: '/images/sisig.webp',
+            stock_quantity: 50,
+            is_active: true,
+        },
+        {
+            id: 103,
+            name: 'Sizzling Spicy Beef Pepper Rice',
+            description: 'Thinly sliced tender spicy beef with freshly cracked black pepper and garlic rice on hot cast iron.',
+            price: 195.00,
+            image_path: '/images/spicy_beef.webp',
+            stock_quantity: 35,
+            is_active: true,
+        },
+    ];
+
+    const getFeaturedProductImage = (product: Product, index: number): string => {
+        const featuredImages = ['/images/chicken_inasal.webp', '/images/sisig.webp', '/images/spicy_beef.webp'];
+        const name = (product.name || '').toLowerCase();
+        if (name.includes('inasal') || name.includes('chicken')) return '/images/chicken_inasal.webp';
+        if (name.includes('sisig')) return '/images/sisig.webp';
+        if (name.includes('beef') || name.includes('spicy') || name.includes('pepper') || name.includes('steak')) return '/images/spicy_beef.webp';
+        if (product.image_path && !product.image_path.includes('googleusercontent') && !product.image_path.includes('unsplash')) {
+            return product.image_path.startsWith('/images/') ? product.image_path : (product.image_path.startsWith('/') ? `/images${product.image_path}` : `/images/${product.image_path}`);
+        }
+        return featuredImages[index % featuredImages.length];
+    };
+
+    const displayedProducts = React.useMemo(() => {
+        if (!products || products.length === 0) {
+            return defaultFeaturedProducts;
+        }
+
+        const inasal = products.find(p => p.name.toLowerCase().includes('inasal') || p.name.toLowerCase().includes('chicken'));
+        const sisig = products.find(p => p.name.toLowerCase().includes('sisig'));
+        const beef = products.find(p => p.name.toLowerCase().includes('beef') || p.name.toLowerCase().includes('pepper') || p.name.toLowerCase().includes('spicy'));
+
+        return [
+            inasal || defaultFeaturedProducts[0],
+            sisig || defaultFeaturedProducts[1],
+            beef || defaultFeaturedProducts[2],
+        ];
+    }, [products]);
 
     return (
         <>
@@ -149,6 +205,17 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </video>
                         {/* Dark Vignette Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/50 to-[#121213]/40" />
+                    </div>
+
+                    {/* Brand Logo in Upper Left Corner (Same level as rotating badge, viewable on Mobile Viewport) */}
+                    <div className="absolute top-24 sm:top-28 left-4 sm:left-8 lg:left-16 z-20 flex items-center justify-center">
+                        <a href="/" className="group block" aria-label="Saddle Ranch Home">
+                            <img
+                                src="/images/saddle_ranch_logo.png"
+                                alt="Saddle Ranch Logo"
+                                className="w-24 xs:w-28 sm:w-36 md:w-44 lg:w-48 max-w-[38vw] h-auto object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)] transition-transform duration-300 group-hover:scale-105"
+                            />
+                        </a>
                     </div>
 
                     {/* Rotating Circular Stamp Seal Badge ("SINCE 2008") in Upper Right Corner (Item 1: Complete 360° Text Visibility) */}
@@ -321,37 +388,37 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     {/* Menu Items Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
-                        {displayedProducts.map((product) => {
-                            const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
+                        {displayedProducts.map((product, index) => {
                             const isOutOfStock = product.stock_quantity <= 0;
                             const isAdded = addedProductId === product.id;
+                            const productImage = getFeaturedProductImage(product, index);
 
                             return (
                                 <div
-                                    key={product.id}
+                                    key={product.id || index}
                                     className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all duration-300 shadow-xl group"
                                 >
-                                    {/* Product Image Showcase */}
-                                    <div className="h-44 sm:h-48 md:h-52 lg:h-56 w-full relative vignette-overlay overflow-hidden">
+                                    {/* Product Image Showcase with exact 16:9 aspect ratio */}
+                                    <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                         <img
-                                            src={product.image_path || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t'}
+                                            src={productImage}
                                             alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        <div className="absolute top-3 right-3 z-10">
-                                            <span className="font-mono text-xs sm:text-sm font-black text-[#121213] bg-[#ffc174] px-2.5 py-1 rounded shadow-md">
-                                                ₱{numPrice.toFixed(2)}
-                                            </span>
-                                        </div>
                                     </div>
 
                                     {/* Product Details */}
-                                    <div className="p-4 sm:p-5 md:p-6 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
+                                    <div className="p-4 sm:p-5 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
                                         <div>
-                                            <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors">
+                                            <h3 className="font-domine text-base sm:text-lg lg:text-xl font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
                                                 {product.name}
                                             </h3>
+                                            {product.description && (
+                                                <p className="font-sans text-xs text-[#d8c3ad] mt-2 line-clamp-2 leading-relaxed">
+                                                    {product.description}
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-end">
@@ -413,78 +480,60 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
-                        {/* Category 1: Sizzling Rice Meals */}
+                        {/* Category 1: Sizzling Rice Meals (sisig.webp) */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
-                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
+                            <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                 <img
-                                    className="w-full h-full object-cover opacity-80"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Sizzling Rice Meals category"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT2sso9NgKHiCPPIkIfBBCfPNPUK_dgit8ctI0rtoMT_bXyQ21nRcx3ViyVnDNZTyTCVtYOSFJ8h_h3ZG451V7vUFX1LFMWyd6wQrV-4pevn9wO0H-wUZVYl0TBSwWt_bbQikBKmtygbJeYfSzWbAOcd32EpNo8TCvpmAamQoFlFfNvHrmpn32aUcJ7gi5IGdK9xpTad7qU6dSRSu2bty13h9_T3_GKF3mMrUI31pUXtjCvVgiLfQIkBBbjU_zY5SS0IrP8nvbh7QQ"
+                                    src="/images/sisig.webp"
                                 />
                             </div>
-                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Sizzling Rice Meals
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
-                                        Complete hearty platters with garlic rice, topped with tender meats and savory gravies on hot cast iron.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">BEEF PEPPER</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">PORK CHOP</span>
-                                </div>
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-center space-y-2">
+                                <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] border-b border-[#534434] pb-1 inline-block">
+                                    Sizzling Rice Meals
+                                </h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
+                                    Complete hearty platters with garlic rice, topped with tender meats and savory gravies on hot cast iron.
+                                </p>
                             </div>
                         </div>
 
-                        {/* Category 2: Authentic Filipino Cuisine */}
+                        {/* Category 2: Authentic Filipino Cuisine (pork_sinigang.webp) */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl">
-                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
+                            <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                 <img
-                                    className="w-full h-full object-cover opacity-80"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Authentic Filipino Cuisine category"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t"
+                                    src="/images/pork_sinigang.webp"
                                 />
                             </div>
-                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Authentic Filipino Cuisine
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
-                                        Time-honored Filipino heritage recipes cooked sizzling hot with bold local seasonings and native flair.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SISIG</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">LECHON KAWALI</span>
-                                </div>
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-center space-y-2">
+                                <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] border-b border-[#534434] pb-1 inline-block">
+                                    Authentic Filipino Cuisine
+                                </h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
+                                    Time-honored Filipino heritage recipes cooked sizzling hot with bold local seasonings and native flair.
+                                </p>
                             </div>
                         </div>
 
-                        {/* Category 3: Barkada Platters */}
+                        {/* Category 3: Barkada Platters (platter_sisig.webp) */}
                         <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col hover-heat transition-all duration-300 shadow-xl sm:col-span-2 md:col-span-1">
-                            <div className="h-40 sm:h-44 md:h-48 relative vignette-overlay">
+                            <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                 <img
-                                    className="w-full h-full object-cover opacity-80"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="Barkada Platters category"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY"
+                                    src="/images/platter_sisig.webp"
                                 />
                             </div>
-                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-between space-y-4">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] mb-2 border-b border-[#534434] pb-1 inline-block">
-                                        Barkada Platters
-                                    </h3>
-                                    <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
-                                        Generous sharing platters made for group feasts, family gatherings, and roadhouse celebrations.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 font-mono text-[10px] font-bold">
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">SHARING</span>
-                                    <span className="text-[#f0e0d1] border border-[#534434] px-2 py-1 rounded bg-[#261e15]">FEAST</span>
-                                </div>
+                            <div className="p-5 sm:p-6 flex-grow flex flex-col justify-center space-y-2">
+                                <h3 className="font-domine text-lg sm:text-xl font-bold text-[#f0e0d1] border-b border-[#534434] pb-1 inline-block">
+                                    Barkada Platters
+                                </h3>
+                                <p className="font-sans text-xs text-[#d8c3ad] leading-relaxed">
+                                    Generous sharing platters made for group feasts, family gatherings, and roadhouse celebrations.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -492,9 +541,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
 
-                {/* 5. ROADHOUSE LOCATIONS SECTION */}
+                {/* 5. ROADHOUSE LOCATIONS SECTION (Images Removed) */}
                 <section id="locations" className="py-6 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto">
-                    <div className="text-center mb-5 sm:mb-12">
+                    <div className="text-center mb-6 sm:mb-12">
                         <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 sm:px-3 py-1 rounded border border-[#534434] uppercase tracking-widest font-bold mb-2 sm:mb-3 inline-block">
                             Visit Our Roadhouses
                         </span>
@@ -504,108 +553,90 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                         {/* Location 1: Saddle Ranch Bulihan */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group">
-                            <a
-                                href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden block cursor-pointer"
-                            >
-                                <img
-                                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    alt="Saddle Ranch Bulihan Storefront Exterior"
-                                    src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80"
-                                />
-                            </a>
-                            <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-2xl font-bold text-[#ffc174] mb-1 sm:mb-2">Saddle Ranch Bulihan</h3>
-                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-snug sm:leading-relaxed mb-2.5 sm:mb-4 line-clamp-2 sm:line-clamp-none">
-                                        Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
-                                    </p>
-                                    <div className="space-y-1.5 sm:space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span className="font-medium">block 26 lot 17, Anahaw St, Silang, Cavite</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>Monday - Sunday: 11:00 AM - 11:00 PM</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>+63 917 123 4567</span>
-                                        </div>
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] p-5 sm:p-6 md:p-8 flex flex-col justify-between hover-heat transition-all shadow-xl group">
+                            <div className="space-y-3 sm:space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174]">Saddle Ranch Bulihan</h3>
+                                    <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-1 rounded border border-[#534434] uppercase font-bold">
+                                        FLAGSHIP
+                                    </span>
+                                </div>
+                                <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed">
+                                    Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
+                                </p>
+                                <div className="space-y-2 font-sans text-xs sm:text-sm text-[#f0e0d1] pt-1">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <span className="font-medium">block 26 lot 17, Anahaw St, Silang, Cavite</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <span>Monday - Sunday: 11:00 AM - 11:00 PM</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <span>+63 917 123 4567</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                                    <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-2.5 sm:py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all cursor-pointer">
-                                        Order from Bulihan Branch
-                                    </button>
-                                    <a
-                                        href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="py-2.5 sm:py-3 px-3.5 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel cursor-pointer"
-                                    >
-                                        <MapPin className="w-3.5 h-3.5 text-red-400" />
-                                        <span>Google Maps</span>
-                                    </a>
-                                </div>
+                            <div className="flex flex-col sm:flex-row gap-2 pt-6 border-t border-[#534434]/40 mt-6">
+                                <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all cursor-pointer">
+                                    Order from Bulihan Branch
+                                </button>
+                                <a
+                                    href="https://maps.app.goo.gl/7gYiTW5Q9qLJKXeUA"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="py-3 px-4 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel cursor-pointer"
+                                >
+                                    <MapPin className="w-4 h-4 text-red-400" />
+                                    <span>Google Maps</span>
+                                </a>
                             </div>
                         </div>
 
                         {/* Location 2: Saddle Ranch Dasmariñas */}
-                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group">
-                            <a
-                                href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="h-32 sm:h-44 md:h-60 w-full relative vignette-overlay overflow-hidden block cursor-pointer"
-                            >
-                                <img
-                                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                                    alt="Saddle Ranch Dasmariñas Storefront Exterior"
-                                    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80"
-                                />
-                            </a>
-                            <div className="p-3.5 sm:p-6 md:p-8 flex-grow flex flex-col justify-between space-y-3 sm:space-y-6">
-                                <div>
-                                    <h3 className="font-domine text-lg sm:text-2xl font-bold text-[#ffc174] mb-1 sm:mb-2">Saddle Ranch Dasmariñas</h3>
-                                    <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-snug sm:leading-relaxed mb-2.5 sm:mb-4 line-clamp-2 sm:line-clamp-none">
-                                        Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
-                                    </p>
-                                    <div className="space-y-1.5 sm:space-y-2.5 font-sans text-xs sm:text-sm text-[#f0e0d1]">
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span className="font-medium">8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>Monday - Sunday: 10:00 AM - 10:00 PM</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f59e0b] flex-shrink-0" />
-                                            <span>+63 918 987 6543</span>
-                                        </div>
+                        <div className="bg-[#1A1A1B] rounded-xl border border-[#262627] p-5 sm:p-6 md:p-8 flex flex-col justify-between hover-heat transition-all shadow-xl group">
+                            <div className="space-y-3 sm:space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174]">Saddle Ranch Dasmariñas</h3>
+                                    <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-1 rounded border border-[#534434] uppercase font-bold">
+                                        GOVERNOR'S DR
+                                    </span>
+                                </div>
+                                <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed">
+                                    Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.
+                                </p>
+                                <div className="space-y-2 font-sans text-xs sm:text-sm text-[#f0e0d1] pt-1">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <MapPin className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <span className="font-medium">8X23+Q75, Governor's Dr, San Agustin I, Dasmariñas, 4114 Cavite</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <Clock className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <span>Monday - Sunday: 10:00 AM - 10:00 PM</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                                        <span>+63 918 987 6543</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                                    <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-2.5 sm:py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-[11px] sm:text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all cursor-pointer">
-                                        Order from Dasmariñas Branch
-                                    </button>
-                                    <a
-                                        href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="py-2.5 sm:py-3 px-3.5 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel cursor-pointer"
-                                    >
-                                        <MapPin className="w-3.5 h-3.5 text-red-400" />
-                                        <span>Google Maps</span>
-                                    </a>
-                                </div>
+                            <div className="flex flex-col sm:flex-row gap-2 pt-6 border-t border-[#534434]/40 mt-6">
+                                <button onClick={() => setIsOrderModalOpen(true)} className="flex-1 py-3 rounded bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow-lg hover:bg-[#ffc174] transition-all cursor-pointer">
+                                    Order from Dasmariñas Branch
+                                </button>
+                                <a
+                                    href="https://maps.app.goo.gl/JAVxVDDNQGo6RQ6U8"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="py-3 px-4 rounded bg-[#121213] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 btn-bevel cursor-pointer"
+                                >
+                                    <MapPin className="w-4 h-4 text-red-400" />
+                                    <span>Google Maps</span>
+                                </a>
                             </div>
                         </div>
                     </div>

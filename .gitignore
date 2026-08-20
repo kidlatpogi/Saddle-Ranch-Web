@@ -28,3 +28,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 composer.phar
+ORDER_LIFECYCLE_SPEC.md
+SADDLE_RANCH_SYSTEM_SPEC.md

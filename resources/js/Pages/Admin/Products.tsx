@@ -380,20 +380,26 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Product Image</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold text-[#a1a1aa]">Product Image</label>
+                                    <span className="text-[10px] text-[#f59e0b] font-mono">WebP, PNG, JPG (Max 10 MB)</span>
+                                </div>
                                 <div className="flex items-center gap-4">
                                     {imagePreview && (
-                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416]">
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[#3f3f46] bg-[#141416] shrink-0 shadow-md">
                                             <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                         </div>
                                     )}
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
                                         onChange={handleImageChange}
-                                        className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46]"
+                                        className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46] cursor-pointer"
                                     />
                                 </div>
+                                {errors.image && (
+                                    <p className="text-xs text-rose-400 mt-1.5 font-medium">{errors.image}</p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-3 pt-4">
@@ -407,7 +413,7 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50"
+                                    className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 cursor-pointer"
                                 >
                                     {processing ? 'Saving...' : 'Save Product'}
                                 </button>

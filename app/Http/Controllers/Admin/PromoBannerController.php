@@ -29,7 +29,7 @@ class PromoBannerController extends Controller
             'branch' => 'nullable|string|in:all,bulihan,dasmarinas',
             'display_order' => 'nullable|integer',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif,svg|max:10240',
         ]);
 
         $imagePath = null;
@@ -43,7 +43,7 @@ class PromoBannerController extends Controller
             'branch' => $validated['branch'] ?? 'all',
             'display_order' => $validated['display_order'] ?? 1,
             'is_active' => $validated['is_active'] ?? true,
-            'image_path' => $imagePath ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuASVSO6N3lzIbdlCDT85viSxOZiQKjWADlA5k7ymludjTdSCB7tqV0bZvXRba3-L4gemLyqy9PxmqnYMBnSsxb5yfI_XM-qajS5ZEnS1Am8OBu5uN8_smBFlDdy4xR0UNE8jDFJP8vNSRQcqqDSG4p-oDij5kCvWALcyBZVeuA1QdnqC9a6I5s9l2ba3Zjfe0xSPjMr0jLCAB1z-oJS5xBL9meeUeFsmiMgjQ96VoXotgHsy3Jl3d9NQIv1liJsKeu_sJec2rrkNziY',
+            'image_path' => $imagePath ?? '/images/sisig.webp',
         ]);
 
         AuditLog::create([
@@ -65,7 +65,7 @@ class PromoBannerController extends Controller
             'branch' => 'nullable|string|in:all,bulihan,dasmarinas',
             'display_order' => 'nullable|integer',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif,svg|max:10240',
         ]);
 
         if ($request->hasFile('image')) {

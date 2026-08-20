@@ -40,7 +40,7 @@ class ProductManagementController extends Controller
             'stock_bulihan' => 'nullable|integer|min:0',
             'stock_dasmarinas' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif,svg|max:10240',
         ]);
 
         $imagePath = null;
@@ -59,7 +59,7 @@ class ProductManagementController extends Controller
             'stock_bulihan' => $validated['stock_bulihan'] ?? $validated['stock_quantity'],
             'stock_dasmarinas' => $validated['stock_dasmarinas'] ?? $validated['stock_quantity'],
             'is_active' => $validated['is_active'] ?? true,
-            'image_path' => $imagePath ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt2cP7W6u7Hw-wJCWrbYiEh20Z4b79UCpbKxmmyVbQzw0xlTklDnEKOpEzeymppd9l-ODs0TOelRWM0iLgwF8K_OKfXIBpTO8lSH0yyxPtaMCTQrzQ4ykSkJPDryw9S9IBB1wNoeHFGtHcQDy4MEVr0_tUDss7SKe1fe58XBlXeql1nJ1D2J0zJ0ZFO4qRm213kO813mLEdYdUMjsTD0J2PtB7cz_0FmmDHccmacBmhMyp7a_fJ7teNVsG3sgWyfW24O1p08mnUE9t',
+            'image_path' => $imagePath ?? '/images/sisig.webp',
         ]);
 
         // Audit Log Trigger
@@ -95,7 +95,7 @@ class ProductManagementController extends Controller
             'stock_bulihan' => 'nullable|integer|min:0',
             'stock_dasmarinas' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,webp,gif,svg|max:10240',
         ]);
 
         $oldPrice = $product->price;

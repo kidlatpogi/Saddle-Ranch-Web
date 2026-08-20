@@ -27,7 +27,7 @@ export default function AdminBanners({ banners = [] }: BannersProps) {
     const [showModal, setShowModal] = useState(false);
     const [editingBanner, setEditingBanner] = useState<BannerItem | null>(null);
 
-    const { data, setData, post, processing, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         branch: 'all',
         display_order: '1',
@@ -170,13 +170,19 @@ export default function AdminBanners({ banners = [] }: BannersProps) {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-[#a1a1aa] mb-1">Banner Image File</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold text-[#a1a1aa]">Banner Image File</label>
+                                    <span className="text-[10px] text-[#f59e0b] font-mono">WebP, PNG, JPG (Max 10 MB)</span>
+                                </div>
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,image/*"
                                     onChange={(e) => setData('image', e.target.files?.[0] || null)}
-                                    className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white"
+                                    className="text-xs text-[#a1a1aa] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#27272a] file:text-white hover:file:bg-[#3f3f46] cursor-pointer"
                                 />
+                                {errors.image && (
+                                    <p className="text-xs text-rose-400 mt-1.5 font-medium">{errors.image}</p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-3 pt-4">
