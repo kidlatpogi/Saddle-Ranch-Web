@@ -1179,26 +1179,38 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                     {/* Payment Method Selector Section */}
                                     <div>
-                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">
-                                            Payment Method {orderType === 'delivery' && <span className="text-[#f59e0b] font-bold">(Payment First)</span>}
-                                        </label>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="text-xs font-bold text-[#d8c3ad] uppercase tracking-wider">
+                                                Payment Method
+                                            </label>
+                                            {orderType === 'delivery' && (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-[#fbbf24] border border-amber-500/40">
+                                                    <Lock className="w-2.5 h-2.5" /> Payment First
+                                                </span>
+                                            )}
+                                        </div>
+
                                         {orderType === 'delivery' ? (
-                                            <div className="space-y-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setPaymentMethod('QRPh / e-Wallets')}
-                                                    className="w-full py-2.5 px-3 rounded-xl text-xs font-bold border transition-all btn-bevel bg-[#f59e0b]/20 border-[#f59e0b] text-white flex items-center justify-between shadow-sm"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <CheckCircle2 className="w-4 h-4 text-[#f59e0b]" />
-                                                        <span>QRPh / e-Wallets (GCash, Maya, ShopeePay, Cards)</span>
+                                            <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#1c1813] to-[#121213] border border-[#f59e0b]/50 space-y-2.5 shadow-md">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-8 h-8 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#ffc174] shrink-0">
+                                                            <QrCode className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-xs font-bold text-white leading-tight">QRPh & e-Wallets</div>
+                                                            <div className="text-[10px] text-[#ffc174] font-mono">Instant Scan & Pay</div>
+                                                        </div>
                                                     </div>
-                                                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black">
-                                                        Payment First
-                                                    </span>
-                                                </button>
-                                                <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
-                                                    For home deliveries, payment is required prior to order dispatch. Cash on Delivery is not supported.
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">GCash</span>
+                                                        <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">Maya</span>
+                                                        <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">Banks</span>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[11px] text-[#d8c3ad]/90 leading-relaxed border-t border-[#3D3126]/60 pt-2">
+                                                    Order is confirmed first, then an official QR code is generated for immediate payment before kitchen dispatch.
                                                 </p>
                                             </div>
                                         ) : (
@@ -1208,10 +1220,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         key={method}
                                                         type="button"
                                                         onClick={() => setPaymentMethod(method)}
-                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${
+                                                            paymentMethod === method
                                                                 ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                                 : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                            }`}
+                                                        }`}
                                                     >
                                                         {method}
                                                     </button>
@@ -1346,9 +1359,15 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <button
                                         type="submit"
                                         disabled={cart.length === 0 || isSubmitting}
-                                        className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel"
+                                        className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel cursor-pointer"
                                     >
-                                        {isSubmitting ? 'Processing Order...' : `Place Order (₱${finalTotal.toFixed(2)})`}
+                                        {isSubmitting
+                                            ? (orderType === 'delivery' ? 'Processing & Generating Payment...' : 'Processing Order...')
+                                            : (orderType === 'delivery'
+                                                ? `Proceed to Payment (₱${finalTotal.toFixed(2)})`
+                                                : `Place Order (₱${finalTotal.toFixed(2)})`
+                                            )
+                                        }
                                     </button>
                                 </div>
                             </form>
@@ -1541,26 +1560,37 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                 {/* Payment Method Selector Section in Mobile Drawer */}
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">
-                                        Payment Method {orderType === 'delivery' && <span className="text-[#f59e0b] font-bold">(Payment First)</span>}
-                                    </label>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-[11px] font-bold text-[#d8c3ad] uppercase tracking-wider">
+                                            Payment Method
+                                        </label>
+                                        {orderType === 'delivery' && (
+                                            <span className="inline-flex items-center gap-1 text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-[#fbbf24] border border-amber-500/40">
+                                                <Lock className="w-2.5 h-2.5" /> Payment First
+                                            </span>
+                                        )}
+                                    </div>
+
                                     {orderType === 'delivery' ? (
-                                        <div className="space-y-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => setPaymentMethod('QRPh / e-Wallets')}
-                                                className="w-full py-2 px-3 rounded-xl text-xs font-bold border transition-all btn-bevel bg-[#f59e0b]/20 border-[#f59e0b] text-white flex items-center justify-between shadow-sm"
-                                            >
-                                                <div className="flex items-center gap-1.5 truncate">
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
-                                                    <span className="truncate">QRPh / e-Wallets</span>
+                                        <div className="p-3 rounded-2xl bg-gradient-to-b from-[#1c1813] to-[#121213] border border-[#f59e0b]/50 space-y-2 shadow-md">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-7 h-7 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#ffc174] shrink-0">
+                                                        <QrCode className="w-3.5 h-3.5" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs font-bold text-white leading-tight">QRPh & e-Wallets</div>
+                                                        <div className="text-[9px] text-[#ffc174] font-mono">Instant Scan & Pay</div>
+                                                    </div>
                                                 </div>
-                                                <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black shrink-0">
-                                                    Payment First
-                                                </span>
-                                            </button>
-                                            <p className="text-[10px] text-[#a1a1aa] leading-tight">
-                                                Payments are processed securely via QRPh/e-Wallets prior to kitchen prep. COD is not supported.
+                                                <div className="flex items-center gap-1">
+                                                    <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">GCash</span>
+                                                    <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">Maya</span>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-[10px] text-[#d8c3ad]/90 leading-relaxed border-t border-[#3D3126]/60 pt-1.5">
+                                                Order is confirmed first, then an official QR code is generated for immediate payment before kitchen dispatch.
                                             </p>
                                         </div>
                                     ) : (
@@ -1570,10 +1600,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     key={method}
                                                     type="button"
                                                     onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
+                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${
+                                                        paymentMethod === method
                                                             ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
                                                             : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {method}
                                                 </button>
@@ -1699,9 +1730,15 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full py-3.5 rounded-2xl bg-[#f59e0b] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 hover:bg-[#ffc174] transition-all btn-bevel"
+                                    className="w-full py-3.5 rounded-2xl bg-[#f59e0b] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 hover:bg-[#ffc174] transition-all btn-bevel cursor-pointer"
                                 >
-                                    {isSubmitting ? 'Processing Order...' : `Place Order • ₱ ${finalTotal.toFixed(2)}`}
+                                    {isSubmitting
+                                        ? (orderType === 'delivery' ? 'Processing Payment...' : 'Processing Order...')
+                                        : (orderType === 'delivery'
+                                            ? `Proceed to Payment • ₱ ${finalTotal.toFixed(2)}`
+                                            : `Place Order • ₱ ${finalTotal.toFixed(2)}`
+                                        )
+                                    }
                                 </button>
                             </form>
                         </div>

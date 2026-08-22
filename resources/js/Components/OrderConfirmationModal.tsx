@@ -186,11 +186,11 @@ export default function OrderConfirmationModal({
                         className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-xs uppercase tracking-wider shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5"
                     >
                         {isSubmitting ? (
-                            <span>Placing Order...</span>
+                            <span>{orderType === 'delivery' ? 'Processing Payment...' : 'Placing Order...'}</span>
                         ) : (
                             <>
                                 <CheckCircle2 className="w-4 h-4" />
-                                <span>Confirm & Place Order</span>
+                                <span>{orderType === 'delivery' ? 'Confirm & Proceed to Payment' : 'Confirm & Place Order'}</span>
                             </>
                         )}
                     </button>
