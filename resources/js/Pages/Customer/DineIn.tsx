@@ -593,7 +593,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 {/* Return Policy Pill */}
                                 <button
                                     type="button"
-                                    onClick={() => setIsReturnModalOpen(true)}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setIsReturnModalOpen(true);
+                                    }}
                                     className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
                                     title="Return & Cancellation Policy"
                                 >
@@ -1244,6 +1248,21 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         >
                                             {isSubmitting ? 'Processing Table Order...' : `Place Table Order • ₱ ${finalTotal.toFixed(2)}`}
                                         </button>
+
+                                        <div className="pt-2 flex items-center justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setIsReturnModalOpen(true);
+                                                }}
+                                                className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                            >
+                                                <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                                <span>Return & Cancellation Policy</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </form>
 
@@ -1525,7 +1544,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <div className="pt-2 flex items-center justify-center">
                                     <button
                                         type="button"
-                                        onClick={() => setIsReturnModalOpen(true)}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsReturnModalOpen(true);
+                                        }}
                                         className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
                                     >
                                         <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />

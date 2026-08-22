@@ -10,8 +10,8 @@ export default function ReturnPolicyModal({ isOpen, onClose }: ReturnPolicyModal
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-lg rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl space-y-5 text-[#f0e0d1] max-h-[90vh] overflow-y-auto font-sans">
+        <div className="fixed inset-0 z-[200000] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-lg rounded-2xl sm:rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 text-[#f0e0d1] max-h-[92vh] overflow-y-auto font-sans relative">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-[#3D3126] pb-4">
                     <div className="flex items-center gap-3">
