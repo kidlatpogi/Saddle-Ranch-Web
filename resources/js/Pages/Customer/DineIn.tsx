@@ -1536,6 +1536,48 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
+                            {/* QRPH PAYMENT FIRST SECTION */}
+                            {completedOrder.payment_method?.includes('QRPh') && (
+                                <div className="p-4 rounded-2xl bg-[#121213] border-2 border-[#f59e0b] text-left space-y-3 shadow-xl">
+                                    <div className="flex items-center justify-between border-b border-[#3D3126] pb-2">
+                                        <div className="flex items-center gap-1.5 text-[#ffc174] font-bold text-xs">
+                                            <QrCode className="w-4 h-4 text-[#f59e0b]" />
+                                            <span>Payment First (QRPh / e-Wallets)</span>
+                                        </div>
+                                        <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black">
+                                            Required
+                                        </span>
+                                    </div>
+
+                                    <p className="text-[11px] text-[#f0e0d1] leading-relaxed">
+                                        Please scan the official QRPh code below to settle <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> via GCash, Maya, or any banking app:
+                                    </p>
+
+                                    {/* QR Code display */}
+                                    <div className="bg-white p-3 rounded-2xl w-44 mx-auto flex flex-col items-center justify-center space-y-1.5 shadow-md">
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`saddleranch_dinein_${completedOrder.order_number}_amount_${completedOrder.total_amount}`)}`}
+                                            alt="QRPh Payment Code"
+                                            className="w-36 h-36 object-contain"
+                                        />
+                                        <span className="text-[9px] font-mono font-black text-[#141416] uppercase tracking-wider">
+                                            Scan via GCash / Maya
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-1 text-[11px] font-mono bg-[#1c150e] p-2.5 rounded-xl border border-[#3D3126]">
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>GCash / Maya No.:</span>
+                                            <span className="font-bold text-[#ffc174]">0917 123 4567</span>
+                                        </div>
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>Reference:</span>
+                                            <span className="font-bold text-[#fbbf24]">#{completedOrder.order_number}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="pt-2 space-y-2">
                                 <button
                                     type="button"
