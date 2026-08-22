@@ -449,5 +449,8 @@ class DatabaseSeeder extends Seeder
                 'expires_at' => now()->addYear(),
             ]
         );
+
+        // Initial Customer Reviews & Ratings
+        $this->call(RatingSeeder::class);
     }
 }

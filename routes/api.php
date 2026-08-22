@@ -19,18 +19,153 @@ Route::prefix('v1')->group(function () {
     // Live KDS Data Endpoint (Polling API & Cook Summary)
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
     Route::get('/admin/orders', function () {
-        $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        // Enforce payment policy: QRPh/E-wallet orders appear on Admin Dashboard only once payment is verified/paid
+        $orders = Order::with('orderItems.product')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhere('payment_method', 'LIKE', '%cash%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
         $products = Product::orderBy('id', 'desc')->get();
         $auditLogs = \App\Models\AuditLog::with('user')->orderBy('id', 'desc')->limit(100)->get();
+        $ratings = \App\Models\Rating::orderBy('created_at', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $orders,
             'products' => $products,
             'audit_logs' => $auditLogs,
+            'ratings' => $ratings,
         ]);
     });
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
+    Route::post('/orders/{orderNumber}/confirm-payment', [\App\Http\Controllers\OrderController::class, 'confirmPayment']);
+
+    // Customer Ratings & Reviews Endpoints
+    Route::get('/ratings', function (Request $request) {
+        $branch = $request->query('branch');
+        $query = \App\Models\Rating::where('is_approved', true);
+        if ($branch && in_array(strtolower($branch), ['bulihan', 'dasmarinas', 'dasma'])) {
+            $branchKeyword = strtolower($branch) === 'bulihan' ? 'Bulihan' : 'Dasmarinas';
+            $query->where('branch', 'LIKE', "%{$branchKeyword}%");
+        }
+        $ratings = $query->orderBy('id', 'desc')->take(20)->get();
+        return response()->json([
+            'status' => 'success',
+            'data' => $ratings,
+        ]);
+    });
+
+    Route::post('/ratings', function (Request $request) {
+        $validated = $request->validate([
+            'order_id' => 'nullable|integer',
+            'order_number' => 'nullable|string|max:50',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:20',
+            'branch' => 'nullable|string|max:50',
+            'overall_rating' => 'required|integer|min:1|max:5',
+            'food_quality_rating' => 'required|integer|min:1|max:5',
+            'customer_service_rating' => 'required|integer|min:1|max:5',
+            'delivery_speed_rating' => 'required|integer|min:1|max:5',
+            'packaging_rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+            'favorite_dish' => 'nullable|string|max:255',
+        ]);
+
+        $filterService = new \App\Services\ProfanityFilterService();
+
+        // Run filter scan & normalization across all user-supplied text
+        $commentResult = $filterService->filter($validated['comment'] ?? '');
+        $nameResult = $filterService->filter($validated['customer_name'] ?? '');
+        $dishResult = $filterService->filter($validated['favorite_dish'] ?? '');
+        $hasAdultLinks = $commentResult['has_adult_links'] || $nameResult['has_adult_links'] || $dishResult['has_adult_links'];
+        $hasProfanity = $commentResult['has_profanity'] || $nameResult['has_profanity'] || $dishResult['has_profanity'];
+
+        $flaggedTerms = array_unique(array_merge(
+            $commentResult['flagged_terms'] ?? [],
+            $nameResult['flagged_terms'] ?? [],
+            $dishResult['flagged_terms'] ?? []
+        ));
+
+        // Strict Rejection Policy: Do NOT accept or save review if it contains prohibited words or links
+        if ($hasAdultLinks || $hasProfanity) {
+            return response()->json([
+                'status' => 'rejected',
+                'reason' => $hasAdultLinks ? 'prohibited_links' : 'inappropriate_language',
+                'message' => $hasAdultLinks
+                    ? 'Your review was not accepted because it contains prohibited website links or adult domains.'
+                    : 'Your review was not accepted because it contains inappropriate, offensive, or prohibited words.',
+                'flagged_terms' => $flaggedTerms,
+                'explanation' => 'At Saddle Ranch, we maintain a clean and family-friendly dining community. Reviews containing curse words, vulgar language, or external links are not accepted.',
+            ], 422);
+        }
+
+        $cleanComment = $commentResult['cleaned_text'];
+        $cleanName = $nameResult['cleaned_text'] ?: ($validated['customer_name'] ?? 'Customer');
+        $cleanDish = $dishResult['cleaned_text'];
+
+        $rating = \App\Models\Rating::create([
+            'order_id' => $validated['order_id'] ?? null,
+            'order_number' => $validated['order_number'] ?? null,
+            'user_id' => auth()->id(),
+            'customer_name' => $cleanName,
+            'customer_phone' => $validated['customer_phone'] ?? null,
+            'branch' => $validated['branch'] ?? 'Bulihan',
+            'overall_rating' => $validated['overall_rating'],
+            'food_quality_rating' => $validated['food_quality_rating'],
+            'customer_service_rating' => $validated['customer_service_rating'],
+            'delivery_speed_rating' => $validated['delivery_speed_rating'],
+            'packaging_rating' => $validated['packaging_rating'],
+            'comment' => $cleanComment ?: null,
+            'favorite_dish' => $cleanDish ?: null,
+            'is_featured' => true,
+            'is_approved' => true,
+            'is_flagged' => false,
+            'moderation_flag' => 'clean',
+        ]);
+
+        \App\Models\AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : ""),
+            'ip_address' => $request->ip(),
+            'payload' => [
+                'rating_id' => $rating->id,
+                'overall' => $rating->overall_rating,
+                'branch' => $rating->branch,
+                'is_approved' => true,
+            ],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Thank you for your feedback! Your rating has been received and published.',
+            'data' => $rating,
+        ], 201);
+    });
+
+    // Admin Rating Moderation Endpoints
+    Route::post('/admin/ratings/{id}/approve', function ($id) {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $rating->update([
+            'is_approved' => true,
+            'is_flagged' => false,
+            'moderation_flag' => 'admin_approved',
+        ]);
+        return response()->json(['status' => 'success', 'data' => $rating]);
+    });
+
+    Route::post('/admin/ratings/{id}/toggle-feature', function ($id) {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $rating->update(['is_featured' => !$rating->is_featured]);
+        return response()->json(['status' => 'success', 'data' => $rating]);
+    });
+
+    Route::delete('/admin/ratings/{id}', function ($id) {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $rating->delete();
+        return response()->json(['status' => 'success', 'message' => 'Rating deleted.']);
+    });
 
     // Waiter Call Endpoints for In-House QR Table Service
     Route::post('/waiter-call', function (Request $request) {

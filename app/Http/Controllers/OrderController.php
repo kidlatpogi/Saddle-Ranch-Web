@@ -20,9 +20,13 @@ class OrderController extends Controller
     /**
      * Display the Remote Online Ordering page (Pick-Up & Delivery).
      */
-    public function order(): Response
+    public function order(Request $request): Response
     {
-        $products = Product::where('is_active', true)->get();
+        if ($request->has('order_number') && ($request->has('success') || $request->has('paid'))) {
+            Order::where('order_number', $request->query('order_number'))->update(['payment_status' => 'paid']);
+        }
+
+        $products = Product::orderBy('id', 'asc')->get();
 
         return Inertia::render('Customer/Order', [
             'products' => $products,
@@ -34,6 +38,10 @@ class OrderController extends Controller
      */
     public function dineIn(Request $request): Response
     {
+        if ($request->has('order_number') && ($request->has('success') || $request->has('paid'))) {
+            Order::where('order_number', $request->query('order_number'))->update(['payment_status' => 'paid']);
+        }
+
         $tableNumber = $request->query('table');
         
         if ($tableNumber) {
@@ -42,7 +50,7 @@ class OrderController extends Controller
             $tableNumber = $request->session()->get('table_number', '');
         }
 
-        $products = Product::where('is_active', true)->get();
+        $products = Product::orderBy('id', 'asc')->get();
 
         return Inertia::render('Customer/DineIn', [
             'products' => $products,
@@ -79,6 +87,16 @@ class OrderController extends Controller
             'account_email.unique' => 'An account with this email already exists. Please sign in or use a different email.',
         ]);
 
+        // Enforce Delivery Payment Policy: No Cash on Delivery allowed (QRPh / e-Wallets Payment First only)
+        if ($validated['order_type'] === 'delivery') {
+            $payMethod = strtolower($validated['payment_method']);
+            if (str_contains($payMethod, 'cash') || str_contains($payMethod, 'cod')) {
+                throw ValidationException::withMessages([
+                    'payment_method' => ['Delivery orders require payment first via QRPh / e-Wallets (GCash, Maya, ShopeePay, Cards). Cash on Delivery is not supported.'],
+                ]);
+            }
+        }
+
         $createdOrder = DB::transaction(function () use ($validated, $request) {
             $userId = auth()->id();
 
@@ -112,14 +130,20 @@ class OrderController extends Controller
             $orderItemsToCreate = [];
 
             foreach ($validated['items'] as $itemData) {
-                // Lock product row for atomic stock check and decrement
+                // Lock product row for atomic availability & stock check and decrement
                 $product = Product::where('id', $itemData['product_id'])
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                if ($product->stock_quantity < $itemData['quantity']) {
+                if (!$product->is_active) {
                     throw ValidationException::withMessages([
-                        'items' => ["Sorry, '{$product->name}' has insufficient stock (Only {$product->stock_quantity} left)."],
+                        'items' => ["Sorry, '{$product->name}' is currently unavailable."],
+                    ]);
+                }
+
+                if ($product->stock_quantity < $itemData['quantity'] || $product->stock_quantity <= 0) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Sorry, '{$product->name}' is out of stock (Only {$product->stock_quantity} left)."],
                     ]);
                 }
 
@@ -201,6 +225,10 @@ class OrderController extends Controller
             // Generate unique order number (e.g. SR-8492)
             $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
 
+            // Determine initial payment status: Cash orders are immediately processed, QRPh/e-Wallets require payment first
+            $isCash = str_contains(strtolower($validated['payment_method']), 'cash');
+            $initialPaymentStatus = $isCash ? 'paid' : 'pending';
+
             $order = Order::create([
                 'user_id' => $userId,
                 'order_number' => $orderNumber,
@@ -209,6 +237,7 @@ class OrderController extends Controller
                 'status' => 'pending',
                 'total_amount' => $finalTotalAmount,
                 'payment_method' => $validated['payment_method'],
+                'payment_status' => $initialPaymentStatus,
                 'voucher_code' => $appliedVoucherCode,
                 'discount_amount' => $discountAmount,
                 'customer_name' => $validated['customer_name'] ?? null,
@@ -330,5 +359,37 @@ class OrderController extends Controller
     public function cancel(Request $request, int $id): JsonResponse
     {
         return (new EmployeeController())->cancel($request, $id);
+    }
+
+    /**
+     * Customer / Webhook Payment Confirmation Endpoint: POST /api/v1/orders/{orderNumber}/confirm-payment
+     */
+    public function confirmPayment(Request $request, string $orderNumber): JsonResponse
+    {
+        $order = Order::with('orderItems.product')
+            ->where('order_number', $orderNumber)
+            ->orWhere('id', $orderNumber)
+            ->firstOrFail();
+
+        $order->update([
+            'payment_status' => 'paid',
+        ]);
+
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => "QRPh/e-Wallet Payment Confirmed for Order #{$order->order_number} (₱{$order->total_amount})",
+            'ip_address' => $request->ip(),
+            'payload' => [
+                'order_number' => $order->order_number,
+                'amount' => $order->total_amount,
+                'payment_method' => $order->payment_method,
+            ],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Payment for Order #{$order->order_number} confirmed successfully. Order is dispatched to the kitchen!",
+            'data' => $order,
+        ]);
     }
 }

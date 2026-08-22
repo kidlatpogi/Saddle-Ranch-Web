@@ -8,9 +8,11 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Browser Tab Logo / Favicon -->
-        <link rel="icon" type="image/png" href="/images/saddle_ranch_logo.png">
-        <link rel="shortcut icon" type="image/png" href="/images/saddle_ranch_logo.png">
-        <link rel="apple-touch-icon" href="/images/saddle_ranch_logo.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/favicon.png">
 
         <!-- Google Fonts: Domine, Work Sans, JetBrains Mono -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

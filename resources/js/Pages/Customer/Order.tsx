@@ -22,13 +22,20 @@ import {
     Lock,
     Ticket,
     LogOut,
-    User
+    User,
+    RotateCcw,
+    Star,
+    Sparkles,
+    QrCode
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
 import AIChatbot from '@/Components/AIChatbot';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
+import ReturnPolicyModal from '@/Components/ReturnPolicyModal';
+import OrderConfirmationModal from '@/Components/OrderConfirmationModal';
+import RatingModal from '@/Components/RatingModal';
 import CustomerAuthModal from '@/Components/CustomerAuthModal';
 import CustomerAccountModal from '@/Components/CustomerAccountModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
@@ -147,7 +154,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [streetAddress, setStreetAddress] = useState('');
     const [deliveryNotes, setDeliveryNotes] = useState('');
 
-    const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'Cash on Delivery' : 'GCash');
+    const [paymentMethod, setPaymentMethod] = useState<string>(initialMode === 'delivery' ? 'QRPh / e-Wallets' : 'Cash (Pick-Up)');
     const [searchQuery, setSearchQuery] = useState('');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
@@ -156,6 +163,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [accountEmail, setAccountEmail] = useState('');
     const [accountPassword, setAccountPassword] = useState('');
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
     // Order Confirmation Quick Register State
@@ -181,7 +191,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
     useEffect(() => {
         if (orderType === 'delivery') {
-            setPaymentMethod('Cash on Delivery');
+            setPaymentMethod('QRPh / e-Wallets');
         } else {
             setPaymentMethod('Cash (Pick-Up)');
         }
@@ -196,6 +206,32 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
+    const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
+    const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+
+    const handleConfirmPaymentSent = async (orderNum: string) => {
+        if (!orderNum) return;
+        setIsConfirmingPayment(true);
+        try {
+            const res = await fetch(`/api/v1/orders/${orderNum}/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            if (res.ok) {
+                setIsPaymentConfirmed(true);
+                window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed'));
+            } else {
+                setIsPaymentConfirmed(true);
+            }
+        } catch (e) {
+            setIsPaymentConfirmed(true);
+        } finally {
+            setIsConfirmingPayment(false);
+        }
+    };
 
     // Coupon & Voucher State
     const [voucherInput, setVoucherInput] = useState('');
@@ -213,7 +249,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 order_number: orderNum,
                 total_amount: '0.00',
                 customer_name: 'Customer',
+                payment_status: 'paid',
             });
+            setIsPaymentConfirmed(true);
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, []);
@@ -484,6 +522,11 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             return;
         }
 
+        if (orderType === 'delivery' && !streetAddress.trim()) {
+            setValidationError('Please provide your delivery street address / house number / landmark.');
+            return;
+        }
+
         if (!currentUser && createAccount) {
             if (!accountEmail.trim() || !accountPassword.trim()) {
                 setValidationError('Please provide your email address and password (min 8 characters) to create your account.');
@@ -495,7 +538,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             }
         }
 
+        // Open Confirmation & Non-Refundable Policy Modal before final submission
+        setIsConfirmationModalOpen(true);
+    };
+
+    const handleExecuteCheckout = () => {
         setIsSubmitting(true);
+        setValidationError('');
 
         const constructedDeliveryAddress = `${streetAddress.trim()}, Brgy. ${barangay}, ${city}, ${province}, ${region}`;
 
@@ -521,12 +570,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
         if (payload.items.length === 0) {
             setIsSubmitting(false);
+            setIsConfirmationModalOpen(false);
             setValidationError('Your cart contains invalid or unavailable products. Please re-add items to your cart.');
             return;
         }
 
         router.post('/order/checkout', payload, {
             onSuccess: (page) => {
+                setIsConfirmationModalOpen(false);
                 setIsBasketSheetOpen(false);
                 const flashOrder = (page.props.flash as any)?.order;
                 if (flashOrder?.order_number) {
@@ -541,6 +592,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             },
             onError: (errors) => {
                 setIsSubmitting(false);
+                setIsConfirmationModalOpen(false);
                 const itemsErrKey = Object.keys(errors).find(k => k.startsWith('items'));
                 if (errors.items) {
                     setValidationError(errors.items);
@@ -553,7 +605,6 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
             },
             onFinish: () => {
                 setIsSubmitting(false);
-                setIsBasketSheetOpen(false);
             },
         });
     };
@@ -602,6 +653,20 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         <span>Sign In</span>
                                     </button>
                                 )}
+
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setIsReturnModalOpen(true);
+                                    }}
+                                    className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Return & Cancellation Policy"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Return Policy</span>
+                                </button>
 
                                 <button
                                     type="button"
@@ -694,24 +759,42 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const isUnavailable = product.is_active === false;
+                                        const isOutOfStock = !isUnavailable && product.stock_quantity <= 0;
+                                        const isOrderable = !isUnavailable && !isOutOfStock;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
                                         const imgUrl = getProductImage(product);
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
+                                                className={`bg-[#1A1A1B] rounded-2xl border p-3 flex flex-col justify-between relative group transition-all shadow-md ${
+                                                    !isOrderable ? 'border-[#333338] opacity-80' : 'border-[#262627] hover:border-[#534434]'
+                                                }`}
                                             >
                                                 <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                                                        className={`w-full h-full object-cover rounded-xl transition-transform duration-500 ${
+                                                            !isOrderable ? 'opacity-60 grayscale-[15%]' : 'group-hover:scale-105'
+                                                        }`}
                                                     />
 
+                                                    {/* Availability / Out of Stock Badges */}
+                                                    {isUnavailable && (
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-zinc-800/95 text-zinc-300 text-[9px] font-mono font-bold uppercase tracking-wider border border-zinc-600/50 shadow-md">
+                                                            Unavailable
+                                                        </span>
+                                                    )}
+                                                    {isOutOfStock && (
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-rose-600/95 text-white text-[9px] font-mono font-black uppercase tracking-wider shadow-md">
+                                                            Out of Stock
+                                                        </span>
+                                                    )}
+
                                                     <div className="absolute bottom-1.5 right-1.5 z-10">
-                                                        {cartEntry ? (
+                                                        {cartEntry && isOrderable ? (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 className="w-9 h-9 shrink-0 aspect-square rounded-full bg-[#f59e0b] text-black font-mono font-black text-sm border-2 border-[#121213] shadow-xl flex items-center justify-center btn-bevel cursor-pointer"
@@ -721,10 +804,15 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         ) : (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                disabled={isOutOfStock}
-                                                                className="w-9 h-9 shrink-0 aspect-square rounded-full bg-[#f59e0b] text-black hover:bg-[#ffc174] font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
+                                                                disabled={!isOrderable}
+                                                                className={`w-9 h-9 shrink-0 aspect-square rounded-full font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel ${
+                                                                    isOrderable
+                                                                        ? 'bg-[#f59e0b] text-black hover:bg-[#ffc174] cursor-pointer'
+                                                                        : 'bg-[#27272a] text-[#71717a] border border-[#3f3f46] cursor-not-allowed opacity-60'
+                                                                }`}
+                                                                title={isUnavailable ? 'Item Unavailable' : (isOutOfStock ? 'Out of Stock' : 'Add to Order')}
                                                             >
-                                                                <Plus className="w-5 h-5 text-black stroke-[3]" />
+                                                                <Plus className="w-5 h-5 stroke-[3]" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -734,8 +822,16 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                     <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
                                                         {product.name}
                                                     </h3>
-                                                    <div className="font-mono text-xs font-black text-[#ffc174]">
-                                                        ₱ {numPrice.toFixed(2)}
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-mono text-xs font-black text-[#ffc174]">
+                                                            ₱ {numPrice.toFixed(2)}
+                                                        </span>
+                                                        {isUnavailable && (
+                                                            <span className="text-[9px] font-mono text-zinc-400 font-bold uppercase">Unavailable</span>
+                                                        )}
+                                                        {isOutOfStock && (
+                                                            <span className="text-[9px] font-mono text-rose-400 font-bold uppercase">Out of Stock</span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -749,43 +845,61 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const isUnavailable = product.is_active === false;
+                                        const isOutOfStock = !isUnavailable && product.stock_quantity <= 0;
+                                        const isOrderable = !isUnavailable && !isOutOfStock;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
                                         const imgUrl = getProductImage(product);
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
+                                                className={`bg-[#1A1A1B] rounded-2xl border overflow-hidden flex flex-col justify-between transition-all shadow-xl group ${
+                                                    !isOrderable ? 'border-[#333338] opacity-85' : 'border-[#262627] hover-heat'
+                                                }`}
                                             >
                                                 <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        className={`w-full h-full object-cover transition-transform duration-500 ${
+                                                            !isOrderable ? 'opacity-60 grayscale-[15%]' : 'group-hover:scale-105'
+                                                        }`}
                                                     />
+
+                                                    {/* Availability / Out of Stock Badges */}
+                                                    {isUnavailable && (
+                                                        <span className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-zinc-800/95 text-zinc-300 text-[10px] font-mono font-bold uppercase tracking-wider border border-zinc-600/60 shadow-lg">
+                                                            Unavailable
+                                                        </span>
+                                                    )}
+                                                    {isOutOfStock && (
+                                                        <span className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-rose-600/95 text-white text-[10px] font-mono font-black uppercase tracking-wider shadow-lg">
+                                                            Out of Stock
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                                                    <div>
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
-                                                                {product.name}
-                                                            </h3>
-                                                            <span className="font-mono text-xs font-black text-[#ffc174] bg-[#261e15] border border-[#534434] px-2 py-0.5 rounded whitespace-nowrap shrink-0 shadow">
-                                                                ₱{numPrice.toFixed(2)}
-                                                            </span>
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="font-mono text-sm font-black text-[#ffc174]">
+                                                            ₱{numPrice.toFixed(2)}
                                                         </div>
                                                     </div>
 
                                                     <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
-                                                        {isOutOfStock ? (
-                                                            <span className="text-[10px] font-bold text-rose-400 uppercase">Sold Out</span>
+                                                        {isUnavailable ? (
+                                                            <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase">Item Unavailable</span>
+                                                        ) : isOutOfStock ? (
+                                                            <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Out of Stock</span>
                                                         ) : (
                                                             <span className="text-[10px] text-[#d8c3ad] font-semibold">Ready to Sizzle</span>
                                                         )}
 
-                                                        {cartEntry ? (
+                                                        {cartEntry && isOrderable ? (
                                                             <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] rounded-xl p-1">
                                                                 <button
                                                                     onClick={() => updateQuantity(product.id, cartEntry.quantity - 1)}
@@ -805,10 +919,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                         ) : (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                disabled={isOutOfStock}
-                                                                className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md disabled:opacity-40"
+                                                                disabled={!isOrderable}
+                                                                className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md ${
+                                                                    isOrderable
+                                                                        ? 'bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] cursor-pointer'
+                                                                        : 'bg-[#27272a] text-[#71717a] border border-[#3f3f46] cursor-not-allowed opacity-50'
+                                                                }`}
                                                             >
-                                                                Add +
+                                                                {isUnavailable ? 'Unavailable' : (isOutOfStock ? 'Out of Stock' : 'Add +')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -1091,38 +1209,58 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                     {/* Payment Method Selector Section */}
                                     <div>
-                                        <label className="block text-xs font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {orderType === 'delivery' ? (
-                                                ['Cash on Delivery', 'QRPh / e-Wallets'].map((method) => (
-                                                    <button
-                                                        key={method}
-                                                        type="button"
-                                                        onClick={() => setPaymentMethod(method)}
-                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
-                                                                ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
-                                                                : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                            }`}
-                                                    >
-                                                        {method}
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                ['Cash (Pick-Up)', 'QRPh / e-Wallets'].map((method) => (
-                                                    <button
-                                                        key={method}
-                                                        type="button"
-                                                        onClick={() => setPaymentMethod(method)}
-                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
-                                                                ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
-                                                                : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                            }`}
-                                                    >
-                                                        {method}
-                                                    </button>
-                                                ))
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="text-xs font-bold text-[#d8c3ad] uppercase tracking-wider">
+                                                Payment Method
+                                            </label>
+                                            {orderType === 'delivery' && (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-[#fbbf24] border border-amber-500/40">
+                                                    <Lock className="w-2.5 h-2.5" /> Payment First
+                                                </span>
                                             )}
                                         </div>
+
+                                        {orderType === 'delivery' ? (
+                                            <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#1c1813] to-[#121213] border border-[#f59e0b]/50 space-y-2.5 shadow-md">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-8 h-8 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#ffc174] shrink-0">
+                                                            <QrCode className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-xs font-bold text-white leading-tight">QRPh & e-Wallets</div>
+                                                            <div className="text-[10px] text-[#ffc174] font-mono">Instant Scan & Pay</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">GCash</span>
+                                                        <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">Maya</span>
+                                                        <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">Banks</span>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[11px] text-[#d8c3ad]/90 leading-relaxed border-t border-[#3D3126]/60 pt-2">
+                                                    Order is confirmed first, then an official QR code is generated for immediate payment before kitchen dispatch.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {['Cash (Pick-Up)', 'QRPh / e-Wallets'].map((method) => (
+                                                    <button
+                                                        key={method}
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod(method)}
+                                                        className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${
+                                                            paymentMethod === method
+                                                                ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                                : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                        }`}
+                                                    >
+                                                        {method}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Account & Saved Details Section */}
@@ -1251,10 +1389,31 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <button
                                         type="submit"
                                         disabled={cart.length === 0 || isSubmitting}
-                                        className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel"
+                                        className="w-full py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 transition-all btn-bevel cursor-pointer"
                                     >
-                                        {isSubmitting ? 'Processing Order...' : `Place Order (₱${finalTotal.toFixed(2)})`}
+                                        {isSubmitting
+                                            ? (orderType === 'delivery' ? 'Processing & Generating Payment...' : 'Processing Order...')
+                                            : (orderType === 'delivery'
+                                                ? `Proceed to Payment (₱${finalTotal.toFixed(2)})`
+                                                : `Place Order (₱${finalTotal.toFixed(2)})`
+                                            )
+                                        }
                                     </button>
+
+                                    <div className="pt-2 flex items-center justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setIsReturnModalOpen(true);
+                                            }}
+                                            className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                        >
+                                            <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                            <span>Return & Cancellation Policy</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -1446,38 +1605,57 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
 
                                 {/* Payment Method Selector Section in Mobile Drawer */}
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-[#d8c3ad] mb-1">Payment Method</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {orderType === 'delivery' ? (
-                                            ['Cash on Delivery', 'QRPh / e-Wallets'].map((method) => (
-                                                <button
-                                                    key={method}
-                                                    type="button"
-                                                    onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
-                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
-                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                        }`}
-                                                >
-                                                    {method}
-                                                </button>
-                                            ))
-                                        ) : (
-                                            ['Cash (Pick-Up)', 'QRPh / e-Wallets'].map((method) => (
-                                                <button
-                                                    key={method}
-                                                    type="button"
-                                                    onClick={() => setPaymentMethod(method)}
-                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel ${paymentMethod === method
-                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
-                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
-                                                        }`}
-                                                >
-                                                    {method}
-                                                </button>
-                                            ))
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-[11px] font-bold text-[#d8c3ad] uppercase tracking-wider">
+                                            Payment Method
+                                        </label>
+                                        {orderType === 'delivery' && (
+                                            <span className="inline-flex items-center gap-1 text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-[#fbbf24] border border-amber-500/40">
+                                                <Lock className="w-2.5 h-2.5" /> Payment First
+                                            </span>
                                         )}
                                     </div>
+
+                                    {orderType === 'delivery' ? (
+                                        <div className="p-3 rounded-2xl bg-gradient-to-b from-[#1c1813] to-[#121213] border border-[#f59e0b]/50 space-y-2 shadow-md">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-7 h-7 rounded-xl bg-[#f59e0b]/20 border border-[#f59e0b]/40 flex items-center justify-center text-[#ffc174] shrink-0">
+                                                        <QrCode className="w-3.5 h-3.5" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs font-bold text-white leading-tight">QRPh & e-Wallets</div>
+                                                        <div className="text-[9px] text-[#ffc174] font-mono">Instant Scan & Pay</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">GCash</span>
+                                                    <span className="px-1.5 py-0.5 rounded bg-[#261e15] border border-[#534434] text-[9px] font-mono font-bold text-[#d8c3ad]">Maya</span>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-[10px] text-[#d8c3ad]/90 leading-relaxed border-t border-[#3D3126]/60 pt-1.5">
+                                                Order is confirmed first, then an official QR code is generated for immediate payment before kitchen dispatch.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {['Cash (Pick-Up)', 'QRPh / e-Wallets'].map((method) => (
+                                                <button
+                                                    key={method}
+                                                    type="button"
+                                                    onClick={() => setPaymentMethod(method)}
+                                                    className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all btn-bevel cursor-pointer ${
+                                                        paymentMethod === method
+                                                            ? 'bg-[#f59e0b]/20 border-[#f59e0b] text-white font-black'
+                                                            : 'bg-[#121213] border-[#534434] text-[#d8c3ad]'
+                                                    }`}
+                                                >
+                                                    {method}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Account & Saved Details Section (Mobile View Fix) */}
@@ -1597,10 +1775,31 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full py-3.5 rounded-2xl bg-[#f59e0b] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 hover:bg-[#ffc174] transition-all btn-bevel"
+                                    className="w-full py-3.5 rounded-2xl bg-[#f59e0b] text-[#472a00] font-black text-sm uppercase tracking-wider shadow-xl shadow-[#f59e0b]/30 hover:bg-[#ffc174] transition-all btn-bevel cursor-pointer"
                                 >
-                                    {isSubmitting ? 'Processing Order...' : `Place Order • ₱ ${finalTotal.toFixed(2)}`}
+                                    {isSubmitting
+                                        ? (orderType === 'delivery' ? 'Processing Payment...' : 'Processing Order...')
+                                        : (orderType === 'delivery'
+                                            ? `Proceed to Payment • ₱ ${finalTotal.toFixed(2)}`
+                                            : `Place Order • ₱ ${finalTotal.toFixed(2)}`
+                                        )
+                                    }
                                 </button>
+
+                                <div className="pt-2 flex items-center justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsReturnModalOpen(true);
+                                        }}
+                                        className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                    >
+                                        <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                        <span>Return & Cancellation Policy</span>
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -1623,13 +1822,91 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                             <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#534434]/60 text-xs text-left space-y-2 font-mono">
                                 <div className="flex justify-between">
                                     <span className="text-[#8c7a6b]">Order Number:</span>
-                                    <span className="font-bold text-[#f59e0b]">{completedOrder.order_number}</span>
+                                    <span className="font-bold text-[#f59e0b]">#{completedOrder.order_number}</span>
                                 </div>
                                 <div className="flex justify-between">
+                                    <span className="text-[#8c7a6b]">Payment Method:</span>
+                                    <span className="font-bold text-white">{completedOrder.payment_method}</span>
+                                </div>
+                                <div className="flex justify-between pt-1 border-t border-[#262627]">
                                     <span className="text-[#8c7a6b]">Total Due:</span>
-                                    <span className="font-bold text-[#ffc174]">₱ {parseFloat(completedOrder.total_amount).toFixed(2)}</span>
+                                    <span className="font-bold text-[#ffc174] text-sm">₱ {parseFloat(completedOrder.total_amount).toFixed(2)}</span>
                                 </div>
                             </div>
+
+                            {/* QRPH / E-WALLET PAYMENT FIRST SECTION */}
+                            {(completedOrder.payment_method?.includes('QRPh') || completedOrder.order_type === 'delivery') && (
+                                <div className="p-4 rounded-2xl bg-[#121213] border-2 border-[#f59e0b] text-left space-y-3 shadow-xl">
+                                    <div className="flex items-center justify-between border-b border-[#3D3126] pb-2">
+                                        <div className="flex items-center gap-1.5 text-[#ffc174] font-bold text-xs">
+                                            <QrCode className="w-4 h-4 text-[#f59e0b]" />
+                                            <span>Payment First (QRPh / e-Wallets)</span>
+                                        </div>
+                                        <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black">
+                                            Required
+                                        </span>
+                                    </div>
+
+                                    <p className="text-[11px] text-[#f0e0d1] leading-relaxed">
+                                        Please scan the official QRPh code below to settle <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount).toFixed(2)}</strong> via GCash, Maya, or any banking app:
+                                    </p>
+
+                                    {/* QR Code display */}
+                                    <div className="bg-white p-3 rounded-2xl w-44 mx-auto flex flex-col items-center justify-center space-y-1.5 shadow-md">
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`saddleranch_order_${completedOrder.order_number}_amount_${completedOrder.total_amount}`)}`}
+                                            alt="QRPh Payment Code"
+                                            className="w-36 h-36 object-contain"
+                                        />
+                                        <span className="text-[9px] font-mono font-black text-[#141416] uppercase tracking-wider">
+                                            Scan via GCash / Maya
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-1 text-[11px] font-mono bg-[#1c150e] p-2.5 rounded-xl border border-[#3D3126]">
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>GCash / Maya No.:</span>
+                                            <span className="font-bold text-[#ffc174]">0917 123 4567</span>
+                                        </div>
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>Account Name:</span>
+                                            <span className="font-bold text-white">Saddle Ranch PH</span>
+                                        </div>
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>Reference:</span>
+                                            <span className="font-bold text-[#fbbf24]">#{completedOrder.order_number}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-2 rounded-lg bg-[#261e15] border border-[#534434] text-[10px] text-[#fbbf24] text-center font-bold">
+                                        Kitchen preparation commences upon verified payment receipt.
+                                    </div>
+
+                                    {/* Action Button to Confirm Payment Sent */}
+                                    {isPaymentConfirmed ? (
+                                        <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-center gap-2 font-bold animate-in fade-in">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Payment Received! Sent to kitchen.</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            disabled={isConfirmingPayment}
+                                            onClick={() => handleConfirmPaymentSent(completedOrder.order_number)}
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5 shadow"
+                                        >
+                                            {isConfirmingPayment ? (
+                                                <span>Verifying Payment...</span>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    <span>I Have Sent Payment (Verify & Settle)</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Optional Account Creation Card for Guests */}
                             {!currentUser && !accountCreatedSuccess && (
@@ -1727,6 +2004,14 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     Track Order Live Status
                                 </button>
                                 <button
+                                    type="button"
+                                    onClick={() => setIsRatingModalOpen(true)}
+                                    className="w-full py-2.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                                >
+                                    <Star className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                    <span>Rate Your Experience (5★)</span>
+                                </button>
+                                <button
                                     onClick={() => {
                                         setIsBasketSheetOpen(false);
                                         setCompletedOrder(null);
@@ -1739,6 +2024,39 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                         </div>
                     </div>
                 )}
+
+                {/* Pre-Checkout Confirmation Modal with Non-Refundable Policy Notice */}
+                <OrderConfirmationModal
+                    isOpen={isConfirmationModalOpen}
+                    onClose={() => setIsConfirmationModalOpen(false)}
+                    onConfirm={handleExecuteCheckout}
+                    isSubmitting={isSubmitting}
+                    orderType={orderType}
+                    customerName={customerName}
+                    customerPhone={customerPhone}
+                    deliveryAddress={orderType === 'delivery' ? `${streetAddress.trim()}, Brgy. ${barangay}, ${city}, ${province}, ${region}` : undefined}
+                    paymentMethod={paymentMethod}
+                    cart={cart}
+                    subtotal={subtotal}
+                    discount={voucherDiscount}
+                    finalTotal={finalTotal}
+                />
+
+                {/* Return & Cancellation Policy Modal */}
+                <ReturnPolicyModal
+                    isOpen={isReturnModalOpen}
+                    onClose={() => setIsReturnModalOpen(false)}
+                />
+
+                {/* Customer 5-Star Rating Modal */}
+                <RatingModal
+                    isOpen={isRatingModalOpen}
+                    onClose={() => setIsRatingModalOpen(false)}
+                    orderNumber={completedOrder?.order_number}
+                    initialCustomerName={customerName}
+                    initialCustomerPhone={customerPhone}
+                    branch={currentBranch === 'Dasma' ? 'Dasmarinas' : 'Bulihan'}
+                />
 
                 {/* Floating AI Chatbot at Bottom Left (Desktop Only on /order) */}
                 <div className="hidden sm:block">

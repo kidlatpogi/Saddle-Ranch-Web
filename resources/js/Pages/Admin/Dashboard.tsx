@@ -37,7 +37,8 @@ import {
     ArrowUpDown,
     ChevronLeft,
     ChevronRight,
-    MapPin
+    MapPin,
+    Star
 } from 'lucide-react';
 
 interface ProductItem {
@@ -119,6 +120,27 @@ interface AuditLogItem {
     module: 'Authentication' | 'Order Queue / Sales' | 'Products & Stock' | 'Vouchers' | 'Promo Banners' | 'Employees' | 'Tables & QR';
 }
 
+interface RatingItem {
+    id: number;
+    order_id?: number;
+    order_number?: string;
+    customer_name?: string;
+    customer_phone?: string;
+    branch: string;
+    overall_rating: number;
+    food_quality_rating: number;
+    customer_service_rating: number;
+    delivery_speed_rating: number;
+    packaging_rating: number;
+    comment?: string;
+    favorite_dish?: string;
+    is_featured: boolean;
+    is_approved?: boolean;
+    is_flagged?: boolean;
+    moderation_flag?: string;
+    created_at: string;
+}
+
 interface AdminDashboardProps {
     initialOrders?: any[];
     initialProducts?: any[];
@@ -126,9 +148,10 @@ interface AdminDashboardProps {
     initialEmployees?: any[];
     initialVouchers?: any[];
     initialBanners?: any[];
+    initialRatings?: any[];
 }
 
-export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers, initialBanners }: AdminDashboardProps) {
+export default function AdminDashboard({ initialOrders, initialProducts, initialAuditLogs, initialEmployees, initialVouchers, initialBanners, initialRatings }: AdminDashboardProps) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -262,24 +285,62 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
     const formatOrders = (rawOrders: any[]): OrderItem[] => {
         if (!rawOrders) return [];
-        return rawOrders.map((o: any) => ({
-            id: o.order_number || o.id?.toString(),
-            order_number: o.order_number || o.id?.toString(),
-            type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
-            location: o.table_number ? `Table ${o.table_number}` : (o.delivery_address || 'Counter'),
-            branch: o.branch ? (o.branch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan') : 'Bulihan',
-            customer: o.customer_name || 'Guest',
-            phone: o.customer_phone || '',
-            amount: Number(o.total_amount || o.amount || 0),
-            payment: o.payment_method || 'Cash',
-            status: o.status || 'pending',
-            time: o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
-            itemsCount: o.order_items ? o.order_items.length : (o.itemsCount || 1),
-            date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-        }));
+        return rawOrders
+            .filter((o: any) => {
+                const isCash = (o.payment_method || o.payment || '').toLowerCase().includes('cash');
+                const isPaid = o.payment_status === 'paid';
+                return isCash || isPaid;
+            })
+            .map((o: any) => ({
+                id: o.order_number || o.id?.toString(),
+                order_number: o.order_number || o.id?.toString(),
+                type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
+                location: o.table_number ? `Table ${o.table_number}` : (o.delivery_address || 'Counter'),
+                branch: o.branch ? (o.branch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan') : 'Bulihan',
+                customer: o.customer_name || 'Guest',
+                phone: o.customer_phone || '',
+                amount: Number(o.total_amount || o.amount || 0),
+                payment: o.payment_method || 'Cash',
+                status: o.status || 'pending',
+                time: o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+                itemsCount: o.order_items ? o.order_items.length : (o.itemsCount || 1),
+                date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            }));
     };
 
     const [orders, setOrders] = useState<OrderItem[]>(formatOrders(initialOrders || []));
+    const [ratings, setRatings] = useState<RatingItem[]>(initialRatings || []);
+    const [ratingBranchFilter, setRatingBranchFilter] = useState<'All' | 'Bulihan' | 'Dasma'>('All');
+    const [ratingSearchQuery, setRatingSearchQuery] = useState('');
+    const [ratingMinScore, setRatingMinScore] = useState<number>(0);
+
+    const handleApproveRating = async (id: number) => {
+        try {
+            const res = await fetch(`/api/v1/admin/ratings/${id}/approve`, { method: 'POST' });
+            if (res.ok) {
+                setRatings(prev => prev.map(r => r.id === id ? { ...r, is_approved: true, is_flagged: false, moderation_flag: 'admin_approved' } : r));
+            }
+        } catch (e) {}
+    };
+
+    const handleToggleFeatureRating = async (id: number) => {
+        try {
+            const res = await fetch(`/api/v1/admin/ratings/${id}/toggle-feature`, { method: 'POST' });
+            if (res.ok) {
+                setRatings(prev => prev.map(r => r.id === id ? { ...r, is_featured: !r.is_featured } : r));
+            }
+        } catch (e) {}
+    };
+
+    const handleDeleteRating = async (id: number) => {
+        if (!confirm('Are you sure you want to permanently delete this customer review?')) return;
+        try {
+            const res = await fetch(`/api/v1/admin/ratings/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                setRatings(prev => prev.filter(r => r.id !== id));
+            }
+        } catch (e) {}
+    };
 
     const fetchLatestOrders = async () => {
         try {
@@ -294,6 +355,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                 }
                 if (json.audit_logs && json.audit_logs.length > 0) {
                     setAuditLogs(formatAuditLogs(json.audit_logs));
+                }
+                if (json.ratings) {
+                    setRatings(json.ratings);
                 }
             }
         } catch (e) {
@@ -1225,6 +1289,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         { id: 'banners', label: 'Promo Banners', icon: <ImageIcon className="w-4 h-4" /> },
         { id: 'vouchers', label: 'Vouchers', icon: <Ticket className="w-4 h-4" /> },
         { id: 'employees', label: 'User Accounts', icon: <Users className="w-4 h-4" /> },
+        { id: 'ratings', label: 'Ratings & Reviews', icon: <Star className="w-4 h-4 text-[#f59e0b]" />, badge: ratings.length > 0 ? ratings.length.toString() : undefined },
         { id: 'audit', label: 'Audit Logs', icon: <FileText className="w-4 h-4" /> },
         { id: 'sales', label: 'Sales & Revenue', icon: <TrendingUp className="w-4 h-4" /> },
     ];
@@ -1715,15 +1780,32 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                         <img 
                                                             src={resolveImageUrl(p.image)} 
                                                             alt={p.name} 
-                                                            className="w-full h-full object-cover" 
+                                                            className={`w-full h-full object-cover transition-opacity ${!p.isActive || currentStock <= 0 ? 'opacity-50 grayscale-[40%]' : ''}`} 
                                                             onError={(e) => {
                                                                 e.currentTarget.onerror = null;
                                                                 e.currentTarget.src = defaultImg;
                                                             }}
                                                         />
                                                         
+                                                        {/* Status & Stock Badges */}
+                                                        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                                                            {!p.isActive ? (
+                                                                <span className="px-2 py-0.5 rounded-md bg-zinc-900/95 text-zinc-300 text-[10px] font-mono font-bold uppercase border border-zinc-600 shadow">
+                                                                    Unavailable
+                                                                </span>
+                                                            ) : currentStock <= 0 ? (
+                                                                <span className="px-2 py-0.5 rounded-md bg-rose-600/95 text-white text-[10px] font-mono font-bold uppercase border border-rose-400 shadow">
+                                                                    Out of Stock
+                                                                </span>
+                                                            ) : (
+                                                                <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-mono font-bold uppercase border border-emerald-400 shadow">
+                                                                    Available
+                                                                </span>
+                                                            )}
+                                                        </div>
+
                                                         {/* Dynamic Branch Tag & Price Badge */}
-                                                        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                                                        <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
                                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${
                                                                 productBranchFilter === 'Bulihan' 
                                                                     ? 'bg-amber-500/90 text-zinc-950 border-amber-400' 
@@ -1777,19 +1859,33 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                 {productBranchFilter === 'Bulihan' ? 'Bulihan Stock:' : 'Dasma Stock:'}
                                                             </span>
                                                             <div className="flex items-center gap-1 border border-[#3f3f46] rounded-lg p-0.5 bg-[#18181b]">
-                                                                <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#a1a1aa] hover:text-white font-bold">-</button>
+                                                                <button onClick={() => updateProductStock(p.id, -5)} className="p-1 text-[#a1a1aa] hover:text-white font-bold cursor-pointer">-</button>
                                                                 <span className="font-mono font-bold px-1.5 text-white">{currentStock}</span>
-                                                                <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#a1a1aa] hover:text-white font-bold">+</button>
+                                                                <button onClick={() => updateProductStock(p.id, 5)} className="p-1 text-[#a1a1aa] hover:text-white font-bold cursor-pointer">+</button>
                                                             </div>
                                                         </div>
 
+                                                        {/* User-friendly Toggle Switch for Item Availability */}
                                                         <button
+                                                            type="button"
+                                                            role="switch"
+                                                            aria-checked={p.isActive}
                                                             onClick={() => toggleProductStatus(p.id)}
-                                                            className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                                                                p.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                                                                p.isActive 
+                                                                    ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20' 
+                                                                    : 'bg-zinc-800/80 border-zinc-700 text-zinc-400 hover:bg-zinc-700/80'
                                                             }`}
+                                                            title={p.isActive ? 'Item is Available • Click to set Unavailable' : 'Item is Unavailable • Click to set Available'}
                                                         >
-                                                            {p.isActive ? 'Active' : 'Disabled'}
+                                                            <span>{p.isActive ? 'Available' : 'Unavailable'}</span>
+                                                            <div className={`w-7 h-4 rounded-full p-0.5 transition-colors relative flex items-center shrink-0 ${
+                                                                p.isActive ? 'bg-emerald-500 shadow-sm' : 'bg-zinc-600'
+                                                            }`}>
+                                                                <div className={`w-3 h-3 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                                                                    p.isActive ? 'translate-x-3' : 'translate-x-0'
+                                                                }`} />
+                                                            </div>
                                                         </button>
                                                     </div>
 
@@ -2620,6 +2716,308 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 8.5: CUSTOMER RATINGS & 5-STAR REVIEWS DASHBOARD */}
+                        {activeTab === 'ratings' && (
+                            <div className="space-y-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white font-domine">Customer Ratings & Star Reviews</h3>
+                                        <p className="text-xs text-[#a1a1aa]">Real-time guest feedback across food quality, customer service, speed, & packaging</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono text-xs text-[#f59e0b] bg-[#18181b] px-3 py-1.5 rounded-xl border border-[#3f3f46] font-bold">
+                                            {ratings.length} Total Verified Reviews
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Filters Toolbar */}
+                                <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                            <select
+                                                value={ratingBranchFilter}
+                                                onChange={(e) => setRatingBranchFilter(e.target.value as any)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All Branches</option>
+                                                <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <Star className="w-4 h-4 text-[#f59e0b] fill-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Rating Filter:</span>
+                                            <select
+                                                value={ratingMinScore}
+                                                onChange={(e) => setRatingMinScore(Number(e.target.value))}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value={0} className="bg-[#18181b]">All Stars (1★ - 5★)</option>
+                                                <option value={5} className="bg-[#18181b]">5 Stars Only (★★★★★)</option>
+                                                <option value={4} className="bg-[#18181b]">4+ Stars (★★★★☆ & Up)</option>
+                                                <option value={3} className="bg-[#18181b]">3+ Stars (★★★☆☆ & Up)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative">
+                                        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71717a]" />
+                                        <input
+                                            type="text"
+                                            value={ratingSearchQuery}
+                                            onChange={(e) => setRatingSearchQuery(e.target.value)}
+                                            placeholder="Search reviewer, dish, or comment..."
+                                            className="w-72 pl-10 pr-4 py-2 bg-[#18181b] border border-[#3f3f46] rounded-xl text-xs text-white placeholder-[#71717a] focus:outline-none focus:border-[#f59e0b]"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Rating Metrics KPIs (Research-Backed 5-Dimension Evaluation) */}
+                                {(() => {
+                                    const activeRatings = ratings.filter(r => {
+                                        if (ratingBranchFilter === 'Bulihan' && !r.branch.toLowerCase().includes('bulihan')) return false;
+                                        if (ratingBranchFilter === 'Dasma' && !r.branch.toLowerCase().includes('dasma')) return false;
+                                        return true;
+                                    });
+                                    const count = Math.max(1, activeRatings.length);
+                                    const avgOverall = (activeRatings.reduce((sum, r) => sum + (Number(r.overall_rating) || 5), 0) / count).toFixed(1);
+                                    const avgFood = (activeRatings.reduce((sum, r) => sum + (Number(r.food_quality_rating) || 5), 0) / count).toFixed(1);
+                                    const avgService = (activeRatings.reduce((sum, r) => sum + (Number(r.customer_service_rating) || 5), 0) / count).toFixed(1);
+                                    const avgSpeed = (activeRatings.reduce((sum, r) => sum + (Number(r.delivery_speed_rating) || 5), 0) / count).toFixed(1);
+                                    const avgPackaging = (activeRatings.reduce((sum, r) => sum + (Number(r.packaging_rating) || 5), 0) / count).toFixed(1);
+
+                                    return (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                            <div className="p-5 rounded-2xl bg-gradient-to-br from-[#2b2014] to-[#1c150e] border border-[#f59e0b]/40 shadow-lg space-y-1">
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-[#fbbf24]">Overall Score</div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-3xl font-mono font-black text-[#fbbf24]">{avgOverall}</span>
+                                                    <span className="text-xs text-[#a1a1aa] font-mono">/ 5.0</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-[#f59e0b]">
+                                                    {[1, 2, 3, 4, 5].map((s) => (
+                                                        <Star key={s} className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                                    ))}
+                                                    <span className="text-[10px] text-[#a1a1aa] ml-1">({activeRatings.length})</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-1">
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-[#a1a1aa]">Food Quality & Taste</div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-2xl font-mono font-black text-white">{avgFood}</span>
+                                                    <span className="text-xs text-[#a1a1aa] font-mono">/ 5.0</span>
+                                                </div>
+                                                <div className="text-[11px] text-emerald-400 font-bold">Cast-Iron Sizzle & Seasoning</div>
+                                            </div>
+
+                                            <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-1">
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-[#a1a1aa]">Customer Service</div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-2xl font-mono font-black text-white">{avgService}</span>
+                                                    <span className="text-xs text-[#a1a1aa] font-mono">/ 5.0</span>
+                                                </div>
+                                                <div className="text-[11px] text-[#fbbf24] font-bold">Staff Hospitality & Courtesy</div>
+                                            </div>
+
+                                            <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-1">
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-[#a1a1aa]">Kitchen / Delivery Speed</div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-2xl font-mono font-black text-white">{avgSpeed}</span>
+                                                    <span className="text-xs text-[#a1a1aa] font-mono">/ 5.0</span>
+                                                </div>
+                                                <div className="text-[11px] text-blue-400 font-bold">Preparation & Dispatch Time</div>
+                                            </div>
+
+                                            <div className="p-5 rounded-2xl bg-[#202024] border border-[#333338] shadow-lg space-y-1">
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-[#a1a1aa]">Packaging & Accuracy</div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-2xl font-mono font-black text-white">{avgPackaging}</span>
+                                                    <span className="text-xs text-[#a1a1aa] font-mono">/ 5.0</span>
+                                                </div>
+                                                <div className="text-[11px] text-purple-400 font-bold">Thermal Retention & Seal</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Reviews List */}
+                                <div className="rounded-3xl bg-[#202024] border border-[#333338] shadow-xl p-6 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-base font-bold text-white font-domine">Customer Testimonials & Detailed Breakdown</h4>
+                                        <span className="text-xs text-[#a1a1aa]">Updated automatically</span>
+                                    </div>
+
+                                    {(() => {
+                                        const filteredList = ratings.filter(r => {
+                                            if (ratingBranchFilter === 'Bulihan' && !r.branch.toLowerCase().includes('bulihan')) return false;
+                                            if (ratingBranchFilter === 'Dasma' && !r.branch.toLowerCase().includes('dasma')) return false;
+                                            if (ratingMinScore > 0 && r.overall_rating < ratingMinScore) return false;
+                                            if (ratingSearchQuery.trim()) {
+                                                const q = ratingSearchQuery.toLowerCase();
+                                                const nameMatch = (r.customer_name || '').toLowerCase().includes(q);
+                                                const commentMatch = (r.comment || '').toLowerCase().includes(q);
+                                                const dishMatch = (r.favorite_dish || '').toLowerCase().includes(q);
+                                                const orderMatch = (r.order_number || '').toLowerCase().includes(q);
+                                                if (!nameMatch && !commentMatch && !dishMatch && !orderMatch) return false;
+                                            }
+                                            return true;
+                                        });
+
+                                        if (filteredList.length === 0) {
+                                            return (
+                                                <div className="p-12 text-center text-xs text-[#a1a1aa] bg-[#18181b] rounded-2xl border border-dashed border-[#3f3f46]">
+                                                    No customer reviews matching current filter criteria.
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {filteredList.map((rev) => (
+                                                    <div key={rev.id} className="p-5 rounded-2xl bg-[#18181b] border border-[#333338] space-y-3.5 shadow-md flex flex-col justify-between">
+                                                        <div className="space-y-2.5">
+                                                            {/* Top Reviewer Meta */}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f59e0b] to-[#b45309] text-[#3f2000] font-black text-xs flex items-center justify-center font-domine">
+                                                                        {(rev.customer_name || 'G')[0].toUpperCase()}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                                                                            <span>{rev.customer_name || 'Verified Customer'}</span>
+                                                                            {rev.order_number && (
+                                                                                <span className="font-mono text-[10px] text-[#fbbf24] bg-[#27272a] px-1.5 py-0.2 rounded border border-[#3f3f46]">
+                                                                                    #{rev.order_number}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="text-[10px] text-[#71717a] font-mono">
+                                                                            {new Date(rev.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} • {rev.branch} Branch
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Overall Star Badge */}
+                                                                <div className="flex items-center gap-1 bg-[#27272a] px-2.5 py-1 rounded-xl border border-[#3f3f46]">
+                                                                    <Star className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                                                    <span className="font-mono font-black text-xs text-[#fbbf24]">{rev.overall_rating}.0</span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Comment Body */}
+                                                            {rev.comment && (
+                                                                <p className="text-xs text-[#d8c3ad] leading-relaxed italic bg-[#141416] p-3 rounded-xl border border-[#27272a]">
+                                                                    "{rev.comment}"
+                                                                </p>
+                                                            )}
+
+                                                            {/* Favorite Dish Badge */}
+                                                            {rev.favorite_dish && (
+                                                                <div className="flex items-center gap-1.5 text-[11px] text-[#fbbf24]">
+                                                                    <Utensils className="w-3 h-3 text-[#f59e0b]" />
+                                                                    <span className="font-bold">Favorite Dish:</span>
+                                                                    <span className="text-white font-medium">{rev.favorite_dish}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Detailed 4-Metric Rating Breakdown */}
+                                                        <div className="pt-3 border-t border-[#27272a] grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono">
+                                                            <div className="bg-[#141416] p-2 rounded-lg border border-[#27272a]">
+                                                                <span className="text-[#71717a] block">Food Quality</span>
+                                                                <span className="font-bold text-white flex items-center gap-1">
+                                                                    <Star className="w-2.5 h-2.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                                                    {rev.food_quality_rating} / 5
+                                                                </span>
+                                                            </div>
+                                                            <div className="bg-[#141416] p-2 rounded-lg border border-[#27272a]">
+                                                                <span className="text-[#71717a] block">Service</span>
+                                                                <span className="font-bold text-white flex items-center gap-1">
+                                                                    <Star className="w-2.5 h-2.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                                                    {rev.customer_service_rating} / 5
+                                                                </span>
+                                                            </div>
+                                                            <div className="bg-[#141416] p-2 rounded-lg border border-[#27272a]">
+                                                                <span className="text-[#71717a] block">Speed</span>
+                                                                <span className="font-bold text-white flex items-center gap-1">
+                                                                    <Star className="w-2.5 h-2.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                                                    {rev.delivery_speed_rating} / 5
+                                                                </span>
+                                                            </div>
+                                                            <div className="bg-[#141416] p-2 rounded-lg border border-[#27272a]">
+                                                                <span className="text-[#71717a] block">Packaging</span>
+                                                                <span className="font-bold text-white flex items-center gap-1">
+                                                                    <Star className="w-2.5 h-2.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                                                    {rev.packaging_rating} / 5
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Moderation Status & Admin Action Toolbar */}
+                                                        <div className="pt-3 border-t border-[#27272a] flex items-center justify-between gap-2">
+                                                            <div>
+                                                                {rev.is_flagged || rev.is_approved === false ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">
+                                                                        <AlertCircle className="w-3 h-3 text-rose-400" /> Pending Moderation
+                                                                    </span>
+                                                                ) : rev.is_featured ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+                                                                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Live & Featured
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold">
+                                                                        Standard Review
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex items-center gap-1.5">
+                                                                {(rev.is_flagged || rev.is_approved === false) && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleApproveRating(rev.id)}
+                                                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                                                        title="Approve and Publish Review"
+                                                                    >
+                                                                        <Check className="w-3 h-3" /> Approve
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleFeatureRating(rev.id)}
+                                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors border ${
+                                                                        rev.is_featured 
+                                                                            ? 'bg-[#f59e0b]/20 text-[#fbbf24] border-[#f59e0b]/40 hover:bg-[#f59e0b]/30' 
+                                                                            : 'bg-[#27272a] text-[#a1a1aa] border-[#3f3f46] hover:text-white'
+                                                                    }`}
+                                                                    title={rev.is_featured ? 'Remove from Marquee' : 'Feature in Marquee'}
+                                                                >
+                                                                    <Star className="w-3 h-3 fill-current" /> {rev.is_featured ? 'Featured' : 'Feature'}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleDeleteRating(rev.id)}
+                                                                    className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-pointer transition-colors"
+                                                                    title="Delete Review"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}

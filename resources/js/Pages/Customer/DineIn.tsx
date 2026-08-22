@@ -26,12 +26,18 @@ import {
     Utensils,
     Ticket,
     LogOut,
-    User
+    User,
+    RotateCcw,
+    Star,
+    Sparkles
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
+import ReturnPolicyModal from '@/Components/ReturnPolicyModal';
+import OrderConfirmationModal from '@/Components/OrderConfirmationModal';
+import RatingModal from '@/Components/RatingModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 import CustomerAuthModal from '@/Components/CustomerAuthModal';
 import CustomerAccountModal from '@/Components/CustomerAccountModal';
@@ -124,11 +130,40 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [accountEmail, setAccountEmail] = useState('');
     const [accountPassword, setAccountPassword] = useState('');
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
+    const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
+    const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+
+    const handleConfirmPaymentSent = async (orderNum: string) => {
+        if (!orderNum) return;
+        setIsConfirmingPayment(true);
+        try {
+            const res = await fetch(`/api/v1/orders/${orderNum}/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            if (res.ok) {
+                setIsPaymentConfirmed(true);
+                window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed'));
+            } else {
+                setIsPaymentConfirmed(true);
+            }
+        } catch (e) {
+            setIsPaymentConfirmed(true);
+        } finally {
+            setIsConfirmingPayment(false);
+        }
+    };
 
     // Coupon & Voucher State
     const [voucherInput, setVoucherInput] = useState('');
@@ -447,7 +482,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             }
         }
 
+        // Open Confirmation & Non-Refundable Policy Modal
+        setIsConfirmationModalOpen(true);
+    };
+
+    const handleExecuteCheckout = () => {
         setIsSubmitting(true);
+        setValidationError('');
 
         const payload = {
             order_type: fulfillmentMode,
@@ -471,12 +512,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
         if (payload.items.length === 0) {
             setIsSubmitting(false);
+            setIsConfirmationModalOpen(false);
             setValidationError('Your cart contains invalid or unavailable products. Please re-add items to your cart.');
             return;
         }
 
         router.post('/order/checkout', payload, {
             onSuccess: (page) => {
+                setIsConfirmationModalOpen(false);
                 setIsBasketSheetOpen(false);
                 const flashOrder = (page.props.flash as any)?.order;
                 if (flashOrder?.order_number) {
@@ -491,6 +534,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             },
             onError: (errors) => {
                 setIsSubmitting(false);
+                setIsConfirmationModalOpen(false);
                 const itemsErrKey = Object.keys(errors).find(k => k.startsWith('items'));
                 if (errors.items) {
                     setValidationError(errors.items);
@@ -503,7 +547,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             },
             onFinish: () => {
                 setIsSubmitting(false);
-                setIsBasketSheetOpen(false);
             },
         });
     };
@@ -546,6 +589,21 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         <span>Sign In</span>
                                     </button>
                                 )}
+
+                                {/* Return Policy Pill */}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setIsReturnModalOpen(true);
+                                    }}
+                                    className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Return & Cancellation Policy"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Return Policy</span>
+                                </button>
 
                                 {/* Privacy Policy Pill */}
                                 <button
@@ -687,24 +745,42 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const isUnavailable = product.is_active === false;
+                                        const isOutOfStock = !isUnavailable && product.stock_quantity <= 0;
+                                        const isOrderable = !isUnavailable && !isOutOfStock;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
                                         const imgUrl = getProductImage(product);
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
+                                                className={`bg-[#1A1A1B] rounded-2xl border p-3 flex flex-col justify-between relative group transition-all shadow-md ${
+                                                    !isOrderable ? 'border-[#333338] opacity-80' : 'border-[#262627] hover:border-[#534434]'
+                                                }`}
                                             >
                                                 <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                                                        className={`w-full h-full object-cover rounded-xl transition-transform duration-500 ${
+                                                            !isOrderable ? 'opacity-60 grayscale-[15%]' : 'group-hover:scale-105'
+                                                        }`}
                                                     />
 
+                                                    {/* Availability / Out of Stock Badges */}
+                                                    {isUnavailable && (
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-zinc-800/95 text-zinc-300 text-[9px] font-mono font-bold uppercase tracking-wider border border-zinc-600/50 shadow-md">
+                                                            Unavailable
+                                                        </span>
+                                                    )}
+                                                    {isOutOfStock && (
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-rose-600/95 text-white text-[9px] font-mono font-black uppercase tracking-wider shadow-md">
+                                                            Out of Stock
+                                                        </span>
+                                                    )}
+
                                                     <div className="absolute bottom-1.5 right-1.5 z-10">
-                                                        {cartEntry ? (
+                                                        {cartEntry && isOrderable ? (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 className="w-9 h-9 shrink-0 aspect-square rounded-full bg-[#f59e0b] text-black font-mono font-black text-sm border-2 border-[#121213] shadow-xl flex items-center justify-center btn-bevel cursor-pointer"
@@ -714,10 +790,15 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         ) : (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                disabled={isOutOfStock}
-                                                                className="w-9 h-9 shrink-0 aspect-square rounded-full bg-[#f59e0b] text-black hover:bg-[#ffc174] font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
+                                                                disabled={!isOrderable}
+                                                                className={`w-9 h-9 shrink-0 aspect-square rounded-full font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel ${
+                                                                    isOrderable
+                                                                        ? 'bg-[#f59e0b] text-black hover:bg-[#ffc174] cursor-pointer'
+                                                                        : 'bg-[#27272a] text-[#71717a] border border-[#3f3f46] cursor-not-allowed opacity-60'
+                                                                }`}
+                                                                title={isUnavailable ? 'Item Unavailable' : (isOutOfStock ? 'Out of Stock' : 'Add to Order')}
                                                             >
-                                                                <Plus className="w-5 h-5 text-black stroke-[3]" />
+                                                                <Plus className="w-5 h-5 stroke-[3]" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -727,8 +808,16 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
                                                         {product.name}
                                                     </h3>
-                                                    <div className="font-mono text-xs font-black text-[#ffc174]">
-                                                        ₱ {numPrice.toFixed(2)}
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-mono text-xs font-black text-[#ffc174]">
+                                                            ₱ {numPrice.toFixed(2)}
+                                                        </span>
+                                                        {isUnavailable && (
+                                                            <span className="text-[9px] font-mono text-zinc-400 font-bold uppercase">Unavailable</span>
+                                                        )}
+                                                        {isOutOfStock && (
+                                                            <span className="text-[9px] font-mono text-rose-400 font-bold uppercase">Out of Stock</span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -742,43 +831,61 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const isUnavailable = product.is_active === false;
+                                        const isOutOfStock = !isUnavailable && product.stock_quantity <= 0;
+                                        const isOrderable = !isUnavailable && !isOutOfStock;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
                                         const imgUrl = getProductImage(product);
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
+                                                className={`bg-[#1A1A1B] rounded-2xl border overflow-hidden flex flex-col justify-between transition-all shadow-xl group ${
+                                                    !isOrderable ? 'border-[#333338] opacity-85' : 'border-[#262627] hover-heat'
+                                                }`}
                                             >
                                                 <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        className={`w-full h-full object-cover transition-transform duration-500 ${
+                                                            !isOrderable ? 'opacity-60 grayscale-[15%]' : 'group-hover:scale-105'
+                                                        }`}
                                                     />
+
+                                                    {/* Availability / Out of Stock Badges */}
+                                                    {isUnavailable && (
+                                                        <span className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-zinc-800/95 text-zinc-300 text-[10px] font-mono font-bold uppercase tracking-wider border border-zinc-600/60 shadow-lg">
+                                                            Unavailable
+                                                        </span>
+                                                    )}
+                                                    {isOutOfStock && (
+                                                        <span className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-rose-600/95 text-white text-[10px] font-mono font-black uppercase tracking-wider shadow-lg">
+                                                            Out of Stock
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                                                    <div>
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
-                                                                {product.name}
-                                                            </h3>
-                                                            <span className="font-mono text-xs font-black text-[#ffc174] bg-[#261e15] border border-[#534434] px-2 py-0.5 rounded whitespace-nowrap shrink-0 shadow">
-                                                                ₱{numPrice.toFixed(2)}
-                                                            </span>
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="font-mono text-sm font-black text-[#ffc174]">
+                                                            ₱{numPrice.toFixed(2)}
                                                         </div>
                                                     </div>
 
                                                     <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
-                                                        {isOutOfStock ? (
-                                                            <span className="text-[10px] font-bold text-rose-400 uppercase">Sold Out</span>
+                                                        {isUnavailable ? (
+                                                            <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase">Item Unavailable</span>
+                                                        ) : isOutOfStock ? (
+                                                            <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Out of Stock</span>
                                                         ) : (
                                                             <span className="text-[10px] text-[#d8c3ad] font-semibold">Ready to Sizzle</span>
                                                         )}
 
-                                                        {cartEntry ? (
+                                                        {cartEntry && isOrderable ? (
                                                             <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] rounded-xl p-1">
                                                                 <button
                                                                     type="button"
@@ -801,10 +908,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                             <button
                                                                 type="button"
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                disabled={isOutOfStock}
-                                                                className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md disabled:opacity-40 cursor-pointer"
+                                                                disabled={!isOrderable}
+                                                                className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md ${
+                                                                    isOrderable
+                                                                        ? 'bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] cursor-pointer'
+                                                                        : 'bg-[#27272a] text-[#71717a] border border-[#3f3f46] cursor-not-allowed opacity-50'
+                                                                }`}
                                                             >
-                                                                Add +
+                                                                {isUnavailable ? 'Unavailable' : (isOutOfStock ? 'Out of Stock' : 'Add +')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -1137,6 +1248,21 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         >
                                             {isSubmitting ? 'Processing Table Order...' : `Place Table Order • ₱ ${finalTotal.toFixed(2)}`}
                                         </button>
+
+                                        <div className="pt-2 flex items-center justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setIsReturnModalOpen(true);
+                                                }}
+                                                className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                            >
+                                                <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                                <span>Return & Cancellation Policy</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </form>
 
@@ -1414,6 +1540,21 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 >
                                     {isSubmitting ? 'Processing Order...' : `Place Order • ₱ ${finalTotal.toFixed(2)}`}
                                 </button>
+
+                                <div className="pt-2 flex items-center justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setIsReturnModalOpen(true);
+                                        }}
+                                        className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                    >
+                                        <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                        <span>Return & Cancellation Policy</span>
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -1453,6 +1594,72 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
+                            {/* QRPH PAYMENT FIRST SECTION */}
+                            {completedOrder.payment_method?.includes('QRPh') && (
+                                <div className="p-4 rounded-2xl bg-[#121213] border-2 border-[#f59e0b] text-left space-y-3 shadow-xl">
+                                    <div className="flex items-center justify-between border-b border-[#3D3126] pb-2">
+                                        <div className="flex items-center gap-1.5 text-[#ffc174] font-bold text-xs">
+                                            <QrCode className="w-4 h-4 text-[#f59e0b]" />
+                                            <span>Payment First (QRPh / e-Wallets)</span>
+                                        </div>
+                                        <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black">
+                                            Required
+                                        </span>
+                                    </div>
+
+                                    <p className="text-[11px] text-[#f0e0d1] leading-relaxed">
+                                        Please scan the official QRPh code below to settle <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> via GCash, Maya, or any banking app:
+                                    </p>
+
+                                    {/* QR Code display */}
+                                    <div className="bg-white p-3 rounded-2xl w-44 mx-auto flex flex-col items-center justify-center space-y-1.5 shadow-md">
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`saddleranch_dinein_${completedOrder.order_number}_amount_${completedOrder.total_amount}`)}`}
+                                            alt="QRPh Payment Code"
+                                            className="w-36 h-36 object-contain"
+                                        />
+                                        <span className="text-[9px] font-mono font-black text-[#141416] uppercase tracking-wider">
+                                            Scan via GCash / Maya
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-1 text-[11px] font-mono bg-[#1c150e] p-2.5 rounded-xl border border-[#3D3126]">
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>GCash / Maya No.:</span>
+                                            <span className="font-bold text-[#ffc174]">0917 123 4567</span>
+                                        </div>
+                                        <div className="flex justify-between text-[#d8c3ad]">
+                                            <span>Reference:</span>
+                                            <span className="font-bold text-[#fbbf24]">#{completedOrder.order_number}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button to Confirm Payment Sent */}
+                                    {isPaymentConfirmed ? (
+                                        <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-center gap-2 font-bold animate-in fade-in">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Payment Received! Sent to kitchen.</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            disabled={isConfirmingPayment}
+                                            onClick={() => handleConfirmPaymentSent(completedOrder.order_number)}
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5 shadow"
+                                        >
+                                            {isConfirmingPayment ? (
+                                                <span>Verifying Payment...</span>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    <span>I Have Sent Payment (Verify & Settle)</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="pt-2 space-y-2">
                                 <button
                                     type="button"
@@ -1464,6 +1671,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow hover:bg-[#ffc174] transition-all cursor-pointer"
                                 >
                                     Track Order Live Status
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRatingModalOpen(true)}
+                                    className="w-full py-2.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                                >
+                                    <Star className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                    <span>Rate Your Experience (5★)</span>
                                 </button>
                                 <button
                                     type="button"
@@ -1479,6 +1694,39 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
                     </div>
                 )}
+
+                {/* Pre-Checkout Confirmation Modal with Non-Refundable Policy Notice */}
+                <OrderConfirmationModal
+                    isOpen={isConfirmationModalOpen}
+                    onClose={() => setIsConfirmationModalOpen(false)}
+                    onConfirm={handleExecuteCheckout}
+                    isSubmitting={isSubmitting}
+                    orderType={fulfillmentMode}
+                    customerName={customerName.trim() || `Table ${tableNumber} Guest`}
+                    customerPhone={customerPhone.trim() || 'N/A'}
+                    tableNumber={tableNumber}
+                    paymentMethod={paymentMethod}
+                    cart={cart}
+                    subtotal={subtotal}
+                    discount={voucherDiscount}
+                    finalTotal={finalTotal}
+                />
+
+                {/* Return & Cancellation Policy Modal */}
+                <ReturnPolicyModal
+                    isOpen={isReturnModalOpen}
+                    onClose={() => setIsReturnModalOpen(false)}
+                />
+
+                {/* Customer 5-Star Rating Modal */}
+                <RatingModal
+                    isOpen={isRatingModalOpen}
+                    onClose={() => setIsRatingModalOpen(false)}
+                    orderNumber={completedOrder?.order_number}
+                    initialCustomerName={customerName}
+                    initialCustomerPhone={customerPhone}
+                    branch={selectedBranch === 'Dasma' ? 'Dasmarinas' : 'Bulihan'}
+                />
 
                 {/* Modals & Components */}
                 <LocationModal

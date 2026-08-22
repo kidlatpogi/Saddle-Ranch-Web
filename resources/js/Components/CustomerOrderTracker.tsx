@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ShoppingBag, Search, X, Clock, Flame, CheckCircle2, RefreshCw, ChevronUp, ChevronDown, UtensilsCrossed, Bell } from 'lucide-react';
+import { ShoppingBag, Search, X, Clock, Flame, CheckCircle2, RefreshCw, ChevronUp, ChevronDown, UtensilsCrossed, Bell, Star } from 'lucide-react';
+import RatingModal from '@/Components/RatingModal';
 
 interface OrderItem {
     id: number;
@@ -18,6 +19,7 @@ interface Order {
     status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled' | string;
     total_amount: number;
     payment_method: string;
+    payment_status?: string;
     customer_name?: string;
     customer_phone?: string;
     delivery_address?: string;
@@ -33,6 +35,7 @@ export default function CustomerOrderTracker() {
     const [searched, setSearched] = useState(false);
     const [savedOrderNumbers, setSavedOrderNumbers] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
+    const [ratingOrder, setRatingOrder] = useState<Order | null>(null);
 
     // Track active cart items to dynamically position floating button above "View your Order" bar
     const [hasCartItems, setHasCartItems] = useState<boolean>(() => {
@@ -321,6 +324,33 @@ export default function CustomerOrderTracker() {
                                                 </span>
                                             </div>
 
+                                            {/* Payment Pending Alert for QRPh Orders */}
+                                            {order.payment_status === 'pending' && !order.payment_method?.toLowerCase().includes('cash') && (
+                                                <div className="p-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-[11px] text-[#ffc174] space-y-1.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-bold flex items-center gap-1">
+                                                            <Clock className="w-3 h-3 text-[#f59e0b]" /> Payment Pending (QRPh)
+                                                        </span>
+                                                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">Unpaid</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-[#d8c3ad] leading-tight">
+                                                        Payment is required before order enters kitchen preparation queue.
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={async () => {
+                                                            try {
+                                                                await fetch(`/api/v1/orders/${order.order_number}/confirm-payment`, { method: 'POST' });
+                                                                fetchOrders();
+                                                            } catch (e) {}
+                                                        }}
+                                                        className="w-full py-1 rounded bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-[10px] uppercase transition-all cursor-pointer"
+                                                    >
+                                                        I Have Paid (Confirm & Settle)
+                                                    </button>
+                                                </div>
+                                            )}
+
                                             {/* Items Preview */}
                                             {order.order_items && order.order_items.length > 0 && (
                                                 <div className="text-[11px] text-[#d8c3ad] pt-1 border-t border-[#31281f] space-y-1">
@@ -331,6 +361,16 @@ export default function CustomerOrderTracker() {
                                                         </div>
                                                     ))}
                                                 </div>
+                                            )}
+                                            {/* Rate Completed Order Button */}
+                                            {order.status === 'completed' && (
+                                                <button
+                                                    onClick={() => setRatingOrder(order)}
+                                                    className="w-full py-1.5 rounded-lg bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                                >
+                                                    <Star className="w-3 h-3 fill-[#f59e0b] text-[#f59e0b]" />
+                                                    <span>Rate Your Meal & Service (5★)</span>
+                                                </button>
                                             )}
                                         </div>
                                     );
@@ -347,6 +387,18 @@ export default function CustomerOrderTracker() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Rating Modal for Tracked Orders */}
+            {ratingOrder && (
+                <RatingModal
+                    isOpen={!!ratingOrder}
+                    onClose={() => setRatingOrder(null)}
+                    orderId={ratingOrder.id}
+                    orderNumber={ratingOrder.order_number}
+                    initialCustomerName={ratingOrder.customer_name}
+                    initialCustomerPhone={ratingOrder.customer_phone}
+                />
             )}
 
             {/* FLOATING TRIGGER BUTTON (ALWAYS VISIBLE WITH Z-[9999]) */}

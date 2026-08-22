@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Rating;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,12 +17,20 @@ class AdminDashboardController extends Controller
      */
     public function index(): Response
     {
-        $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        // Only include paid QRPh/e-Wallet orders and cash orders in the Admin Dashboard
+        $orders = Order::with('orderItems.product')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhere('payment_method', 'LIKE', '%cash%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
         $products = Product::orderBy('id', 'asc')->get();
         $auditLogs = AuditLog::with('user')->orderBy('created_at', 'desc')->get();
         $employees = \App\Models\User::orderBy('id', 'desc')->get();
         $vouchers = \App\Models\Voucher::orderBy('created_at', 'desc')->get();
         $banners = \App\Models\PromoBanner::orderBy('display_order', 'asc')->get();
+        $ratings = Rating::orderBy('created_at', 'desc')->get();
 
         return Inertia::render('Admin/Dashboard', [
             'initialOrders' => $orders,
@@ -30,6 +39,7 @@ class AdminDashboardController extends Controller
             'initialEmployees' => $employees,
             'initialVouchers' => $vouchers,
             'initialBanners' => $banners,
+            'initialRatings' => $ratings,
         ]);
     }
 
