@@ -22,7 +22,7 @@ class OrderController extends Controller
      */
     public function order(): Response
     {
-        $products = Product::where('is_active', true)->get();
+        $products = Product::orderBy('id', 'asc')->get();
 
         return Inertia::render('Customer/Order', [
             'products' => $products,
@@ -42,7 +42,7 @@ class OrderController extends Controller
             $tableNumber = $request->session()->get('table_number', '');
         }
 
-        $products = Product::where('is_active', true)->get();
+        $products = Product::orderBy('id', 'asc')->get();
 
         return Inertia::render('Customer/DineIn', [
             'products' => $products,
@@ -79,6 +79,16 @@ class OrderController extends Controller
             'account_email.unique' => 'An account with this email already exists. Please sign in or use a different email.',
         ]);
 
+        // Enforce Delivery Payment Policy: No Cash on Delivery allowed (QRPh / e-Wallets Payment First only)
+        if ($validated['order_type'] === 'delivery') {
+            $payMethod = strtolower($validated['payment_method']);
+            if (str_contains($payMethod, 'cash') || str_contains($payMethod, 'cod')) {
+                throw ValidationException::withMessages([
+                    'payment_method' => ['Delivery orders require payment first via QRPh / e-Wallets (GCash, Maya, ShopeePay, Cards). Cash on Delivery is not supported.'],
+                ]);
+            }
+        }
+
         $createdOrder = DB::transaction(function () use ($validated, $request) {
             $userId = auth()->id();
 
@@ -112,14 +122,20 @@ class OrderController extends Controller
             $orderItemsToCreate = [];
 
             foreach ($validated['items'] as $itemData) {
-                // Lock product row for atomic stock check and decrement
+                // Lock product row for atomic availability & stock check and decrement
                 $product = Product::where('id', $itemData['product_id'])
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                if ($product->stock_quantity < $itemData['quantity']) {
+                if (!$product->is_active) {
                     throw ValidationException::withMessages([
-                        'items' => ["Sorry, '{$product->name}' has insufficient stock (Only {$product->stock_quantity} left)."],
+                        'items' => ["Sorry, '{$product->name}' is currently unavailable."],
+                    ]);
+                }
+
+                if ($product->stock_quantity < $itemData['quantity'] || $product->stock_quantity <= 0) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Sorry, '{$product->name}' is out of stock (Only {$product->stock_quantity} left)."],
                     ]);
                 }
 

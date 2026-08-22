@@ -265,17 +265,27 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                         <img 
                                             src={resolveImageUrl(p.image_path)} 
                                             alt={p.name} 
-                                            className="w-full h-full object-cover" 
+                                            className={`w-full h-full object-cover transition-opacity ${!p.is_active || p.stock_quantity <= 0 ? 'opacity-50 grayscale-[40%]' : ''}`} 
                                             onError={(e) => {
                                                 e.currentTarget.onerror = null;
                                                 e.currentTarget.src = defaultImg;
                                             }}
                                         />
-                                        <span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase ${
-                                            p.is_active ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'
-                                        }`}>
-                                            {p.is_active ? 'Active' : 'Inactive'}
-                                        </span>
+                                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                                            {!p.is_active ? (
+                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-zinc-900/95 text-zinc-300 border border-zinc-600 shadow">
+                                                    Unavailable
+                                                </span>
+                                            ) : p.stock_quantity <= 0 ? (
+                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-rose-600/95 text-white border border-rose-400 shadow">
+                                                    Out of Stock
+                                                </span>
+                                            ) : (
+                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-600/90 text-white border border-emerald-400 shadow">
+                                                    Available
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div>
@@ -310,15 +320,27 @@ export default function AdminProducts({ products = [] }: ProductsProps) {
                                             <Edit2 className="w-3.5 h-3.5" /> Edit
                                         </button>
 
+                                        {/* User-friendly Toggle Switch for Item Availability */}
                                         <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={p.is_active}
                                             onClick={() => handleToggleActive(p.id)}
-                                            className={`py-2 px-3 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
+                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                                                 p.is_active
-                                                    ? 'bg-amber-500/10 border-amber-500/30 text-[#ffc174] hover:bg-[#f59e0b] hover:text-zinc-950'
-                                                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-zinc-950'
+                                                    ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20'
+                                                    : 'bg-zinc-800/80 border-zinc-700 text-zinc-400 hover:bg-zinc-700/80'
                                             }`}
+                                            title={p.is_active ? 'Item is Available • Click to set Unavailable' : 'Item is Unavailable • Click to set Available'}
                                         >
-                                            {p.is_active ? 'Deactivate' : 'Activate'}
+                                            <span>{p.is_active ? 'Available' : 'Unavailable'}</span>
+                                            <div className={`w-7 h-4 rounded-full p-0.5 transition-colors relative flex items-center shrink-0 ${
+                                                p.is_active ? 'bg-emerald-500 shadow-sm' : 'bg-zinc-600'
+                                            }`}>
+                                                <div className={`w-3 h-3 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                                                    p.is_active ? 'translate-x-3' : 'translate-x-0'
+                                                }`} />
+                                            </div>
                                         </button>
 
                                         <button

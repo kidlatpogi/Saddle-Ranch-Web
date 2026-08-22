@@ -26,12 +26,18 @@ import {
     Utensils,
     Ticket,
     LogOut,
-    User
+    User,
+    RotateCcw,
+    Star,
+    Sparkles
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
+import ReturnPolicyModal from '@/Components/ReturnPolicyModal';
+import OrderConfirmationModal from '@/Components/OrderConfirmationModal';
+import RatingModal from '@/Components/RatingModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 import CustomerAuthModal from '@/Components/CustomerAuthModal';
 import CustomerAccountModal from '@/Components/CustomerAccountModal';
@@ -124,6 +130,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [accountEmail, setAccountEmail] = useState('');
     const [accountPassword, setAccountPassword] = useState('');
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -447,7 +456,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             }
         }
 
+        // Open Confirmation & Non-Refundable Policy Modal
+        setIsConfirmationModalOpen(true);
+    };
+
+    const handleExecuteCheckout = () => {
         setIsSubmitting(true);
+        setValidationError('');
 
         const payload = {
             order_type: fulfillmentMode,
@@ -471,12 +486,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
         if (payload.items.length === 0) {
             setIsSubmitting(false);
+            setIsConfirmationModalOpen(false);
             setValidationError('Your cart contains invalid or unavailable products. Please re-add items to your cart.');
             return;
         }
 
         router.post('/order/checkout', payload, {
             onSuccess: (page) => {
+                setIsConfirmationModalOpen(false);
                 setIsBasketSheetOpen(false);
                 const flashOrder = (page.props.flash as any)?.order;
                 if (flashOrder?.order_number) {
@@ -491,6 +508,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             },
             onError: (errors) => {
                 setIsSubmitting(false);
+                setIsConfirmationModalOpen(false);
                 const itemsErrKey = Object.keys(errors).find(k => k.startsWith('items'));
                 if (errors.items) {
                     setValidationError(errors.items);
@@ -503,7 +521,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
             },
             onFinish: () => {
                 setIsSubmitting(false);
-                setIsBasketSheetOpen(false);
             },
         });
     };
@@ -546,6 +563,17 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         <span>Sign In</span>
                                     </button>
                                 )}
+
+                                {/* Return Policy Pill */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsReturnModalOpen(true)}
+                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Return & Cancellation Policy"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Return Policy</span>
+                                </button>
 
                                 {/* Privacy Policy Pill */}
                                 <button
@@ -687,24 +715,42 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <div className="grid grid-cols-2 gap-3.5">
                                     {filteredProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const isUnavailable = product.is_active === false;
+                                        const isOutOfStock = !isUnavailable && product.stock_quantity <= 0;
+                                        const isOrderable = !isUnavailable && !isOutOfStock;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
                                         const imgUrl = getProductImage(product);
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] p-3 flex flex-col justify-between relative group hover:border-[#534434] transition-all shadow-md"
+                                                className={`bg-[#1A1A1B] rounded-2xl border p-3 flex flex-col justify-between relative group transition-all shadow-md ${
+                                                    !isOrderable ? 'border-[#333338] opacity-80' : 'border-[#262627] hover:border-[#534434]'
+                                                }`}
                                             >
                                                 <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                                                        className={`w-full h-full object-cover rounded-xl transition-transform duration-500 ${
+                                                            !isOrderable ? 'opacity-60 grayscale-[15%]' : 'group-hover:scale-105'
+                                                        }`}
                                                     />
 
+                                                    {/* Availability / Out of Stock Badges */}
+                                                    {isUnavailable && (
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-zinc-800/95 text-zinc-300 text-[9px] font-mono font-bold uppercase tracking-wider border border-zinc-600/50 shadow-md">
+                                                            Unavailable
+                                                        </span>
+                                                    )}
+                                                    {isOutOfStock && (
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-rose-600/95 text-white text-[9px] font-mono font-black uppercase tracking-wider shadow-md">
+                                                            Out of Stock
+                                                        </span>
+                                                    )}
+
                                                     <div className="absolute bottom-1.5 right-1.5 z-10">
-                                                        {cartEntry ? (
+                                                        {cartEntry && isOrderable ? (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
                                                                 className="w-9 h-9 shrink-0 aspect-square rounded-full bg-[#f59e0b] text-black font-mono font-black text-sm border-2 border-[#121213] shadow-xl flex items-center justify-center btn-bevel cursor-pointer"
@@ -714,10 +760,15 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                         ) : (
                                                             <button
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                disabled={isOutOfStock}
-                                                                className="w-9 h-9 shrink-0 aspect-square rounded-full bg-[#f59e0b] text-black hover:bg-[#ffc174] font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel disabled:opacity-40 cursor-pointer"
+                                                                disabled={!isOrderable}
+                                                                className={`w-9 h-9 shrink-0 aspect-square rounded-full font-black text-sm shadow-xl flex items-center justify-center transition-colors btn-bevel ${
+                                                                    isOrderable
+                                                                        ? 'bg-[#f59e0b] text-black hover:bg-[#ffc174] cursor-pointer'
+                                                                        : 'bg-[#27272a] text-[#71717a] border border-[#3f3f46] cursor-not-allowed opacity-60'
+                                                                }`}
+                                                                title={isUnavailable ? 'Item Unavailable' : (isOutOfStock ? 'Out of Stock' : 'Add to Order')}
                                                             >
-                                                                <Plus className="w-5 h-5 text-black stroke-[3]" />
+                                                                <Plus className="w-5 h-5 stroke-[3]" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -727,8 +778,16 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     <h3 className="font-domine font-bold text-xs text-[#f0e0d1] line-clamp-2 leading-snug">
                                                         {product.name}
                                                     </h3>
-                                                    <div className="font-mono text-xs font-black text-[#ffc174]">
-                                                        ₱ {numPrice.toFixed(2)}
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-mono text-xs font-black text-[#ffc174]">
+                                                            ₱ {numPrice.toFixed(2)}
+                                                        </span>
+                                                        {isUnavailable && (
+                                                            <span className="text-[9px] font-mono text-zinc-400 font-bold uppercase">Unavailable</span>
+                                                        )}
+                                                        {isOutOfStock && (
+                                                            <span className="text-[9px] font-mono text-rose-400 font-bold uppercase">Out of Stock</span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -742,21 +801,39 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
                                     {paginatedProducts.map((product) => {
                                         const numPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-                                        const isOutOfStock = product.stock_quantity <= 0;
+                                        const isUnavailable = product.is_active === false;
+                                        const isOutOfStock = !isUnavailable && product.stock_quantity <= 0;
+                                        const isOrderable = !isUnavailable && !isOutOfStock;
                                         const cartEntry = cart.find((i) => i.product.id === product.id);
                                         const imgUrl = getProductImage(product);
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="bg-[#1A1A1B] rounded-2xl border border-[#262627] overflow-hidden flex flex-col justify-between hover-heat transition-all shadow-xl group"
+                                                className={`bg-[#1A1A1B] rounded-2xl border overflow-hidden flex flex-col justify-between transition-all shadow-xl group ${
+                                                    !isOrderable ? 'border-[#333338] opacity-85' : 'border-[#262627] hover-heat'
+                                                }`}
                                             >
                                                 <div className="aspect-video w-full relative overflow-hidden bg-[#121213]">
                                                     <img
                                                         src={imgUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        className={`w-full h-full object-cover transition-transform duration-500 ${
+                                                            !isOrderable ? 'opacity-60 grayscale-[15%]' : 'group-hover:scale-105'
+                                                        }`}
                                                     />
+
+                                                    {/* Availability / Out of Stock Badges */}
+                                                    {isUnavailable && (
+                                                        <span className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-zinc-800/95 text-zinc-300 text-[10px] font-mono font-bold uppercase tracking-wider border border-zinc-600/60 shadow-lg">
+                                                            Unavailable
+                                                        </span>
+                                                    )}
+                                                    {isOutOfStock && (
+                                                        <span className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-rose-600/95 text-white text-[10px] font-mono font-black uppercase tracking-wider shadow-lg">
+                                                            Out of Stock
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
@@ -772,13 +849,15 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                     </div>
 
                                                     <div className="pt-3 border-t border-[#534434]/50 flex items-center justify-between">
-                                                        {isOutOfStock ? (
-                                                            <span className="text-[10px] font-bold text-rose-400 uppercase">Sold Out</span>
+                                                        {isUnavailable ? (
+                                                            <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase">Item Unavailable</span>
+                                                        ) : isOutOfStock ? (
+                                                            <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Out of Stock</span>
                                                         ) : (
                                                             <span className="text-[10px] text-[#d8c3ad] font-semibold">Ready to Sizzle</span>
                                                         )}
 
-                                                        {cartEntry ? (
+                                                        {cartEntry && isOrderable ? (
                                                             <div className="flex items-center gap-2 bg-[#121213] border border-[#534434] rounded-xl p-1">
                                                                 <button
                                                                     type="button"
@@ -801,10 +880,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                                             <button
                                                                 type="button"
                                                                 onClick={() => addItem(product as CartProduct, 1)}
-                                                                disabled={isOutOfStock}
-                                                                className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md disabled:opacity-40 cursor-pointer"
+                                                                disabled={!isOrderable}
+                                                                className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider btn-bevel transition-all shadow-md ${
+                                                                    isOrderable
+                                                                        ? 'bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] cursor-pointer'
+                                                                        : 'bg-[#27272a] text-[#71717a] border border-[#3f3f46] cursor-not-allowed opacity-50'
+                                                                }`}
                                                             >
-                                                                Add +
+                                                                {isUnavailable ? 'Unavailable' : (isOutOfStock ? 'Out of Stock' : 'Add +')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -1467,6 +1550,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </button>
                                 <button
                                     type="button"
+                                    onClick={() => setIsRatingModalOpen(true)}
+                                    className="w-full py-2.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                                >
+                                    <Star className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                                    <span>Rate Your Experience (5★)</span>
+                                </button>
+                                <button
+                                    type="button"
                                     onClick={() => {
                                         setIsBasketSheetOpen(false);
                                         setCompletedOrder(null);
@@ -1479,6 +1570,39 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
                     </div>
                 )}
+
+                {/* Pre-Checkout Confirmation Modal with Non-Refundable Policy Notice */}
+                <OrderConfirmationModal
+                    isOpen={isConfirmationModalOpen}
+                    onClose={() => setIsConfirmationModalOpen(false)}
+                    onConfirm={handleExecuteCheckout}
+                    isSubmitting={isSubmitting}
+                    orderType={fulfillmentMode}
+                    customerName={customerName.trim() || `Table ${tableNumber} Guest`}
+                    customerPhone={customerPhone.trim() || 'N/A'}
+                    tableNumber={tableNumber}
+                    paymentMethod={paymentMethod}
+                    cart={cart}
+                    subtotal={subtotal}
+                    discount={voucherDiscount}
+                    finalTotal={finalTotal}
+                />
+
+                {/* Return & Cancellation Policy Modal */}
+                <ReturnPolicyModal
+                    isOpen={isReturnModalOpen}
+                    onClose={() => setIsReturnModalOpen(false)}
+                />
+
+                {/* Customer 5-Star Rating Modal */}
+                <RatingModal
+                    isOpen={isRatingModalOpen}
+                    onClose={() => setIsRatingModalOpen(false)}
+                    orderNumber={completedOrder?.order_number}
+                    initialCustomerName={customerName}
+                    initialCustomerPhone={customerPhone}
+                    branch={selectedBranch === 'Dasma' ? 'Dasmarinas' : 'Bulihan'}
+                />
 
                 {/* Modals & Components */}
                 <LocationModal

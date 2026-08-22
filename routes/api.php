@@ -22,15 +22,83 @@ Route::prefix('v1')->group(function () {
         $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
         $products = Product::orderBy('id', 'desc')->get();
         $auditLogs = \App\Models\AuditLog::with('user')->orderBy('id', 'desc')->limit(100)->get();
+        $ratings = \App\Models\Rating::orderBy('created_at', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $orders,
             'products' => $products,
             'audit_logs' => $auditLogs,
+            'ratings' => $ratings,
         ]);
     });
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
+
+    // Customer Ratings & Reviews Endpoints
+    Route::get('/ratings', function (Request $request) {
+        $branch = $request->query('branch');
+        $query = \App\Models\Rating::where('is_featured', true);
+        if ($branch && in_array(strtolower($branch), ['bulihan', 'dasmarinas', 'dasma'])) {
+            $branchKeyword = strtolower($branch) === 'bulihan' ? 'Bulihan' : 'Dasmarinas';
+            $query->where('branch', 'LIKE', "%{$branchKeyword}%");
+        }
+        $ratings = $query->orderBy('id', 'desc')->take(20)->get();
+        return response()->json([
+            'status' => 'success',
+            'data' => $ratings,
+        ]);
+    });
+
+    Route::post('/ratings', function (Request $request) {
+        $validated = $request->validate([
+            'order_id' => 'nullable|integer',
+            'order_number' => 'nullable|string|max:50',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:20',
+            'branch' => 'nullable|string|max:50',
+            'overall_rating' => 'required|integer|min:1|max:5',
+            'food_quality_rating' => 'required|integer|min:1|max:5',
+            'customer_service_rating' => 'required|integer|min:1|max:5',
+            'delivery_speed_rating' => 'required|integer|min:1|max:5',
+            'packaging_rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+            'favorite_dish' => 'nullable|string|max:255',
+        ]);
+
+        $rating = \App\Models\Rating::create([
+            'order_id' => $validated['order_id'] ?? null,
+            'order_number' => $validated['order_number'] ?? null,
+            'user_id' => auth()->id(),
+            'customer_name' => $validated['customer_name'] ?? 'Customer',
+            'customer_phone' => $validated['customer_phone'] ?? null,
+            'branch' => $validated['branch'] ?? 'Bulihan',
+            'overall_rating' => $validated['overall_rating'],
+            'food_quality_rating' => $validated['food_quality_rating'],
+            'customer_service_rating' => $validated['customer_service_rating'],
+            'delivery_speed_rating' => $validated['delivery_speed_rating'],
+            'packaging_rating' => $validated['packaging_rating'],
+            'comment' => $validated['comment'] ?? null,
+            'favorite_dish' => $validated['favorite_dish'] ?? null,
+            'is_featured' => true,
+        ]);
+
+        \App\Models\AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : ""),
+            'ip_address' => $request->ip(),
+            'payload' => [
+                'rating_id' => $rating->id,
+                'overall' => $rating->overall_rating,
+                'branch' => $rating->branch,
+            ],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Thank you for your feedback! Your rating has been received.',
+            'data' => $rating,
+        ], 201);
+    });
 
     // Waiter Call Endpoints for In-House QR Table Service
     Route::post('/waiter-call', function (Request $request) {

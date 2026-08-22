@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Flame, Utensils, ShoppingBag, ArrowRight, ArrowUpRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2 } from 'lucide-react';
+import { Flame, Utensils, ShoppingBag, ArrowRight, ArrowUpRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 import AIChatbot from '@/Components/AIChatbot';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
 import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
+import ReturnPolicyModal from '@/Components/ReturnPolicyModal';
+import ReviewsMarquee from '@/Components/ReviewsMarquee';
 
 interface Banner {
     id: number;
@@ -29,9 +31,10 @@ interface Product {
 interface LandingProps {
     banners?: Banner[];
     products?: Product[];
+    ratings?: any[];
 }
 
-export default function Landing({ banners = [], products = [] }: LandingProps) {
+export default function Landing({ banners = [], products = [], ratings = [] }: LandingProps) {
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [selectedMode, setSelectedMode] = useState<'pickup' | 'delivery'>('pickup');
     const { addItem, itemCount } = useCart();
@@ -42,6 +45,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
     const [currentLocName, setCurrentLocName] = useState<string>(() => localStorage.getItem('saddle_ranch_location_name') || 'Bulihan, Silang, Cavite');
     const [currentDistance, setCurrentDistance] = useState<string>(() => localStorage.getItem('saddle_ranch_distance') || '1.2 km away');
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
     const [isAccessibilityModalOpen, setIsAccessibilityModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -549,6 +553,11 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
 
                 <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
 
+                {/* 4.5. WHAT PEOPLE SAY - INFINITY SCROLLING MARQUEE */}
+                <ReviewsMarquee initialReviews={ratings} />
+
+                <div className="sizzle-divider w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto" />
+
                 {/* 5. ROADHOUSE LOCATIONS SECTION (Images Removed) */}
                 <section id="locations" className="py-6 sm:py-12 md:py-16 px-4 w-[92%] sm:w-[88%] md:w-[80%] max-w-[1440px] mx-auto">
                     <div className="text-center mb-6 sm:mb-12">
@@ -660,6 +669,9 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                         </div>
                         <div className="flex flex-col space-y-2">
                             <h4 className="font-mono text-xs text-[#f0e0d1] mb-1 font-bold">Legal Standards</h4>
+                            <button onClick={() => setIsReturnModalOpen(true)} className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs text-left cursor-pointer">
+                                Return & Cancellation Policy
+                            </button>
                             <button onClick={() => setIsPrivacyModalOpen(true)} className="text-[#d8c3ad] hover:text-[#ffc174] transition-colors text-xs text-left cursor-pointer">
                                 Privacy Policy (RA 10173)
                             </button>
@@ -748,6 +760,7 @@ export default function Landing({ banners = [], products = [] }: LandingProps) {
                 <CustomerOrderTracker />
                 <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
                 <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
+                <ReturnPolicyModal isOpen={isReturnModalOpen} onClose={() => setIsReturnModalOpen(false)} />
 
                 {/* Terms of Service Modal (RA 7394 Consumer Act & RA 8792 E-Commerce Act) */}
                 {isTermsModalOpen && (

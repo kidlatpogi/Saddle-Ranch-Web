@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ShoppingBag, Search, X, Clock, Flame, CheckCircle2, RefreshCw, ChevronUp, ChevronDown, UtensilsCrossed, Bell } from 'lucide-react';
+import { ShoppingBag, Search, X, Clock, Flame, CheckCircle2, RefreshCw, ChevronUp, ChevronDown, UtensilsCrossed, Bell, Star } from 'lucide-react';
+import RatingModal from '@/Components/RatingModal';
 
 interface OrderItem {
     id: number;
@@ -33,6 +34,7 @@ export default function CustomerOrderTracker() {
     const [searched, setSearched] = useState(false);
     const [savedOrderNumbers, setSavedOrderNumbers] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
+    const [ratingOrder, setRatingOrder] = useState<Order | null>(null);
 
     // Track active cart items to dynamically position floating button above "View your Order" bar
     const [hasCartItems, setHasCartItems] = useState<boolean>(() => {
@@ -332,6 +334,16 @@ export default function CustomerOrderTracker() {
                                                     ))}
                                                 </div>
                                             )}
+                                            {/* Rate Completed Order Button */}
+                                            {order.status === 'completed' && (
+                                                <button
+                                                    onClick={() => setRatingOrder(order)}
+                                                    className="w-full py-1.5 rounded-lg bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                                >
+                                                    <Star className="w-3 h-3 fill-[#f59e0b] text-[#f59e0b]" />
+                                                    <span>Rate Your Meal & Service (5★)</span>
+                                                </button>
+                                            )}
                                         </div>
                                     );
                                 })
@@ -347,6 +359,18 @@ export default function CustomerOrderTracker() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Rating Modal for Tracked Orders */}
+            {ratingOrder && (
+                <RatingModal
+                    isOpen={!!ratingOrder}
+                    onClose={() => setRatingOrder(null)}
+                    orderId={ratingOrder.id}
+                    orderNumber={ratingOrder.order_number}
+                    initialCustomerName={ratingOrder.customer_name}
+                    initialCustomerPhone={ratingOrder.customer_phone}
+                />
             )}
 
             {/* FLOATING TRIGGER BUTTON (ALWAYS VISIBLE WITH Z-[9999]) */}
