@@ -22,7 +22,8 @@ class LandingController extends Controller
 
         $products = Product::where('is_active', true)->get();
 
-        $ratings = Rating::where('is_featured', true)
+        $ratings = Rating::where('is_approved', true)
+            ->where('is_featured', true)
             ->orderBy('id', 'desc')
             ->take(12)
             ->get();

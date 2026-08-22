@@ -135,6 +135,9 @@ interface RatingItem {
     comment?: string;
     favorite_dish?: string;
     is_featured: boolean;
+    is_approved?: boolean;
+    is_flagged?: boolean;
+    moderation_flag?: string;
     created_at: string;
 }
 
@@ -310,6 +313,34 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [ratingBranchFilter, setRatingBranchFilter] = useState<'All' | 'Bulihan' | 'Dasma'>('All');
     const [ratingSearchQuery, setRatingSearchQuery] = useState('');
     const [ratingMinScore, setRatingMinScore] = useState<number>(0);
+
+    const handleApproveRating = async (id: number) => {
+        try {
+            const res = await fetch(`/api/v1/admin/ratings/${id}/approve`, { method: 'POST' });
+            if (res.ok) {
+                setRatings(prev => prev.map(r => r.id === id ? { ...r, is_approved: true, is_flagged: false, moderation_flag: 'admin_approved' } : r));
+            }
+        } catch (e) {}
+    };
+
+    const handleToggleFeatureRating = async (id: number) => {
+        try {
+            const res = await fetch(`/api/v1/admin/ratings/${id}/toggle-feature`, { method: 'POST' });
+            if (res.ok) {
+                setRatings(prev => prev.map(r => r.id === id ? { ...r, is_featured: !r.is_featured } : r));
+            }
+        } catch (e) {}
+    };
+
+    const handleDeleteRating = async (id: number) => {
+        if (!confirm('Are you sure you want to permanently delete this customer review?')) return;
+        try {
+            const res = await fetch(`/api/v1/admin/ratings/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                setRatings(prev => prev.filter(r => r.id !== id));
+            }
+        } catch (e) {}
+    };
 
     const fetchLatestOrders = async () => {
         try {
@@ -2928,6 +2959,58 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                     <Star className="w-2.5 h-2.5 fill-[#f59e0b] text-[#f59e0b]" />
                                                                     {rev.packaging_rating} / 5
                                                                 </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Moderation Status & Admin Action Toolbar */}
+                                                        <div className="pt-3 border-t border-[#27272a] flex items-center justify-between gap-2">
+                                                            <div>
+                                                                {rev.is_flagged || rev.is_approved === false ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">
+                                                                        <AlertCircle className="w-3 h-3 text-rose-400" /> Pending Moderation
+                                                                    </span>
+                                                                ) : rev.is_featured ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+                                                                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Live & Featured
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold">
+                                                                        Standard Review
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex items-center gap-1.5">
+                                                                {(rev.is_flagged || rev.is_approved === false) && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleApproveRating(rev.id)}
+                                                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                                                        title="Approve and Publish Review"
+                                                                    >
+                                                                        <Check className="w-3 h-3" /> Approve
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleFeatureRating(rev.id)}
+                                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors border ${
+                                                                        rev.is_featured 
+                                                                            ? 'bg-[#f59e0b]/20 text-[#fbbf24] border-[#f59e0b]/40 hover:bg-[#f59e0b]/30' 
+                                                                            : 'bg-[#27272a] text-[#a1a1aa] border-[#3f3f46] hover:text-white'
+                                                                    }`}
+                                                                    title={rev.is_featured ? 'Remove from Marquee' : 'Feature in Marquee'}
+                                                                >
+                                                                    <Star className="w-3 h-3 fill-current" /> {rev.is_featured ? 'Featured' : 'Feature'}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleDeleteRating(rev.id)}
+                                                                    className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-pointer transition-colors"
+                                                                    title="Delete Review"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>

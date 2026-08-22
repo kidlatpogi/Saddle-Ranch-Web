@@ -45,7 +45,7 @@ Route::prefix('v1')->group(function () {
     // Customer Ratings & Reviews Endpoints
     Route::get('/ratings', function (Request $request) {
         $branch = $request->query('branch');
-        $query = \App\Models\Rating::where('is_featured', true);
+        $query = \App\Models\Rating::where('is_approved', true);
         if ($branch && in_array(strtolower($branch), ['bulihan', 'dasmarinas', 'dasma'])) {
             $branchKeyword = strtolower($branch) === 'bulihan' ? 'Bulihan' : 'Dasmarinas';
             $query->where('branch', 'LIKE', "%{$branchKeyword}%");
@@ -73,11 +73,35 @@ Route::prefix('v1')->group(function () {
             'favorite_dish' => 'nullable|string|max:255',
         ]);
 
+        $filterService = new \App\Services\ProfanityFilterService();
+
+        // Run filter scan & normalization across all user-supplied text
+        $commentResult = $filterService->filter($validated['comment'] ?? '');
+        $nameResult = $filterService->filter($validated['customer_name'] ?? '');
+        $dishResult = $filterService->filter($validated['favorite_dish'] ?? '');
+
+        // Action Strategy 1: Rejection for prohibited adult links / domain spam
+        if ($commentResult['has_adult_links'] || $nameResult['has_adult_links'] || $dishResult['has_adult_links']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Prohibited website links or adult domains detected. Please remove links from your review.',
+            ], 400);
+        }
+
+        $hasProfanity = $commentResult['has_profanity'] || $nameResult['has_profanity'] || $dishResult['has_profanity'];
+        $cleanComment = $commentResult['cleaned_text'];
+        $cleanName = $nameResult['cleaned_text'] ?: ($validated['customer_name'] ?? 'Customer');
+        $cleanDish = $dishResult['cleaned_text'];
+
+        $isApproved = !$hasProfanity;
+        $isFlagged = $hasProfanity;
+        $moderationFlag = $hasProfanity ? 'profanity_masked_pending_moderation' : 'clean';
+
         $rating = \App\Models\Rating::create([
             'order_id' => $validated['order_id'] ?? null,
             'order_number' => $validated['order_number'] ?? null,
             'user_id' => auth()->id(),
-            'customer_name' => $validated['customer_name'] ?? 'Customer',
+            'customer_name' => $cleanName,
             'customer_phone' => $validated['customer_phone'] ?? null,
             'branch' => $validated['branch'] ?? 'Bulihan',
             'overall_rating' => $validated['overall_rating'],
@@ -85,27 +109,57 @@ Route::prefix('v1')->group(function () {
             'customer_service_rating' => $validated['customer_service_rating'],
             'delivery_speed_rating' => $validated['delivery_speed_rating'],
             'packaging_rating' => $validated['packaging_rating'],
-            'comment' => $validated['comment'] ?? null,
-            'favorite_dish' => $validated['favorite_dish'] ?? null,
-            'is_featured' => true,
+            'comment' => $cleanComment ?: null,
+            'favorite_dish' => $cleanDish ?: null,
+            'is_featured' => $isApproved,
+            'is_approved' => $isApproved,
+            'is_flagged' => $isFlagged,
+            'moderation_flag' => $moderationFlag,
         ]);
 
         \App\Models\AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : ""),
+            'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : "") . ($hasProfanity ? ' (Profanity Masked)' : ''),
             'ip_address' => $request->ip(),
             'payload' => [
                 'rating_id' => $rating->id,
                 'overall' => $rating->overall_rating,
                 'branch' => $rating->branch,
+                'is_approved' => $rating->is_approved,
+                'moderation_flag' => $rating->moderation_flag,
             ],
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Thank you for your feedback! Your rating has been received.',
+            'message' => $hasProfanity
+                ? 'Thank you for your feedback! Inappropriate language was filtered and your review is submitted for review.'
+                : 'Thank you for your feedback! Your rating has been received.',
             'data' => $rating,
         ], 201);
+    });
+
+    // Admin Rating Moderation Endpoints
+    Route::post('/admin/ratings/{id}/approve', function ($id) {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $rating->update([
+            'is_approved' => true,
+            'is_flagged' => false,
+            'moderation_flag' => 'admin_approved',
+        ]);
+        return response()->json(['status' => 'success', 'data' => $rating]);
+    });
+
+    Route::post('/admin/ratings/{id}/toggle-feature', function ($id) {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $rating->update(['is_featured' => !$rating->is_featured]);
+        return response()->json(['status' => 'success', 'data' => $rating]);
+    });
+
+    Route::delete('/admin/ratings/{id}', function ($id) {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $rating->delete();
+        return response()->json(['status' => 'success', 'message' => 'Rating deleted.']);
     });
 
     // Waiter Call Endpoints for In-House QR Table Service

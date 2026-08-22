@@ -64,19 +64,19 @@ export default function OrderConfirmationModal({
     };
 
     return (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-lg rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-5 sm:p-6 shadow-2xl space-y-4 text-[#f0e0d1] max-h-[90vh] overflow-y-auto font-sans">
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-lg rounded-2xl sm:rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-4 sm:p-6 shadow-2xl space-y-3.5 sm:space-y-4 text-[#f0e0d1] max-h-[92vh] overflow-y-auto font-sans">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-[#3D3126] pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#f59e0b] to-[#b45309] flex items-center justify-center text-[#3f2000] shadow-md shadow-[#f59e0b]/20 shrink-0">
-                            {orderType === 'delivery' ? <Truck className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#f59e0b] to-[#b45309] flex items-center justify-center text-[#3f2000] shadow-md shadow-[#f59e0b]/20 shrink-0">
+                            {orderType === 'delivery' ? <Truck className="w-4 h-4 sm:w-5 sm:h-5" /> : <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />}
                         </div>
                         <div>
-                            <h3 className="font-domine text-base sm:text-lg font-bold text-[#ffc174]">
+                            <h3 className="font-domine text-base sm:text-lg font-bold text-[#ffc174] leading-tight">
                                 Confirm Your Order
                             </h3>
-                            <p className="text-[11px] text-[#d8c3ad]">{getOrderTypeLabel()} • Saddle Ranch</p>
+                            <p className="text-[10px] sm:text-[11px] text-[#d8c3ad] mt-0.5">{getOrderTypeLabel()} • Saddle Ranch</p>
                         </div>
                     </div>
                     <button
@@ -89,7 +89,7 @@ export default function OrderConfirmationModal({
                 </div>
 
                 {/* CRITICAL NON-REFUNDABLE NOTICE */}
-                <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-[#ffc174] space-y-1.5 shadow-sm">
+                <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-amber-500/15 border border-amber-500/40 text-[#ffc174] space-y-1 shadow-sm">
                     <div className="flex items-center gap-2 font-bold text-xs text-white">
                         <ShieldAlert className="w-4 h-4 text-[#f59e0b] shrink-0" />
                         <span>Return & Cancellation Policy Notice</span>
@@ -101,10 +101,10 @@ export default function OrderConfirmationModal({
                 </div>
 
                 {/* Order Summary Box */}
-                <div className="p-3.5 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-2.5 text-xs">
+                <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#121213] border border-[#3D3126] space-y-2 text-xs">
                     <div className="flex items-center justify-between border-b border-[#262627] pb-2">
                         <span className="font-bold text-[#d8c3ad]">Recipient / Customer</span>
-                        <span className="font-bold text-white truncate max-w-[200px]">{customerName || 'Guest'} ({customerPhone || 'N/A'})</span>
+                        <span className="font-bold text-white truncate max-w-[180px] sm:max-w-[240px]">{customerName || 'Guest'} ({customerPhone || 'N/A'})</span>
                     </div>
 
                     {orderType === 'delivery' && deliveryAddress && (
@@ -156,41 +156,43 @@ export default function OrderConfirmationModal({
                 </div>
 
                 {/* Agreement Checkbox */}
-                <label className="flex items-start gap-2.5 p-2 rounded-xl bg-[#121213]/60 border border-[#262627] cursor-pointer">
+                <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#121213]/60 border border-[#262627] cursor-pointer">
                     <input
                         type="checkbox"
                         checked={hasAgreed}
                         onChange={(e) => setHasAgreed(e.target.checked)}
-                        className="mt-0.5 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b]"
+                        className="mt-0.5 rounded border-[#534434] bg-[#1A1A1B] text-[#f59e0b] focus:ring-[#f59e0b] shrink-0"
                     />
                     <span className="text-[11px] text-[#d8c3ad] leading-tight select-none">
                         I understand and agree that confirmed orders are immediately cooked fresh and are strictly non-refundable and non-cancellable.
                     </span>
                 </label>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-3 pt-2">
+                {/* Action Buttons - Mobile Responsive (Stacked on mobile, side-by-side on tablet/desktop) */}
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2">
                     <button
                         type="button"
                         disabled={isSubmitting}
                         onClick={onClose}
-                        className="flex-1 py-3 rounded-xl bg-[#261e15] border border-[#534434] hover:bg-[#31281f] text-[#d8c3ad] hover:text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        className="w-full sm:w-auto sm:min-w-[120px] py-3 sm:py-3.5 px-4 rounded-xl bg-[#261e15] border border-[#534434] hover:bg-[#31281f] text-[#d8c3ad] hover:text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
-                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <ArrowLeft className="w-4 h-4 shrink-0" />
                         <span>Edit Cart</span>
                     </button>
                     <button
                         type="button"
                         disabled={!hasAgreed || isSubmitting}
                         onClick={onConfirm}
-                        className="flex-1 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-40 text-[#472a00] font-black text-xs uppercase tracking-wider shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5"
+                        className="w-full sm:flex-1 py-3.5 px-4 sm:px-5 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#ffc174] hover:to-[#f59e0b] disabled:opacity-40 disabled:cursor-not-allowed text-[#3f2000] font-black text-xs sm:text-sm uppercase tracking-wide shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-2 text-center"
                     >
                         {isSubmitting ? (
                             <span>{orderType === 'delivery' ? 'Processing Payment...' : 'Placing Order...'}</span>
                         ) : (
                             <>
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>{orderType === 'delivery' ? 'Confirm & Proceed to Payment' : 'Confirm & Place Order'}</span>
+                                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#3f2000]" />
+                                <span className="leading-tight">
+                                    {orderType === 'delivery' ? 'Confirm & Proceed to Payment' : 'Confirm & Place Order'}
+                                </span>
                             </>
                         )}
                     </button>

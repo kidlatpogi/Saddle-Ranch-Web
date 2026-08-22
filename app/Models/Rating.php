@@ -25,6 +25,9 @@ class Rating extends Model
         'comment',
         'favorite_dish',
         'is_featured',
+        'is_approved',
+        'is_flagged',
+        'moderation_flag',
     ];
 
     protected function casts(): array
@@ -36,6 +39,8 @@ class Rating extends Model
             'delivery_speed_rating' => 'integer',
             'packaging_rating' => 'integer',
             'is_featured' => 'boolean',
+            'is_approved' => 'boolean',
+            'is_flagged' => 'boolean',
         ];
     }
 
