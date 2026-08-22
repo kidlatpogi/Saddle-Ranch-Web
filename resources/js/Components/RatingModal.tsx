@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Flame, Sparkles, CheckCircle2, X, MessageSquare, Utensils, ThumbsUp, Heart } from 'lucide-react';
+import { Star, Flame, Sparkles, CheckCircle2, X, MessageSquare, Utensils, ThumbsUp, Heart, ShieldAlert, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 interface RatingModalProps {
     isOpen: boolean;
@@ -35,12 +35,27 @@ export default function RatingModal({
     const [submittedSuccess, setSubmittedSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
+    // Rejection state for prohibited curse words / adult link content
+    const [rejectionData, setRejectionData] = useState<{
+        message: string;
+        flagged_terms?: string[];
+        explanation?: string;
+    } | null>(null);
+
     if (!isOpen) return null;
+
+    const handleClose = () => {
+        setRejectionData(null);
+        setErrorMsg('');
+        setSubmittedSuccess(false);
+        onClose();
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setErrorMsg('');
+        setRejectionData(null);
 
         try {
             const res = await fetch('/api/v1/ratings', {
@@ -67,7 +82,8 @@ export default function RatingModal({
             });
 
             const data = await res.json();
-            if (res.ok) {
+
+            if (res.ok && data.status === 'success') {
                 setSubmittedSuccess(true);
                 if (onRatingSubmitted) {
                     onRatingSubmitted(data.data);
@@ -76,6 +92,12 @@ export default function RatingModal({
                     setSubmittedSuccess(false);
                     onClose();
                 }, 2500);
+            } else if (data.status === 'rejected' || data.reason === 'inappropriate_language' || data.reason === 'prohibited_links') {
+                setRejectionData({
+                    message: data.message || 'Your review was not accepted because it contains prohibited language.',
+                    flagged_terms: data.flagged_terms || [],
+                    explanation: data.explanation || 'At Saddle Ranch, we maintain a clean and family-friendly dining community. Reviews containing curse words, vulgar slang, or external links are not allowed.',
+                });
             } else {
                 setErrorMsg(data.message || 'Failed to submit rating. Please try again.');
             }
@@ -117,18 +139,73 @@ export default function RatingModal({
     };
 
     return (
-        <div className="fixed inset-0 z-[110000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-lg rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-6 shadow-2xl text-[#f0e0d1] max-h-[92vh] overflow-y-auto font-sans relative">
+        <div className="fixed inset-0 z-[110000] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="w-full max-w-lg rounded-2xl sm:rounded-3xl bg-[#1A1A1B] border border-[#ffc174]/40 p-4 sm:p-6 shadow-2xl text-[#f0e0d1] max-h-[92vh] overflow-y-auto font-sans relative">
                 {/* Close Button */}
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     disabled={isSubmitting}
-                    className="absolute top-5 right-5 p-1.5 text-[#d8c3ad] hover:text-white hover:bg-[#31281f] rounded-lg transition-colors cursor-pointer"
+                    className="absolute top-4 sm:top-5 right-4 sm:right-5 p-1.5 text-[#d8c3ad] hover:text-white hover:bg-[#31281f] rounded-lg transition-colors cursor-pointer disabled:opacity-40"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
-                {submittedSuccess ? (
+                {/* 1. REJECTION EXPLANATION MODAL VIEW */}
+                {rejectionData ? (
+                    <div className="py-6 sm:py-8 text-center space-y-4 animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 rounded-2xl bg-rose-500/20 border-2 border-rose-500/50 text-rose-400 mx-auto flex items-center justify-center shadow-lg shadow-rose-500/20">
+                            <ShieldAlert className="w-8 h-8 animate-pulse" />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-mono font-black text-rose-400 uppercase tracking-widest px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/30 inline-block">
+                                Community Standards Notice
+                            </span>
+                            <h3 className="font-domine text-xl sm:text-2xl font-black text-white mt-2">
+                                Review Not Accepted
+                            </h3>
+                            <p className="text-xs sm:text-sm text-[#f0e0d1] max-w-sm mx-auto leading-relaxed">
+                                {rejectionData.message}
+                            </p>
+                        </div>
+
+                        {/* Flagged Terms Breakdown */}
+                        {rejectionData.flagged_terms && rejectionData.flagged_terms.length > 0 && (
+                            <div className="p-3.5 rounded-2xl bg-[#121213] border border-rose-500/30 text-left space-y-2 text-xs">
+                                <div className="flex items-center gap-1.5 text-rose-400 font-bold">
+                                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Detected Inappropriate Content:</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                    {rejectionData.flagged_terms.map((term, i) => (
+                                        <span key={i} className="px-2 py-0.5 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-300 font-mono text-[11px] font-bold">
+                                            "{term}"
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Community Policy Explanation */}
+                        <div className="p-3.5 rounded-2xl bg-[#261e15] border border-[#534434] text-left text-xs text-[#d8c3ad] leading-relaxed">
+                            <p>
+                                {rejectionData.explanation}
+                            </p>
+                        </div>
+
+                        {/* Action: Return to edit form */}
+                        <div className="pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setRejectionData(null)}
+                                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#ffc174] hover:to-[#f59e0b] text-[#3f2000] font-black text-xs sm:text-sm uppercase tracking-wide shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <ArrowLeft className="w-4 h-4 stroke-[3]" />
+                                <span>Edit & Fix My Review</span>
+                            </button>
+                        </div>
+                    </div>
+                ) : submittedSuccess ? (
                     <div className="py-10 text-center space-y-4 animate-in zoom-in-95 duration-300">
                         <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
                             <Heart className="w-8 h-8 fill-emerald-400 text-emerald-400 animate-pulse" />
@@ -153,7 +230,7 @@ export default function RatingModal({
                                 <Flame className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="font-domine text-lg font-bold text-[#ffc174]">
+                                <h3 className="font-domine text-base sm:text-lg font-bold text-[#ffc174] leading-tight">
                                     Rate Your Sizzling Experience
                                 </h3>
                                 <p className="text-xs text-[#d8c3ad]">
@@ -169,7 +246,7 @@ export default function RatingModal({
                         )}
 
                         {/* Star Categories Breakdown */}
-                        <div className="p-4 rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1 shadow-inner">
+                        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#121213] border border-[#3D3126] space-y-1 shadow-inner">
                             <div className="text-[11px] font-bold text-[#f59e0b] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                 <Star className="w-3.5 h-3.5 fill-[#f59e0b]" /> Star Ratings (1 - 5)
                             </div>
@@ -189,7 +266,7 @@ export default function RatingModal({
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     placeholder="e.g. Karlo M."
-                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                    className="w-full px-3 py-2.5 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                 />
                             </div>
                             <div>
@@ -199,7 +276,7 @@ export default function RatingModal({
                                     value={favoriteDish}
                                     onChange={(e) => setFavoriteDish(e.target.value)}
                                     placeholder="e.g. Sizzling Sisig w/ Egg"
-                                    className="w-full px-3 py-2 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
+                                    className="w-full px-3 py-2.5 rounded-xl bg-[#121213] border border-[#534434] text-xs text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                 />
                             </div>
                         </div>
@@ -223,7 +300,7 @@ export default function RatingModal({
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-3.5 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] disabled:opacity-50 text-[#472a00] font-black text-xs uppercase tracking-wider shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-2"
+                                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#ffc174] hover:to-[#f59e0b] disabled:opacity-50 text-[#3f2000] font-black text-xs sm:text-sm uppercase tracking-wide shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? (
                                     <span>Submitting Review...</span>
@@ -241,3 +318,4 @@ export default function RatingModal({
         </div>
     );
 }
+

@@ -79,23 +79,31 @@ Route::prefix('v1')->group(function () {
         $commentResult = $filterService->filter($validated['comment'] ?? '');
         $nameResult = $filterService->filter($validated['customer_name'] ?? '');
         $dishResult = $filterService->filter($validated['favorite_dish'] ?? '');
+        $hasAdultLinks = $commentResult['has_adult_links'] || $nameResult['has_adult_links'] || $dishResult['has_adult_links'];
+        $hasProfanity = $commentResult['has_profanity'] || $nameResult['has_profanity'] || $dishResult['has_profanity'];
 
-        // Action Strategy 1: Rejection for prohibited adult links / domain spam
-        if ($commentResult['has_adult_links'] || $nameResult['has_adult_links'] || $dishResult['has_adult_links']) {
+        $flaggedTerms = array_unique(array_merge(
+            $commentResult['flagged_terms'] ?? [],
+            $nameResult['flagged_terms'] ?? [],
+            $dishResult['flagged_terms'] ?? []
+        ));
+
+        // Strict Rejection Policy: Do NOT accept or save review if it contains prohibited words or links
+        if ($hasAdultLinks || $hasProfanity) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Prohibited website links or adult domains detected. Please remove links from your review.',
-            ], 400);
+                'status' => 'rejected',
+                'reason' => $hasAdultLinks ? 'prohibited_links' : 'inappropriate_language',
+                'message' => $hasAdultLinks
+                    ? 'Your review was not accepted because it contains prohibited website links or adult domains.'
+                    : 'Your review was not accepted because it contains inappropriate, offensive, or prohibited words.',
+                'flagged_terms' => $flaggedTerms,
+                'explanation' => 'At Saddle Ranch, we maintain a clean and family-friendly dining community. Reviews containing curse words, vulgar language, or external links are not accepted.',
+            ], 422);
         }
 
-        $hasProfanity = $commentResult['has_profanity'] || $nameResult['has_profanity'] || $dishResult['has_profanity'];
         $cleanComment = $commentResult['cleaned_text'];
         $cleanName = $nameResult['cleaned_text'] ?: ($validated['customer_name'] ?? 'Customer');
         $cleanDish = $dishResult['cleaned_text'];
-
-        $isApproved = !$hasProfanity;
-        $isFlagged = $hasProfanity;
-        $moderationFlag = $hasProfanity ? 'profanity_masked_pending_moderation' : 'clean';
 
         $rating = \App\Models\Rating::create([
             'order_id' => $validated['order_id'] ?? null,
@@ -111,30 +119,27 @@ Route::prefix('v1')->group(function () {
             'packaging_rating' => $validated['packaging_rating'],
             'comment' => $cleanComment ?: null,
             'favorite_dish' => $cleanDish ?: null,
-            'is_featured' => $isApproved,
-            'is_approved' => $isApproved,
-            'is_flagged' => $isFlagged,
-            'moderation_flag' => $moderationFlag,
+            'is_featured' => true,
+            'is_approved' => true,
+            'is_flagged' => false,
+            'moderation_flag' => 'clean',
         ]);
 
         \App\Models\AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : "") . ($hasProfanity ? ' (Profanity Masked)' : ''),
+            'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : ""),
             'ip_address' => $request->ip(),
             'payload' => [
                 'rating_id' => $rating->id,
                 'overall' => $rating->overall_rating,
                 'branch' => $rating->branch,
-                'is_approved' => $rating->is_approved,
-                'moderation_flag' => $rating->moderation_flag,
+                'is_approved' => true,
             ],
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => $hasProfanity
-                ? 'Thank you for your feedback! Inappropriate language was filtered and your review is submitted for review.'
-                : 'Thank you for your feedback! Your rating has been received.',
+            'message' => 'Thank you for your feedback! Your rating has been received and published.',
             'data' => $rating,
         ], 201);
     });
