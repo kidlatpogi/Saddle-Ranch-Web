@@ -574,9 +574,6 @@ export default function Landing({ banners = [], products = [], ratings = [] }: L
                             <div className="space-y-3 sm:space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174]">Saddle Ranch Bulihan</h3>
-                                    <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-1 rounded border border-[#534434] uppercase font-bold">
-                                        FLAGSHIP
-                                    </span>
                                 </div>
                                 <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed">
                                     Our flagship sizzling roadhouse serving Bulihan with authentic sizzling steaks, fresh sisig, and cold drinks daily.
@@ -618,9 +615,6 @@ export default function Landing({ banners = [], products = [], ratings = [] }: L
                             <div className="space-y-3 sm:space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-domine text-xl sm:text-2xl font-bold text-[#ffc174]">Saddle Ranch Dasmariñas</h3>
-                                    <span className="font-mono text-[10px] sm:text-xs text-[#f59e0b] bg-[#31281f] px-2.5 py-1 rounded border border-[#534434] uppercase font-bold">
-                                        GOVERNOR'S DR
-                                    </span>
                                 </div>
                                 <p className="font-sans text-xs sm:text-sm text-[#d8c3ad] leading-relaxed">
                                     Our newest roadhouse along Governor's Drive. Bringing sizzling cast-iron comfort food to the heart of Dasmariñas.

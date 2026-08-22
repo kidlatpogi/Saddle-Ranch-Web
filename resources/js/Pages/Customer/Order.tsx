@@ -657,7 +657,7 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 <button
                                     type="button"
                                     onClick={() => setIsReturnModalOpen(true)}
-                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
                                     title="Return & Cancellation Policy"
                                 >
                                     <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
@@ -877,14 +877,12 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                                 </div>
 
                                                 <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                                                    <div>
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
-                                                                {product.name}
-                                                            </h3>
-                                                            <span className="font-mono text-xs font-black text-[#ffc174] bg-[#261e15] border border-[#534434] px-2 py-0.5 rounded whitespace-nowrap shrink-0 shadow">
-                                                                ₱{numPrice.toFixed(2)}
-                                                            </span>
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-domine text-lg font-bold text-[#f0e0d1] group-hover:text-[#ffc174] transition-colors leading-snug">
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="font-mono text-sm font-black text-[#ffc174]">
+                                                            ₱{numPrice.toFixed(2)}
                                                         </div>
                                                     </div>
 
@@ -1768,6 +1766,17 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         )
                                     }
                                 </button>
+
+                                <div className="pt-2 flex items-center justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsReturnModalOpen(true)}
+                                        className="text-[11px] text-[#d8c3ad] hover:text-[#ffc174] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
+                                    >
+                                        <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                        <span>Return & Cancellation Policy</span>
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>

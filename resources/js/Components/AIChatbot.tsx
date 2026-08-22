@@ -335,7 +335,7 @@ export default function AIChatbot() {
                             <div className="text-xs font-bold uppercase tracking-wider text-[#ffc174]">
                                 Help Assistant
                             </div>
-                            <div className="text-[10px] text-[#f59e0b] font-medium flex items-center gap-1">📍 Ordering: {currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</div>
+                            <div className="text-[10px] text-[#f59e0b] font-medium flex items-center gap-1">Ordering: {currentBranch === 'Bulihan' ? 'Bulihan Branch' : 'Dasmariñas Branch'}</div>
                         </div>
                     </button>
                 )}
