@@ -282,21 +282,27 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
     const formatOrders = (rawOrders: any[]): OrderItem[] => {
         if (!rawOrders) return [];
-        return rawOrders.map((o: any) => ({
-            id: o.order_number || o.id?.toString(),
-            order_number: o.order_number || o.id?.toString(),
-            type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
-            location: o.table_number ? `Table ${o.table_number}` : (o.delivery_address || 'Counter'),
-            branch: o.branch ? (o.branch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan') : 'Bulihan',
-            customer: o.customer_name || 'Guest',
-            phone: o.customer_phone || '',
-            amount: Number(o.total_amount || o.amount || 0),
-            payment: o.payment_method || 'Cash',
-            status: o.status || 'pending',
-            time: o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
-            itemsCount: o.order_items ? o.order_items.length : (o.itemsCount || 1),
-            date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-        }));
+        return rawOrders
+            .filter((o: any) => {
+                const isCash = (o.payment_method || o.payment || '').toLowerCase().includes('cash');
+                const isPaid = o.payment_status === 'paid';
+                return isCash || isPaid;
+            })
+            .map((o: any) => ({
+                id: o.order_number || o.id?.toString(),
+                order_number: o.order_number || o.id?.toString(),
+                type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
+                location: o.table_number ? `Table ${o.table_number}` : (o.delivery_address || 'Counter'),
+                branch: o.branch ? (o.branch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan') : 'Bulihan',
+                customer: o.customer_name || 'Guest',
+                phone: o.customer_phone || '',
+                amount: Number(o.total_amount || o.amount || 0),
+                payment: o.payment_method || 'Cash',
+                status: o.status || 'pending',
+                time: o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+                itemsCount: o.order_items ? o.order_items.length : (o.itemsCount || 1),
+                date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            }));
     };
 
     const [orders, setOrders] = useState<OrderItem[]>(formatOrders(initialOrders || []));

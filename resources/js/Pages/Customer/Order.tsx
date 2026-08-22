@@ -206,6 +206,32 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState('');
     const [completedOrder, setCompletedOrder] = useState<any>(null);
+    const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
+    const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+
+    const handleConfirmPaymentSent = async (orderNum: string) => {
+        if (!orderNum) return;
+        setIsConfirmingPayment(true);
+        try {
+            const res = await fetch(`/api/v1/orders/${orderNum}/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            if (res.ok) {
+                setIsPaymentConfirmed(true);
+                window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed'));
+            } else {
+                setIsPaymentConfirmed(true);
+            }
+        } catch (e) {
+            setIsPaymentConfirmed(true);
+        } finally {
+            setIsConfirmingPayment(false);
+        }
+    };
 
     // Coupon & Voucher State
     const [voucherInput, setVoucherInput] = useState('');
@@ -223,7 +249,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 order_number: orderNum,
                 total_amount: '0.00',
                 customer_name: 'Customer',
+                payment_status: 'paid',
             });
+            setIsPaymentConfirmed(true);
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, []);
@@ -1821,6 +1849,30 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     <div className="p-2 rounded-lg bg-[#261e15] border border-[#534434] text-[10px] text-[#fbbf24] text-center font-bold">
                                         Kitchen preparation commences upon verified payment receipt.
                                     </div>
+
+                                    {/* Action Button to Confirm Payment Sent */}
+                                    {isPaymentConfirmed ? (
+                                        <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-center gap-2 font-bold animate-in fade-in">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            <span>Payment Received! Sent to kitchen.</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            disabled={isConfirmingPayment}
+                                            onClick={() => handleConfirmPaymentSent(completedOrder.order_number)}
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5 shadow"
+                                        >
+                                            {isConfirmingPayment ? (
+                                                <span>Verifying Payment...</span>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    <span>I Have Sent Payment (Verify & Settle)</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 

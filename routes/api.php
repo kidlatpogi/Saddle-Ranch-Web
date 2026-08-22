@@ -19,7 +19,14 @@ Route::prefix('v1')->group(function () {
     // Live KDS Data Endpoint (Polling API & Cook Summary)
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
     Route::get('/admin/orders', function () {
-        $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        // Enforce payment policy: QRPh/E-wallet orders appear on Admin Dashboard only once payment is verified/paid
+        $orders = Order::with('orderItems.product')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhere('payment_method', 'LIKE', '%cash%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
         $products = Product::orderBy('id', 'desc')->get();
         $auditLogs = \App\Models\AuditLog::with('user')->orderBy('id', 'desc')->limit(100)->get();
         $ratings = \App\Models\Rating::orderBy('created_at', 'desc')->get();
@@ -33,6 +40,7 @@ Route::prefix('v1')->group(function () {
     });
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
     Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel']);
+    Route::post('/orders/{orderNumber}/confirm-payment', [\App\Http\Controllers\OrderController::class, 'confirmPayment']);
 
     // Customer Ratings & Reviews Endpoints
     Route::get('/ratings', function (Request $request) {

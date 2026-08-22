@@ -19,6 +19,7 @@ interface Order {
     status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled' | string;
     total_amount: number;
     payment_method: string;
+    payment_status?: string;
     customer_name?: string;
     customer_phone?: string;
     delivery_address?: string;
@@ -322,6 +323,33 @@ export default function CustomerOrderTracker() {
                                                     {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
+
+                                            {/* Payment Pending Alert for QRPh Orders */}
+                                            {order.payment_status === 'pending' && !order.payment_method?.toLowerCase().includes('cash') && (
+                                                <div className="p-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-[11px] text-[#ffc174] space-y-1.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-bold flex items-center gap-1">
+                                                            <Clock className="w-3 h-3 text-[#f59e0b]" /> Payment Pending (QRPh)
+                                                        </span>
+                                                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">Unpaid</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-[#d8c3ad] leading-tight">
+                                                        Payment is required before order enters kitchen preparation queue.
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={async () => {
+                                                            try {
+                                                                await fetch(`/api/v1/orders/${order.order_number}/confirm-payment`, { method: 'POST' });
+                                                                fetchOrders();
+                                                            } catch (e) {}
+                                                        }}
+                                                        className="w-full py-1 rounded bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-[10px] uppercase transition-all cursor-pointer"
+                                                    >
+                                                        I Have Paid (Confirm & Settle)
+                                                    </button>
+                                                </div>
+                                            )}
 
                                             {/* Items Preview */}
                                             {order.order_items && order.order_items.length > 0 && (

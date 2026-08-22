@@ -21,7 +21,12 @@ class EmployeeController extends Controller
     public function dashboard(): Response
     {
         $user = auth()->user();
-        $query = Order::with('orderItems.product')->orderBy('created_at', 'desc');
+        $query = Order::with('orderItems.product')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhere('payment_method', 'LIKE', '%cash%');
+            })
+            ->orderBy('created_at', 'desc');
 
         if ($user && $user->branch && strtolower($user->branch) !== 'all') {
             $query->where('branch', $user->branch);
@@ -53,6 +58,10 @@ class EmployeeController extends Controller
     {
         $user = auth()->user();
         $query = Order::with('orderItems.product')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhere('payment_method', 'LIKE', '%cash%');
+            })
             ->whereIn('status', ['pending', 'preparing', 'ready'])
             ->orderBy('created_at', 'asc');
 

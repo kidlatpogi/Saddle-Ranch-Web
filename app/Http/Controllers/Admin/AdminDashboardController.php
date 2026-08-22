@@ -17,7 +17,14 @@ class AdminDashboardController extends Controller
      */
     public function index(): Response
     {
-        $orders = Order::with('orderItems.product')->orderBy('created_at', 'desc')->get();
+        // Only include paid QRPh/e-Wallet orders and cash orders in the Admin Dashboard
+        $orders = Order::with('orderItems.product')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')
+                  ->orWhere('payment_method', 'LIKE', '%cash%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
         $products = Product::orderBy('id', 'asc')->get();
         $auditLogs = AuditLog::with('user')->orderBy('created_at', 'desc')->get();
         $employees = \App\Models\User::orderBy('id', 'desc')->get();
