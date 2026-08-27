@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, User, Mail, Lock, Phone, CheckCircle2, AlertCircle, LogIn, UserPlus, KeyRound, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { X, User, Mail, Lock, Phone, CheckCircle2, AlertCircle, LogIn, UserPlus, KeyRound, ArrowLeft, Eye, EyeOff, Inbox } from 'lucide-react';
 
 interface CustomerAuthModalProps {
     isOpen: boolean;
@@ -618,6 +618,13 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
                             </div>
                         </div>
 
+                        <div className="flex items-start gap-2 p-2.5 rounded-xl bg-[#121213] border border-[#534434]/60">
+                            <Inbox className="w-3.5 h-3.5 text-[#8c7a6b] shrink-0 mt-0.5" />
+                            <p className="text-[10.5px] text-[#8c7a6b] leading-relaxed">
+                                Didn't get the code? Please check your <span className="text-[#d8c3ad] font-bold">Spam or Junk folder</span> — it can take a minute to arrive.
+                            </p>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={isSubmitting || verifyCode.length !== 6}
@@ -698,6 +705,13 @@ export default function CustomerAuthModal({ isOpen, onClose, onSuccess }: Custom
                                     className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#121213] border border-[#534434] text-sm tracking-[0.35em] text-white placeholder-[#8c7a6b] focus:border-[#f59e0b] focus:outline-none"
                                 />
                             </div>
+                        </div>
+
+                        <div className="flex items-start gap-2 p-2.5 rounded-xl bg-[#121213] border border-[#534434]/60">
+                            <Inbox className="w-3.5 h-3.5 text-[#8c7a6b] shrink-0 mt-0.5" />
+                            <p className="text-[10.5px] text-[#8c7a6b] leading-relaxed">
+                                Didn't get the code? Please check your <span className="text-[#d8c3ad] font-bold">Spam or Junk folder</span> — it can take a minute to arrive.
+                            </p>
                         </div>
 
                         <div>

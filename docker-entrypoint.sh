@@ -13,5 +13,11 @@ echo "==> Running Database Migrations..."
 php artisan migrate --force || true
 php artisan db:seed --force || true
 
+echo "==> Starting Queue Worker (background)..."
+( while true; do \
+    php artisan queue:work database --queue=default --sleep=3 --tries=3 --timeout=60; \
+    sleep 2; \
+  done ) &
+
 echo "==> Starting Application Server..."
 exec "$@"

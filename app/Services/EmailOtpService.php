@@ -35,10 +35,12 @@ class EmailOtpService
         $name = $user?->name ?? 'Customer';
 
         try {
-            Mail::to($email)->send(new OtpCodeMail($code, $purpose, $name));
+            // OtpCodeMail implements ShouldQueue, so this only inserts a queue
+            // job row and returns immediately — it never blocks on SMTP/DNS.
+            Mail::to($email)->queue(new OtpCodeMail($code, $purpose, $name));
         } catch (Throwable $e) {
-            // Keep OTP usable even when SMTP/DNS fails — do not fail register/login.
-            Log::warning('OTP email send failed; code still stored.', [
+            // Keep OTP usable even when queueing fails — do not fail register/login.
+            Log::warning('OTP email queueing failed; code still stored.', [
                 'email' => $email,
                 'purpose' => $purpose,
                 'error' => $e->getMessage(),

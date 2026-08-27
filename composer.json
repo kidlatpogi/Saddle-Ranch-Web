@@ -11,7 +11,10 @@
         "laravel/framework": "^11.44",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "resend/resend-php": "^1.11",
         "simplesoftwareio/simple-qrcode": "^4.2",
+        "symfony/brevo-mailer": "^7.4",
+        "symfony/http-client": "^7.4",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
