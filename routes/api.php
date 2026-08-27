@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -30,12 +32,14 @@ Route::prefix('v1')->group(function () {
         $products = Product::orderBy('id', 'desc')->get();
         $auditLogs = \App\Models\AuditLog::with('user')->orderBy('id', 'desc')->limit(100)->get();
         $ratings = \App\Models\Rating::orderBy('created_at', 'desc')->get();
+        $employees = User::orderBy('id', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $orders,
             'products' => $products,
             'audit_logs' => $auditLogs,
             'ratings' => $ratings,
+            'employees' => $employees,
         ]);
     });
     Route::patch('/orders/{id}/status', [EmployeeController::class, 'updateStatus']);
@@ -253,72 +257,12 @@ Route::prefix('v1')->group(function () {
             ]);
         });
 
-        Route::post('/customer/login', function (Request $request) {
-            $credentials = $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string',
-            ]);
-
-            if (\Illuminate\Support\Facades\Auth::attempt($credentials, true)) {
-                $request->session()->regenerate();
-                $user = \Illuminate\Support\Facades\Auth::user();
-
-                \App\Models\AuditLog::create([
-                    'user_id' => $user->id,
-                    'action' => "Customer {$user->name} logged in via Checkout Auth Modal",
-                    'ip_address' => $request->ip(),
-                    'payload' => ['email' => $user->email],
-                ]);
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Logged in successfully!',
-                    'user' => $user,
-                ]);
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid email address or password.',
-            ], 401);
-        });
-
-        Route::post('/customer/register', function (Request $request) {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email',
-                'phone_number' => 'nullable|string|regex:/^[0-9]{11}$/',
-                'password' => 'required|string|min:8|confirmed',
-            ], [
-                'email.unique' => 'An account with this email address already exists. Please sign in.',
-                'phone_number.regex' => 'Mobile number must consist of 11 numeric digits.',
-                'password.confirmed' => 'Account password and confirmation password do not match.',
-            ]);
-
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'phone_number' => $validated['phone_number'] ?? null,
-                'password' => Hash::make($validated['password']),
-                'role' => 'user',
-            ]);
-
-            \Illuminate\Support\Facades\Auth::login($user, true);
-            $request->session()->regenerate();
-
-            \App\Models\AuditLog::create([
-                'user_id' => $user->id,
-                'action' => "New Customer Account Registered: {$user->email}",
-                'ip_address' => $request->ip(),
-                'payload' => ['email' => $user->email, 'name' => $user->name],
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Account created and logged in successfully!',
-                'user' => $user,
-            ]);
-        });
+        Route::post('/customer/login', [CustomerAuthController::class, 'login']);
+        // register is defined outside this group (shared by web + Flutter)
+        Route::post('/customer/verify-email', [CustomerAuthController::class, 'verifyEmail']);
+        Route::post('/customer/resend-verification', [CustomerAuthController::class, 'resendVerification']);
+        Route::post('/customer/forgot-password', [CustomerAuthController::class, 'forgotPassword']);
+        Route::post('/customer/reset-password', [CustomerAuthController::class, 'resetPassword']);
 
         Route::post('/customer/logout', function (Request $request) {
             $user = \Illuminate\Support\Facades\Auth::user();
@@ -516,29 +460,16 @@ Route::prefix('v1')->group(function () {
         ]);
     });
 
-    // Auth Login for Flutter Mobile App
-    Route::post('/auth/login', function (Request $request) {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+    // Auth for Flutter Mobile App (Sanctum tokens — no web session / CSRF)
+    Route::post('/auth/login', [MobileAuthController::class, 'login']);
+    Route::post('/auth/verify-email', [MobileAuthController::class, 'verifyEmail']);
+    Route::post('/auth/resend-verification', [MobileAuthController::class, 'resendVerification']);
+    Route::post('/auth/forgot-password', [MobileAuthController::class, 'forgotPassword']);
+    Route::post('/auth/reset-password', [MobileAuthController::class, 'resetPassword']);
+    Route::post('/auth/google', [MobileAuthController::class, 'google']);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Invalid login credentials.',
-            ], 401);
-        }
-
-        $token = $user->createToken('flutter-mobile-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful.',
-            'token' => $token,
-            'user' => $user,
-        ]);
-    });
+    // Also allow register without session middleware for Flutter (same handler as web)
+    Route::post('/customer/register', [CustomerAuthController::class, 'register']);
 
 
 

@@ -107,6 +107,7 @@ interface EmployeeItem {
     role: 'Admin' | 'Kitchen Staff' | 'Cashier' | 'Staff' | 'Customer' | string;
     branch?: 'All' | 'Bulihan' | 'Dasma';
     status: 'Active' | 'Inactive';
+    emailVerified: boolean;
     createdAt: string;
 }
 
@@ -187,11 +188,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const formatEmployees = (rawEmps: any[]): EmployeeItem[] => {
         if (!rawEmps || rawEmps.length === 0) {
             return [
-                { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', branch: 'All', status: 'Active', createdAt: '2026-01-15' },
-                { id: 2, name: 'Bulihan Branch Cashier', email: 'cashier.bulihan@saddleranch.ph', role: 'Cashier', branch: 'Bulihan', status: 'Active', createdAt: '2026-03-10' },
-                { id: 3, name: 'Bulihan Kitchen Head Chef', email: 'kitchen.bulihan@saddleranch.ph', role: 'Kitchen Staff', branch: 'Bulihan', status: 'Active', createdAt: '2026-05-20' },
-                { id: 4, name: 'Dasmariñas Branch Cashier', email: 'cashier.dasmarinas@saddleranch.ph', role: 'Cashier', branch: 'Dasma', status: 'Active', createdAt: '2026-06-01' },
-                { id: 5, name: 'Dasmariñas Kitchen Head Chef', email: 'kitchen.dasmarinas@saddleranch.ph', role: 'Kitchen Staff', branch: 'Dasma', status: 'Active', createdAt: '2026-06-05' }
+                { id: 1, name: 'Saddle Ranch Admin', email: 'admin@saddleranch.ph', role: 'Admin', branch: 'All', status: 'Active', emailVerified: true, createdAt: '2026-01-15' },
+                { id: 2, name: 'Bulihan Branch Cashier', email: 'cashier.bulihan@saddleranch.ph', role: 'Cashier', branch: 'Bulihan', status: 'Active', emailVerified: true, createdAt: '2026-03-10' },
+                { id: 3, name: 'Bulihan Kitchen Head Chef', email: 'kitchen.bulihan@saddleranch.ph', role: 'Kitchen Staff', branch: 'Bulihan', status: 'Active', emailVerified: true, createdAt: '2026-05-20' },
+                { id: 4, name: 'Dasmariñas Branch Cashier', email: 'cashier.dasmarinas@saddleranch.ph', role: 'Cashier', branch: 'Dasma', status: 'Active', emailVerified: true, createdAt: '2026-06-01' },
+                { id: 5, name: 'Dasmariñas Kitchen Head Chef', email: 'kitchen.dasmarinas@saddleranch.ph', role: 'Kitchen Staff', branch: 'Dasma', status: 'Active', emailVerified: true, createdAt: '2026-06-05' }
             ];
         }
         return rawEmps.map((e: any) => ({
@@ -201,6 +202,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             role: e.role === 'admin' ? 'Admin' : (e.role === 'kitchen' ? 'Kitchen Staff' : (e.role === 'cashier' ? 'Cashier' : (e.role === 'employee' ? 'Staff' : 'Customer'))),
             branch: e.branch ? (e.branch.toLowerCase().includes('dasma') ? 'Dasma' : (e.branch.toLowerCase().includes('all') ? 'All' : 'Bulihan')) : 'Bulihan',
             status: 'Active',
+            emailVerified: !!e.email_verified_at,
             createdAt: e.created_at ? e.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
         }));
     };
@@ -359,6 +361,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                 if (json.ratings) {
                     setRatings(json.ratings);
                 }
+                if (json.employees) {
+                    setEmployees(formatEmployees(json.employees));
+                }
             }
         } catch (e) {
             // Ignore polling errors
@@ -499,7 +504,16 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             const actionText = log.action || '';
             let mod: AuditLogItem['module'] = 'Order Queue / Sales';
             const lower = actionText.toLowerCase();
-            if (lower.includes('product') || lower.includes('dish') || lower.includes('stock')) {
+            if (
+                lower.includes('logged in') ||
+                lower.includes('logged out') ||
+                lower.includes('verification') ||
+                lower.includes('verified') ||
+                lower.includes('password reset') ||
+                lower.includes('registered')
+            ) {
+                mod = 'Authentication';
+            } else if (lower.includes('product') || lower.includes('dish') || lower.includes('stock')) {
                 mod = 'Products & Stock';
             } else if (lower.includes('banner') || lower.includes('promo')) {
                 mod = 'Promo Banners';
@@ -513,7 +527,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                 id: log.id,
                 timestamp: log.created_at ? new Date(log.created_at).toISOString().replace('T', ' ').substring(0, 19) : '',
                 user: log.user ? log.user.email : (log.ip_address ? `Guest (${log.ip_address})` : 'System'),
-                role: log.user ? (log.user.role === 'admin' ? 'Admin' : (log.user.role === 'kitchen' ? 'Kitchen Staff' : (log.user.role === 'cashier' ? 'Cashier' : 'Staff'))) : 'Customer / System',
+                role: log.user ? (log.user.role === 'admin' ? 'Admin' : (log.user.role === 'kitchen' ? 'Kitchen Staff' : (log.user.role === 'cashier' ? 'Cashier' : (log.user.role === 'user' ? 'Customer' : 'Staff')))) : 'Customer / System',
                 action: actionText,
                 module: mod,
             };
@@ -626,6 +640,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const [deletingEmployee, setDeletingEmployee] = useState<EmployeeItem | null>(null);
     const [isDeletingEmployee, setIsDeletingEmployee] = useState(false);
     const [userRoleFilter, setUserRoleFilter] = useState<string>('All');
+    const [userVerifiedFilter, setUserVerifiedFilter] = useState<string>('All');
 
     // Audit Logs Filters & Pagination
     const [auditModuleFilter, setAuditModuleFilter] = useState<string>('All');
@@ -2361,6 +2376,20 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         </div>
 
                                         <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <ShieldCheck className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Email Status:</span>
+                                            <select
+                                                value={userVerifiedFilter}
+                                                onChange={(e) => setUserVerifiedFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="All" className="bg-[#18181b]">All</option>
+                                                <option value="Verified" className="bg-[#18181b]">Verified</option>
+                                                <option value="Not Verified" className="bg-[#18181b]">Not Verified</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
                                             <MapPin className="w-4 h-4 text-[#f59e0b]" />
                                             <span className="text-[#a1a1aa] font-bold">Branch View:</span>
                                             <select
@@ -2376,7 +2405,11 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     </div>
 
                                     <div className="text-xs text-[#a1a1aa]">
-                                        Showing <strong className="text-[#fbbf24] font-bold">{userRoleFilter}</strong> Accounts ({productBranchFilter === 'All' ? 'All Branches' : `${productBranchFilter} Store`})
+                                        Showing <strong className="text-[#fbbf24] font-bold">{userRoleFilter}</strong>
+                                        {userVerifiedFilter !== 'All' && (
+                                            <> · <strong className="text-[#fbbf24] font-bold">{userVerifiedFilter}</strong></>
+                                        )}
+                                        {' '}Accounts ({productBranchFilter === 'All' ? 'All Branches' : `${productBranchFilter} Store`})
                                     </div>
                                 </div>
 
@@ -2388,6 +2421,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                 <th className="py-3.5 px-4">Email</th>
                                                 <th className="py-3.5 px-4">Branch</th>
                                                 <th className="py-3.5 px-4">Role</th>
+                                                <th className="py-3.5 px-4">Verified</th>
                                                 <th className="py-3.5 px-4">Status</th>
                                                 <th className="py-3.5 px-4">Created Date</th>
                                                 <th className="py-3.5 px-4 text-right">Actions</th>
@@ -2400,7 +2434,15 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     if (userRoleFilter === 'Admin' && e.role !== 'Admin') return false;
                                                     if (userRoleFilter === 'Staff' && !['Cashier', 'Kitchen Staff', 'Staff', 'Employee'].includes(e.role)) return false;
                                                     if (userRoleFilter === 'Customer' && e.role !== 'Customer') return false;
+                                                    if (userVerifiedFilter === 'Verified' && !e.emailVerified) return false;
+                                                    if (userVerifiedFilter === 'Not Verified' && e.emailVerified) return false;
                                                     return true;
+                                                })
+                                                .sort((a, b) => {
+                                                    if (userVerifiedFilter === 'Verified') return Number(b.emailVerified) - Number(a.emailVerified);
+                                                    if (userVerifiedFilter === 'Not Verified') return Number(a.emailVerified) - Number(b.emailVerified);
+                                                    // Default: verified first, then unverified
+                                                    return Number(b.emailVerified) - Number(a.emailVerified) || b.id - a.id;
                                                 })
                                                 .map((e) => (
                                                     <tr key={e.id} className="hover:bg-[#27272a]/50 transition-colors">
@@ -2420,6 +2462,15 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                 'bg-sky-500/20 text-sky-400 border-sky-500/40'
                                                             }`}>
                                                                 {e.role}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-4">
+                                                            <span className={`whitespace-nowrap inline-flex items-center min-w-max px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                                                e.emailVerified
+                                                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                                                    : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                                            }`}>
+                                                                {e.emailVerified ? 'Verified' : 'Not Verified'}
                                                             </span>
                                                         </td>
                                                         <td className="py-4 px-4">

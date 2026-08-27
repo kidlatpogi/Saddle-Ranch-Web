@@ -39,12 +39,13 @@ class EmployeeAccountController extends Controller
             'branch' => $validated['branch'] ?? 'Bulihan',
             'password' => Hash::make($validated['password']),
         ]);
+        $employee->forceFill(['email_verified_at' => now()])->save();
 
         AuditLog::create([
             'user_id' => auth()->id(),
             'action' => "Created Account '{$employee->email}' as role '{$employee->role}' (Branch: {$employee->branch})",
             'ip_address' => $request->ip(),
-            'payload' => ['employee_id' => $employee->id, 'email' => $employee->email, 'role' => $employee->role, 'branch' => $employee->branch],
+            'payload' => ['employee_id' => $employee->id, 'email' => $employee->email, 'role' => $employee->role, 'branch' => $employee->branch, 'verified' => true],
         ]);
 
         return back()->with('success', 'Account created successfully.');
