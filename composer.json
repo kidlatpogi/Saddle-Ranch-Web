@@ -1,10 +1,10 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "saddleranch/saddle-ranch-web",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
-    "license": "MIT",
+    "description": "Saddle Ranch Roadhouse Web Application — Online Ordering, In-House QR Dine-In, KDS & Admin Management Portal.",
+    "keywords": ["saddle-ranch", "restaurant", "laravel", "react", "inertia", "qr-ordering", "kds"],
+    "license": "proprietary",
     "require": {
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",

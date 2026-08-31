@@ -1,6 +1,9 @@
 {
-    "$schema": "https://www.schemastore.org/package.json",
+    "name": "saddle-ranch-web",
+    "version": "1.1.0",
+    "description": "Saddle Ranch Roadhouse Web Application — Online Ordering, Dine-In QR, KDS & Admin Portal",
     "private": true,
+    "license": "UNLICENSED",
     "type": "module",
     "scripts": {
         "build": "tsc && vite build",

@@ -59,7 +59,7 @@ class OrderCheckoutTest extends TestCase
             'customer_phone' => '09189876543',
             'delivery_address' => 'Blk 12 Lot 4 Barangay Bulihan, Cavite',
             'delivery_notes' => 'Ring doorbell upon arrival',
-            'payment_method' => 'Cash',
+            'payment_method' => 'GCash',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1],
             ],
