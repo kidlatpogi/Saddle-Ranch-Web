@@ -201,4 +201,54 @@ class BrowserAndUiClickThroughTest extends TestCase
         $createProdResp->assertStatus(302);
         $this->assertDatabaseHas('products', ['name' => 'Sizzling Ribeye Steak']);
     }
+
+    /**
+     * MODULE 6: POS WALK-IN CASHIER ORDER PERSISTENCE & KDS SYNC
+     */
+    public function test_pos_walk_in_order_submission_and_kds_propagation()
+    {
+        $cashier = User::where('email', 'cashier.bulihan@saddleranch.ph')->first() ?? User::where('role', 'employee')->first();
+        $this->actingAs($cashier);
+
+        $product = Product::first();
+        $initialStock = $product->stock_quantity;
+
+        // Place Walk-In POS Order
+        $posResponse = $this->postJson('/api/v1/employee/pos/orders', [
+            'order_type' => 'dine_in',
+            'table_number' => '03',
+            'customer_name' => 'Walk-In Customer Juan',
+            'payment_method' => 'Cash (Walk-In POS)',
+            'discount_type' => 'NONE',
+            'discount_amount' => 0,
+            'items' => [
+                [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'quantity' => 2,
+                ]
+            ],
+        ]);
+
+        $posResponse->assertStatus(201);
+        $posResponse->assertJsonStructure(['status', 'message', 'data' => ['id', 'order_number', 'total_amount']]);
+
+        // Verify order exists in Database
+        $this->assertDatabaseHas('orders', [
+            'order_type' => 'dine_in',
+            'table_number' => '03',
+            'customer_name' => 'Walk-In Customer Juan',
+            'payment_status' => 'paid',
+        ]);
+
+        // Verify stock was decremented
+        $product->refresh();
+        $this->assertEquals($initialStock - 2, $product->stock_quantity);
+
+        // Verify order shows up on KDS API endpoint
+        $kdsResponse = $this->getJson('/api/v1/kitchen/orders');
+        $kdsResponse->assertStatus(200);
+        $kdsResponse->assertJsonFragment(['customer_name' => 'Walk-In Customer Juan']);
+    }
 }

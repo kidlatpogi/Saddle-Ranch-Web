@@ -20,6 +20,7 @@ Route::get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
     // Live KDS Data Endpoint (Polling API & Cook Summary)
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
+    Route::post('/employee/pos/orders', [EmployeeController::class, 'storePosOrder']);
     Route::get('/admin/orders', function () {
         // Enforce payment policy: QRPh/E-wallet orders appear on Admin Dashboard only once payment is verified/paid
         $orders = Order::with('orderItems.product')

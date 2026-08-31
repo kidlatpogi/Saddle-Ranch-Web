@@ -51,6 +51,110 @@ class EmployeeController extends Controller
     }
 
     /**
+     * POS Endpoint: POST /api/v1/employee/pos/orders
+     * Process walk-in cashier POS order submission and persist directly to DB for immediate KDS display.
+     */
+    public function storePosOrder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'order_type' => 'required|string',
+            'table_number' => 'nullable|string',
+            'customer_name' => 'nullable|string',
+            'payment_method' => 'required|string',
+            'discount_type' => 'nullable|string',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.name' => 'nullable|string',
+            'items.*.price' => 'required|numeric',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        $user = auth()->user();
+        $branch = ($user && $user->branch && strtolower($user->branch) !== 'all') ? $user->branch : 'Bulihan';
+
+        $createdOrder = DB::transaction(function () use ($validated, $user, $branch, $request) {
+            $rawSubtotal = 0;
+            $itemsData = [];
+
+            foreach ($validated['items'] as $item) {
+                $product = Product::lockForUpdate()->findOrFail($item['id']);
+                $subtotal = $product->price * $item['quantity'];
+                $rawSubtotal += $subtotal;
+
+                $itemsData[] = [
+                    'product' => $product,
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $product->price,
+                    'subtotal' => $subtotal,
+                ];
+            }
+
+            $discountAmount = (float) ($validated['discount_amount'] ?? 0);
+            $totalAmount = max(0, $rawSubtotal - $discountAmount);
+
+            $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
+            $orderType = strtolower(str_replace(['-', ' '], '_', $validated['order_type']));
+
+            $order = Order::create([
+                'user_id' => $user?->id,
+                'order_number' => $orderNumber,
+                'order_type' => $orderType,
+                'table_number' => $orderType === 'dine_in' ? ($validated['table_number'] ?? '01') : null,
+                'status' => 'pending',
+                'total_amount' => $totalAmount,
+                'payment_method' => $validated['payment_method'],
+                'payment_status' => 'paid',
+                'branch' => $branch,
+                'discount_amount' => $discountAmount,
+                'customer_name' => $validated['customer_name'] ?: 'Walk-In Guest',
+                'customer_phone' => 'Walk-In Counter',
+                'delivery_address' => $orderType === 'dine_in' ? 'Table ' . ($validated['table_number'] ?? '01') : 'Counter Pick-Up',
+            ]);
+
+            $isDasma = str_contains(strtolower($branch), 'dasma');
+
+            foreach ($itemsData as $it) {
+                $order->orderItems()->create([
+                    'product_id' => $it['product_id'],
+                    'quantity' => $it['quantity'],
+                    'unit_price' => $it['unit_price'],
+                    'subtotal' => $it['subtotal'],
+                ]);
+
+                // Decrement stock
+                $it['product']->decrement('stock_quantity', $it['quantity']);
+                if ($isDasma) {
+                    $it['product']->decrement('stock_dasmarinas', $it['quantity']);
+                } else {
+                    $it['product']->decrement('stock_bulihan', $it['quantity']);
+                }
+            }
+
+            AuditLog::create([
+                'user_id' => $user?->id,
+                'action' => "POS Order #{$order->order_number} placed at {$branch} Branch by " . ($user?->name ?? 'Cashier') . " (Total: ₱" . number_format($totalAmount, 2) . ")",
+                'ip_address' => $request->ip(),
+                'payload' => [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'order_type' => $order->order_type,
+                    'total_amount' => $totalAmount,
+                ],
+            ]);
+
+            return $order->load('orderItems.product');
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Order #{$createdOrder->order_number} placed successfully!",
+            'data' => $createdOrder,
+        ], 201);
+    }
+
+    /**
      * API Endpoint: GET /api/v1/kitchen/orders
      * Fetch active orders (pending, preparing, ready) sorted by created_at ASC with summary aggregator.
      */
