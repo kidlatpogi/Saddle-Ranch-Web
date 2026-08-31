@@ -47,6 +47,7 @@ Route::post('/orders/{id}/cancel', [EmployeeController::class, 'cancel'])->name(
 Route::middleware(['auth', 'role:admin,employee,cashier,kitchen'])->group(function () {
     Route::get('/employee/dashboard', [EmployeeController::class, 'dashboard'])->name('employee.dashboard');
     Route::get('/employee/kitchen', [EmployeeController::class, 'kitchen'])->name('employee.kitchen');
+    Route::post('/employee/pos/orders', [EmployeeController::class, 'storePosOrder'])->name('employee.pos.orders');
 });
 
 // Protected Admin Routes

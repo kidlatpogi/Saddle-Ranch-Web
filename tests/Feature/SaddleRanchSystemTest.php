@@ -181,7 +181,8 @@ class SaddleRanchSystemTest extends TestCase
             'email' => 'testmobile@saddleranch.ph',
             'password' => Hash::make('password123'),
             'phone_number' => '09171234567',
-            'role' => 'employee'
+            'role' => 'employee',
+            'email_verified_at' => now(),
         ]);
 
         $loginResp = $this->postJson('/api/v1/auth/login', [

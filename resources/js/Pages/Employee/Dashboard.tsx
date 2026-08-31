@@ -311,42 +311,85 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     const posTenderedAmount = parseFloat(cashTendered) || 0;
     const posChangeAmount = Math.max(0, posTenderedAmount - posCartTotal);
 
-    const handleCheckoutWalkInOrder = (e: React.FormEvent) => {
+    const [posSubmitting, setPosSubmitting] = useState(false);
+
+    const handleCheckoutWalkInOrder = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (posCart.length === 0) return;
+        if (posCart.length === 0 || posSubmitting) return;
 
-        const nextNum = (orders.length + 50).toString().padStart(4, '0');
-        const newOrderId = `SR-${nextNum}`;
-        const itemsSummaryText = posCart.map(i => `${i.quantity}x ${i.name}`).join(', ');
+        setPosSubmitting(true);
 
-        const newOrder: OrderItem = {
-            id: newOrderId,
-            order_number: newOrderId,
-            type: posOrderType,
+        const payload = {
             order_type: posOrderType.toLowerCase().replace('-', '_'),
-            location: posOrderType === 'Dine-In' ? `Table ${posTableNumber}` : 'Counter Pick-Up',
-            customer: posCustomerName || 'Walk-In Customer',
-            customer_name: posCustomerName || 'Walk-In Customer',
-            phone: 'Walk-In Counter',
-            amount: posCartTotal,
-            total_amount: posCartTotal,
-            payment: `${posPaymentMethod} (Walk-In POS${posDiscountType !== 'NONE' ? ` - ${posDiscountType} 20%` : ''})`,
-            status: 'preparing',
-            time: 'Just now',
-            itemsCount: posCart.reduce((sum, i) => sum + i.quantity, 0),
-            itemsSummary: itemsSummaryText,
+            table_number: posOrderType === 'Dine-In' ? posTableNumber : null,
+            customer_name: posCustomerName || 'Walk-In Guest',
+            payment_method: `${posPaymentMethod} (Walk-In POS${posDiscountType !== 'NONE' ? ` - ${posDiscountType} 20%` : ''})`,
             discount_type: posDiscountType,
             discount_amount: posDiscountAmount,
+            items: posCart.map(i => ({
+                id: i.id,
+                name: i.name,
+                price: i.price,
+                quantity: i.quantity,
+            })),
         };
 
-        setOrders([newOrder, ...orders]);
-        setShowReceiptModal(newOrder);
+        try {
+            const res = await fetch('/api/v1/employee/pos/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify(payload),
+            });
 
-        // Reset Cart
-        setPosCart([]);
-        setPosDiscountType('NONE');
-        setCashTendered('');
-        setPosCustomerName('Walk-In Guest');
+            const json = await res.json();
+
+            if (res.ok && json.data) {
+                const created = json.data;
+                const itemsSummaryText = posCart.map(i => `${i.quantity}x ${i.name}`).join(', ');
+
+                const newOrder: OrderItem = {
+                    id: created.id,
+                    order_number: created.order_number,
+                    type: posOrderType,
+                    order_type: created.order_type,
+                    location: posOrderType === 'Dine-In' ? `Table ${posTableNumber}` : 'Counter Pick-Up',
+                    customer: created.customer_name,
+                    customer_name: created.customer_name,
+                    phone: 'Walk-In Counter',
+                    amount: created.total_amount,
+                    total_amount: created.total_amount,
+                    payment: created.payment_method,
+                    status: created.status || 'pending',
+                    time: 'Just now',
+                    created_at: created.created_at,
+                    itemsCount: posCart.reduce((sum, i) => sum + i.quantity, 0),
+                    itemsSummary: itemsSummaryText,
+                    order_items: created.order_items || [],
+                    discount_type: posDiscountType,
+                    discount_amount: posDiscountAmount,
+                };
+
+                setOrders(prev => [newOrder, ...prev]);
+                setShowReceiptModal(newOrder);
+
+                // Reset Cart
+                setPosCart([]);
+                setPosDiscountType('NONE');
+                setCashTendered('');
+                setPosCustomerName('Walk-In Guest');
+            } else {
+                alert(json.message || 'Failed to place POS order.');
+            }
+        } catch (err) {
+            console.error('POS Checkout error:', err);
+            alert('A network error occurred while submitting the POS order.');
+        } finally {
+            setPosSubmitting(false);
+        }
     };
 
     // Update Status Endpoint Handler (PATCH /orders/{id}/status)
@@ -848,11 +891,11 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                         {/* Large Touch Action Button */}
                                         <button
                                             type="submit"
-                                            disabled={posCart.length === 0 || (posPaymentMethod === 'Cash' && posTenderedAmount < posCartTotal)}
+                                            disabled={posCart.length === 0 || posSubmitting || (posPaymentMethod === 'Cash' && posTenderedAmount < posCartTotal)}
                                             className="w-full px-4 py-4 rounded-2xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#3f2000] font-black text-sm sm:text-base uppercase tracking-wider transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                                         >
                                             <Printer className="w-5 h-5 flex-shrink-0" />
-                                            <span>COMPLETE ORDER & PRINT RECEIPT</span>
+                                            <span>{posSubmitting ? 'PROCESSING ORDER...' : 'COMPLETE ORDER & PRINT RECEIPT'}</span>
                                         </button>
                                     </form>
                                 )}

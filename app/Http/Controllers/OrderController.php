@@ -90,7 +90,8 @@ class OrderController extends Controller
         // Enforce Delivery Payment Policy: No Cash on Delivery allowed (QRPh / e-Wallets Payment First only)
         if ($validated['order_type'] === 'delivery') {
             $payMethod = strtolower($validated['payment_method']);
-            if (str_contains($payMethod, 'cash') || str_contains($payMethod, 'cod')) {
+            $isPhysicalCash = ($payMethod === 'cash' || str_contains($payMethod, 'cash on delivery') || $payMethod === 'cod');
+            if ($isPhysicalCash) {
                 throw ValidationException::withMessages([
                     'payment_method' => ['Delivery orders require payment first via QRPh / e-Wallets (GCash, Maya, ShopeePay, Cards). Cash on Delivery is not supported.'],
                 ]);
@@ -226,7 +227,8 @@ class OrderController extends Controller
             $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
 
             // Determine initial payment status: Cash orders are immediately processed, QRPh/e-Wallets require payment first
-            $isCash = str_contains(strtolower($validated['payment_method']), 'cash');
+            $methodLower = strtolower($validated['payment_method']);
+            $isCash = ($methodLower === 'cash' || str_contains($methodLower, 'cash on delivery') || $methodLower === 'cod');
             $initialPaymentStatus = $isCash ? 'paid' : 'pending';
 
             $order = Order::create([
