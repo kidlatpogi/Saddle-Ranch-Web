@@ -15,14 +15,14 @@ export default function Authenticated({
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-[#121214] text-[#f3ece4]">
+            <nav className="border-b border-[#3a342c]/60 bg-[#1c1b18]">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
+                                    <ApplicationLogo className="block h-9 w-auto" />
                                 </Link>
                             </div>
 
@@ -30,6 +30,7 @@ export default function Authenticated({
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
+                                    className="text-[#a89f91] hover:text-[#f59e0b]"
                                 >
                                     Dashboard
                                 </NavLink>
@@ -43,12 +44,12 @@ export default function Authenticated({
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                className="inline-flex items-center rounded-lg border border-[#3a342c] bg-[#24221e] px-3.5 py-2 text-xs font-semibold leading-4 text-[#f3ece4] transition duration-150 ease-in-out hover:text-[#f59e0b] focus:outline-none"
                                             >
                                                 {user.name}
 
                                                 <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
+                                                    className="-me-0.5 ms-2 h-4 w-4 text-[#a89f91]"
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     viewBox="0 0 20 20"
                                                     fill="currentColor"
@@ -63,9 +64,10 @@ export default function Authenticated({
                                         </span>
                                     </Dropdown.Trigger>
 
-                                    <Dropdown.Content>
+                                    <Dropdown.Content contentClasses="py-1 bg-[#1c1b18] border border-[#3a342c]">
                                         <Dropdown.Link
                                             href={route('profile.edit')}
+                                            className="text-[#f3ece4] hover:bg-[#24221e]"
                                         >
                                             Profile
                                         </Dropdown.Link>
@@ -73,6 +75,7 @@ export default function Authenticated({
                                             href={route('logout')}
                                             method="post"
                                             as="button"
+                                            className="text-rose-400 hover:bg-[#24221e]"
                                         >
                                             Log Out
                                         </Dropdown.Link>
@@ -88,7 +91,7 @@ export default function Authenticated({
                                         (previousState) => !previousState,
                                     )
                                 }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
+                                className="inline-flex items-center justify-center rounded-md p-2 text-[#a89f91] transition duration-150 ease-in-out hover:bg-[#24221e] hover:text-[#f3ece4] focus:bg-[#24221e] focus:text-[#f3ece4] focus:outline-none"
                             >
                                 <svg
                                     className="h-6 w-6"
@@ -127,7 +130,7 @@ export default function Authenticated({
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
+                        ' sm:hidden border-t border-[#3a342c]'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
@@ -139,12 +142,12 @@ export default function Authenticated({
                         </ResponsiveNavLink>
                     </div>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4">
+                    <div className="border-t border-[#3a342c] pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
+                            <div className="text-base font-medium text-[#f3ece4]">
                                 {user.name}
                             </div>
-                            <div className="text-sm font-medium text-gray-500">
+                            <div className="text-sm font-medium text-[#a89f91]">
                                 {user.email}
                             </div>
                         </div>
@@ -166,7 +169,7 @@ export default function Authenticated({
             </nav>
 
             {header && (
-                <header className="bg-white shadow">
+                <header className="bg-[#181715] border-b border-[#3a342c]/60 shadow-sm">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>

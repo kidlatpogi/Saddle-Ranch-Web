@@ -1,94 +1,102 @@
 <div align="center">
 
-  <img src="public/images/saddle_ranch_logo.png" alt="Saddle Ranch Roadhouse Logo" width="220" />
+  <img src="public/images/saddle_ranch_logo.png" alt="Saddle Ranch Roadhouse" width="240" />
 
-  # Saddle Ranch Roadhouse — Web Application
+  # Saddle Ranch Roadhouse Web Application
 
-  **Enterprise Full-Stack Restaurant Ordering, In-House QR Dining, POS, KDS, and Management Ecosystem**
-
-  [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-  [![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Inertia.js](https://img.shields.io/badge/Inertia.js-2.x-9553E9?style=for-the-badge&logo=inertia&logoColor=white)](https://inertiajs.com)
-  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-  [![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Private-red?style=for-the-badge)](LICENSE)
+  **Enterprise Restaurant Management Ecosystem with Real-Time Kitchen Display, Point-of-Sale, QR Table Dining, and Cascading Delivery Logistics**
 
   <p align="center">
-    <a href="#client-project-showcase">Client Showcase</a> •
-    <a href="#system-architecture--key-modules">System Architecture</a> •
-    <a href="#visual-interface-gallery">Visual Gallery</a> •
-    <a href="#technical-specifications">Technical Specifications</a> •
-    <a href="#contributors--acknowledgments">Contributors</a> •
-    <a href="#proprietary-license--confidentiality-notice">License</a>
+    <img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 11" />
+    <img src="https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
+    <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5" />
+    <img src="https://img.shields.io/badge/Inertia.js-2.x-9553E9?style=for-the-badge&logo=inertia&logoColor=white" alt="Inertia.js 2" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
+    <img src="https://img.shields.io/badge/Architecture-Monolith_SPA-amber?style=for-the-badge" alt="Architecture" />
+    <img src="https://img.shields.io/badge/License-Proprietary%20%2F%20Private-darkred?style=for-the-badge" alt="Private License" />
+  </p>
+
+  <p align="center">
+    <a href="#client-showcase--confidentiality-disclosure">Client Showcase</a> &bull;
+    <a href="#system-architecture">System Architecture</a> &bull;
+    <a href="#core-operational-modules">Core Modules</a> &bull;
+    <a href="#visual-interface-gallery">Visual Gallery</a> &bull;
+    <a href="#technical-specifications">Technical Specs</a> &bull;
+    <a href="#contributors--acknowledgments">Contributors</a> &bull;
+    <a href="#proprietary-license--terms">License</a>
   </p>
 
 </div>
 
 ---
 
-## Client Project Showcase
+## Client Showcase & Confidentiality Disclosure
 
-**Production Client System Portfolio Exhibition**  
-This enterprise web application was engineered for **Saddle Ranch Roadhouse**, a commercial restaurant and steakhouse brand operating across branches in Silang, Bulihan, and Dasmariñas, Cavite, Philippines.
+This enterprise restaurant platform was designed and engineered for **Saddle Ranch Roadhouse**, a multi-branch steakhouse and sizzling grill chain operating across Silang, Bulihan, and Dasmari&ntilde;as in Cavite, Philippines.
 
-While other commercial client applications developed under professional engagement remain confidential under strict Non-Disclosure Agreements (NDAs), **Saddle Ranch Roadhouse is an authorized public portfolio showcase**. This project serves to demonstrate full-stack software architecture, scalable relational database engineering, real-time kitchen operations, and high-conversion e-commerce workflows.
+### Portfolio Showcase Authorization
+While several enterprise client platforms engineered under professional contract remain strictly confidential under Non-Disclosure Agreements (NDAs), **Saddle Ranch Roadhouse has authorized this public portfolio exhibition**. This repository serves as a technical demonstration of full-stack system design, real-time kitchen orchestration, atomic transaction handling, and restaurant e-commerce architecture.
 
-> **Confidentiality Notice**: The client has authorized public exhibition of the system design and architecture for portfolio evaluation. In compliance with client agreements, proprietary business logic, operational credentials, customer records, and internal deployment configurations remain confidential and are not distributed for public execution.
-
----
-
-## System Architecture & Key Modules
-
-Saddle Ranch Web integrates customer ordering, table-side contactless dining, in-store cashier point-of-sale, line-cook kitchen display terminals, and executive business analytics into a unified reactive platform.
-
-```
-                                  +------------------------------+
-                                  |   SADDLE RANCH ROADHOUSE     |
-                                  +--------------+---------------+
-                                                 |
-                  +------------------------------+------------------------------+
-                  |                              |                              |
-                  v                              v                              v
-      +------------------------+    +------------------------+    +------------------------+
-      |    CUSTOMER WEB APP    |    |   IN-HOUSE QR TABLES   |    |  COMPANION MOBILE APP  |
-      | - Remote Pick-Up       |    | - Dynamic ?table=XX    |    | - Flutter 1:1 Parity   |
-      | - Bulihan Fee Engine   |    | - "Call Waiter" Chime  |    | - Sanctum Token Auth   |
-      | - QRPh / GCash Pay     |    | - Express Takeout      |    | - Email OTP (Brevo)    |
-      +-----------+------------+    +-----------+------------+    +-----------+------------+
-                  |                             |                             |
-                  +----------------------+------+-----------------------------+
-                                         |
-                                         v
-                 +-----------------------------------------------+
-                 |        LARAVEL 11 + INERTIA + SANCTUM         |
-                 |   Atomic Transactions * Stock Dec * Auditing  |
-                 +--------------+----------------+---------------+
-                                |                |
-                +---------------+----+      +----+---------------+
-                |                    |      |                    |
-                v                    v      v                    v
-      +------------------+ +------------------+ +------------------+
-      |   KITCHEN KDS    | |   CASHIER POS    | | ADMIN DASHBOARD  |
-      | - Live Order Pop | | - Walk-In Orders | | - Sales Revenue  |
-      | - Cook Timers    | | - Receipt Engine | | - WebP Catalog   |
-      | - Status Stages  | | - Senior/PWD Disc| | - QR Generator   |
-      +------------------+ +------------------+ +------------------+
-```
+> **Confidentiality & Compliance Notice**: The client has authorized public review of system architecture, technical documentation, and visual interface flows. In compliance with client data privacy and intellectual property agreements, proprietary database contents, operational passwords, API credentials, customer PII, and production server secrets remain strictly confidential and are not published for public execution.
 
 ---
 
-### 1. Customer Remote Ordering & Delivery Engine
-- **Categorized Menu Navigation**: Sizzling Rice Meals, Authentic Filipino Cuisines, Barkada Platters, and Specialty Beverages.
-- **Location-Based Delivery Engine**: Structured municipality and barangay cascading selector for Cavite province, with dedicated fee waiver logic for the Bulihan branch cluster.
-- **Integrated Digital Payments**: Support for QRPh e-Wallets (GCash, Maya, ShopeePay, Cards) with automated payment status verification.
-- **Live Order Tracking**: Customer self-service order lookup by Order Number or Phone Number with real-time status progression.
-- **Context-Aware AI Concierge**: Embedded chatbot assistant providing real-time menu recommendations and restaurant policies.
-- **Customer Ratings & Review Moderation**: Live customer review submissions with automated bilingual profanity and URL moderation filtering.
+## System Architecture
+
+The Saddle Ranch ecosystem unifies customer e-commerce, table-side contactless ordering, in-store cashier POS terminals, line-cook kitchen display systems, and business intelligence into an event-driven monolith.
+
+```
+                              +---------------------------------------------+
+                              |         SADDLE RANCH ROADHOUSE CORE         |
+                              +----------------------+----------------------+
+                                                     |
+                     +-------------------------------+-------------------------------+
+                     |                               |                               |
+                     v                               v                               v
+       +---------------------------+   +---------------------------+   +---------------------------+
+       |   CUSTOMER WEB COMMERCE   |   |   IN-HOUSE QR ORDERING    |   |   MOBILE COMPANION APPS   |
+       | - Distance & Fee Engine   |   | - Contactless Table URLs  |   | - Flutter 1:1 REST Parity |
+       | - Cavite Cascade Selector |   | - Staff Waiter Call Chime |   | - Sanctum Token Issuance  |
+       | - QRPh Digital Checkout   |   | - Express Takeout Mode    |   | - Brevo Email OTP Auth    |
+       +-------------+-------------+   +-------------+-------------+   +-------------+-------------+
+                     |                               |                               |
+                     +-------------------------------+-------------------------------+
+                                                     |
+                                                     v
+                                 +---------------------------------------+
+                                 |     LARAVEL 11 + INERTIA.JS + DB      |
+                                 |  Atomic Locking * Automated Stock Dec |
+                                 |  Regulatory Discounts * Audit Trails  |
+                                 +-------------------+-------------------+
+                                                     |
+                         +---------------------------+---------------------------+
+                         |                           |                           |
+                         v                           v                           v
+           +---------------------------+   +---------------------------+   +---------------------------+
+           |   KITCHEN DISPLAY (KDS)   |   |   POINT-OF-SALE (POS)     |   |   EXECUTIVE ADMIN HUB     |
+           | - Live Ticket Pipeline    |   | - Walk-In Cashier Entry   |   | - Sales Revenue Analytics |
+           | - Visual Cook Timers      |   | - Senior/PWD 20% Discount |   | - WebP Image Processing   |
+           | - Web Audio Kitchen Bell  |   | - Instant DB Synchronization | - QR Generator Engine      |
+           | - Manager Security Void   |   | - Thermal Receipt Builder |   | - Immutable Event Logs    |
+           +---------------------------+   +---------------------------+   +---------------------------+
+```
+
+---
+
+## Core Operational Modules
+
+### 1. Customer E-Commerce & Delivery Engine
+- **Hierarchical Catalog Navigation**: Sizzling Rice Meals, Authentic Filipino Cuisines, Barkada Platters, and Specialty Drinks.
+- **Cascading Geographical Selector**: Municipality and barangay cascading selector for Cavite province, with dedicated fee waiver logic for the Bulihan branch cluster.
+- **Integrated Digital Payments**: Support for QRPh e-Wallets (GCash, Maya, ShopeePay) and Cash on Delivery with payment status verification.
+- **Self-Service Order Tracker**: Real-time order lookup by tracking number or mobile number with live stage progression.
+- **Embedded AI Concierge**: Real-time virtual assistant providing contextual menu guidance and restaurant policy answers.
+- **Automated Review Moderation**: Live customer rating submission with bilingual profanity and URL moderation filters.
 
 ---
 
 ### 2. In-House Contactless QR Table Dining
-- **Dynamic Table Routing**: Direct table session initialization via URL parameterization (`?table=05`).
+- **Dynamic Table Routing**: Parameterized session initialization (`?table=05`) enabling table-side ordering.
 - **Staff Service Alerts**: "Call Waiter" digital chime integration with real-time staff acknowledgment status tracking.
 - **Flexible In-Store Fulfillment**: Seamless switching between Table Dine-In and Express Counter Takeout modes.
 
@@ -117,12 +125,12 @@ Saddle Ranch Web integrates customer ordering, table-side contactless dining, in
 - **Catalog & Inventory Control**: Product CRUD operations with WebP image processing and branch-specific stock thresholds.
 - **Table QR Code Generator**: Dynamic generation of printable table QR codes configured for local network or domain routing.
 - **Promotional Campaigns**: Custom voucher rules (percentage, fixed amount, minimum spend, expiry date, single-use limits) and marketing banner controls.
-- **Security & Audit Logging**: Role-based access control (`admin`, `employee`) and immutable event audit logs.
+- **Security & Audit Logging**: Role-based access control (`admin`, `employee`, `cashier`, `kitchen`) and immutable event audit logs.
 
 ---
 
-### 6. Mobile REST API Layer (Flutter Parity)
-- Complete RESTful API architecture maintaining 1:1 functional parity with companion mobile applications.
+### 6. Mobile Companion REST APIs
+- Full RESTful API layer providing 1:1 functional parity with mobile client applications.
 - **Sanctum Authentication**: Secure bearer token issuance with 6-digit email OTP verification via Brevo SMTP.
 
 ---
@@ -131,15 +139,15 @@ Saddle Ranch Web integrates customer ordering, table-side contactless dining, in
 
 <div align="center">
 
-### Customer Landing Page & Experience
-*Immersive western roadhouse theme, video showcase, promotional specials, and verified customer reviews.*
+### Customer Landing Page & Brand Experience
+*Immersive western roadhouse aesthetic, video showcase, promotional specials, and verified customer reviews.*
 
 ![Landing Page](docs/screenshots/LANDING%20PAGE.png)
 
 ---
 
 ### Remote Online Ordering & Checkout
-*Categorized food catalog, dynamic shopping cart drawer, Cavite delivery cascading, and payment options.*
+*Categorized catalog, responsive cart slider, Cavite delivery cascading, and payment options.*
 
 ![Remote Ordering](docs/screenshots/Remote%20Ordering.png)
 
@@ -179,28 +187,25 @@ Saddle Ranch Web integrates customer ordering, table-side contactless dining, in
 
 | Layer | Component | Description |
 | :--- | :--- | :--- |
-| **Backend Architecture** | Laravel 11.x | PHP 8.2+, Eloquent ORM, Database Migrations & Seeders |
-| **Frontend Architecture** | React 18.x + TypeScript | Type-safe Single Page Application via Inertia.js 2.x |
-| **Styling & UI System** | Tailwind CSS v4.0 | Shadcn UI primitives, Lucide Icons, Custom Design Tokens |
-| **Animations** | GSAP 3.x | Smooth UI transitions and interactive visual effects |
+| **Backend Framework** | Laravel 11.x | PHP 8.2+, Eloquent ORM, Database Migrations & Seeders |
+| **Frontend Framework** | React 18.x + TypeScript | Type-safe Single Page Application via Inertia.js 2.x |
+| **Design System** | Tailwind CSS v4.0 | Shadcn UI primitives, Lucide Icons, Custom Design Tokens |
+| **Animation Engine** | GSAP 3.x | Fluid UI transitions and micro-interactions |
 | **Database Engines** | SQLite / MySQL | ACID-compliant relational schemas with atomic transaction locks |
 | **Authentication** | Laravel Sanctum & Session | Dual session-based web auth and Sanctum token API auth |
 | **Email Infrastructure** | Brevo SMTP | Automated 6-digit OTP verification and transactional mailing |
-| **Automated Testing** | PHPUnit 11.x | Comprehensive feature and unit test coverage (418+ assertions) |
+| **Automated Testing** | PHPUnit 11.x | Comprehensive feature and unit test coverage (429+ assertions) |
 
 ---
 
 ## Contributors & Acknowledgments
 
-- **Lead Engineer & System Architect**: Full-stack design, system architecture, database schema, POS/KDS engine, and UI implementation.
-- **Authentication & Security Contributor**: Special acknowledgment to **[crazysen](https://github.com/crazysen)**, who utilized Cursor AI to assist in developing critical components of the Authentication subsystem, specifically:
-  - Forgot Password request workflow
-  - Reset Password token processing and security validation
-  - Email OTP Verification infrastructure via Brevo SMTP integration
+- **Lead Engineer & System Architect**: System design, end-to-end architecture, database schema, POS/KDS engine, UI design system, and the finalized implementation of the Brevo SMTP Email OTP verification infrastructure.
+- **Authentication & Security Contributor**: Special credit and acknowledgment to **[crazysen](https://github.com/crazysen)**, who utilized Cursor AI to initiate and lay the groundwork for the Email OTP verification module, as well as contributing to the Forgot Password and Reset Password workflows.
 
 ---
 
-## Proprietary License & Confidentiality Notice
+## Proprietary License & Terms
 
 ```
 PROPRIETARY & CONFIDENTIAL — ALL RIGHTS RESERVED
