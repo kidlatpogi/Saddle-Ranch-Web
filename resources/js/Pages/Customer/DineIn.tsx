@@ -651,10 +651,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
                     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 space-y-2">
 
-                        {/* Top Bar Row 1: Back + Unified Table Status Pill + Essential Actions */}
-                        <div className="flex items-center justify-between gap-2 w-full">
-                            {/* Left: Back Arrow + Unified Table Status Pill */}
-                            <div className="flex items-center gap-2 min-w-0">
+                        {/* Top Bar Row 1: Back + Compact Table Status Pill + Essential Actions (Zero Overlap Guaranteed) */}
+                        <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full">
+                            {/* Left: Back Arrow + Compact Unified Table Status Pill */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                                 <Link
                                     href="/"
                                     className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors"
@@ -663,11 +663,11 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <ArrowLeft className="w-4 h-4" />
                                 </Link>
 
-                                {/* Unified Interactive Table & Live Session Pill */}
+                                {/* Compact Unified Table & Live Session Pill */}
                                 <button
                                     type="button"
                                     onClick={() => tableSession.status !== 'active' && setIsLockModalOpen(true)}
-                                    className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 ${
+                                    className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all shrink-0 ${
                                         tableSession.status === 'active'
                                             ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-500/20'
                                             : tableSession.status === 'expired'
@@ -677,23 +677,23 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     title={tableSession.status !== 'active' ? 'Click to view table unlock details' : 'Table session is active'}
                                 >
                                     <QrCode className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
-                                    <span>Table #{tableNumber}</span>
+                                    <span>T-{tableNumber}</span>
                                     <span className="text-[#534434]">&bull;</span>
                                     {tableSession.status === 'active' ? (
-                                        <span className="flex items-center gap-1 font-mono text-emerald-300">
+                                        <span className="flex items-center gap-1 font-mono text-emerald-300 shrink-0">
                                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                             <Clock className="w-3 h-3 text-emerald-400" />
                                             <span>{formatTimer(sessionSeconds)}</span>
                                         </span>
                                     ) : tableSession.status === 'expired' ? (
-                                        <span className="flex items-center gap-1 text-rose-300">
+                                        <span className="flex items-center gap-1 text-rose-300 shrink-0">
                                             <Clock className="w-3 h-3 text-rose-400" />
-                                            <span>Expired</span>
+                                            <span className="hidden xs:inline">Expired</span>
                                         </span>
                                     ) : (
-                                        <span className="flex items-center gap-1 text-amber-400">
+                                        <span className="flex items-center gap-1 text-amber-400 shrink-0">
                                             <Lock className="w-3 h-3 text-amber-500" />
-                                            <span>Locked</span>
+                                            <span className="hidden xs:inline">Locked</span>
                                         </span>
                                     )}
                                 </button>
@@ -704,7 +704,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 {/* Call Waiter Pill */}
                                 <button
                                     onClick={handleCallWaiter}
-                                    className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${
+                                    className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer shrink-0 ${
                                         waiterStatus === 'acknowledged'
                                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
                                             : waiterStatus === 'pending' || waiterCalled
@@ -713,17 +713,17 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     }`}
                                     title="Call restaurant server"
                                 >
-                                    <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
-                                    <span className="hidden xs:inline">
+                                    <BellRing className={`w-3.5 h-3.5 shrink-0 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
+                                    <span className="hidden sm:inline">
                                         {waiterStatus === 'acknowledged'
                                             ? 'Server On The Way!'
                                             : waiterStatus === 'pending' || waiterCalled
                                                 ? 'Waiter Notified'
                                                 : 'Call Waiter'}
                                     </span>
-                                    <span className="xs:hidden">
+                                    <span className="sm:hidden">
                                         {waiterStatus === 'acknowledged'
-                                            ? 'On The Way'
+                                            ? 'On Way'
                                             : waiterStatus === 'pending' || waiterCalled
                                                 ? 'Notified'
                                                 : 'Waiter'}
@@ -848,20 +848,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 )}
 
-                {/* MODAL SCRIM: Table Locked / Expired Session (Requested by User) */}
+                {/* MODAL SCRIM: Table Locked / Expired Session (Requested by User: Removed 'Table # Security' & 'X' button) */}
                 {fulfillmentMode === 'dine_in' && tableSession.status !== 'active' && isLockModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-                        <div className="relative w-full max-w-md p-6 sm:p-7 rounded-3xl bg-[#1c150e] border-2 border-amber-500/50 shadow-2xl shadow-black/80 text-center space-y-5 animate-in zoom-in-95 duration-200">
-                            {/* Close Button to preview/browse menu while waiting */}
-                            <button
-                                type="button"
-                                onClick={() => setIsLockModalOpen(false)}
-                                className="absolute top-4 right-4 p-2 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-white transition-colors cursor-pointer"
-                                title="Browse menu while waiting"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
+                        <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#1c150e] border-2 border-amber-500/50 shadow-2xl shadow-black/80 text-center space-y-5 animate-in zoom-in-95 duration-200">
                             {/* Glowing Icon */}
                             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-xl ${
                                 tableSession.status === 'expired'
@@ -877,9 +867,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                             {/* Title & Subtitle */}
                             <div className="space-y-2">
-                                <div className="inline-block px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[#ffc174] font-mono text-[11px] font-bold uppercase tracking-widest">
-                                    Table #{tableNumber} Security
-                                </div>
                                 <h3 className="font-domine text-xl sm:text-2xl font-black text-[#ffc174] tracking-tight">
                                     {tableSession.status === 'expired'
                                         ? `Table #${tableNumber} Session Expired`
@@ -939,8 +926,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
                     </div>
                 )}
-                {/* Call Waiter Toast Alert */}
-                {showWaiterToast && (
+                {/* Call Waiter Toast Alert (Hidden when Modal Scrim is open to avoid visual overlap) */}
+                {showWaiterToast && !isLockModalOpen && (
                     <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${waiterStatus === 'acknowledged'
                         ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-600/30'
                         : 'bg-amber-500 text-[#472a00] border-[#ffc174]'
