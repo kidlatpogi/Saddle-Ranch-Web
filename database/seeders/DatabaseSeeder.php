@@ -449,6 +449,33 @@ class DatabaseSeeder extends Seeder
                 'expires_at' => now()->addYear(),
             ]
         );
+        // Initial In-House Table Sessions
+        for ($i = 1; $i <= 25; $i++) {
+            $num = str_pad($i, 2, '0', STR_PAD_LEFT);
+            // Default: Table 05 is active for immediate demo & legacy test suite, other tables are closed
+            $isDemoActive = ($num === '05');
+            
+            \App\Models\TableSession::updateOrCreate(
+                ['table_number' => $num, 'branch' => 'Bulihan'],
+                [
+                    'status' => $isDemoActive ? 'active' : 'closed',
+                    'opened_at' => $isDemoActive ? now() : null,
+                    'expires_at' => $isDemoActive ? now()->addHours(2) : null,
+                    'duration_minutes' => 60,
+                ]
+            );
+
+            \App\Models\TableSession::updateOrCreate(
+                ['table_number' => $num, 'branch' => 'Dasma'],
+                [
+                    'status' => $isDemoActive ? 'active' : 'closed',
+                    'opened_at' => $isDemoActive ? now() : null,
+                    'expires_at' => $isDemoActive ? now()->addHours(2) : null,
+                    'duration_minutes' => 60,
+                ]
+            );
+        }
+
 
         // Initial Customer Reviews & Ratings
         $this->call(RatingSeeder::class);

@@ -52,9 +52,37 @@ class OrderController extends Controller
 
         $products = Product::orderBy('id', 'asc')->get();
 
+        $norm = \App\Models\TableSession::normalizeTableNumber((string) $tableNumber);
+        $branch = $request->query('branch', 'Bulihan');
+        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+
+        $session = \App\Models\TableSession::where(function ($q) use ($norm, $tableNumber) {
+            $q->where('table_number', $norm)
+              ->orWhere('table_number', $tableNumber);
+        })
+        ->where(function ($q) use ($branchKey) {
+            $q->where('branch', $branchKey)
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%")
+              ->orWhere('branch', 'all');
+        })
+        ->first();
+
+        $initialSession = $session ? $session->toSessionArray() : [
+            'id' => null,
+            'table_number' => $norm ?: '01',
+            'branch' => $branchKey,
+            'status' => 'closed',
+            'remaining_seconds' => 0,
+            'formatted_remaining' => 'Closed',
+            'expires_at' => null,
+            'is_active' => false,
+        ];
+        $initialSession['is_active'] = ($initialSession['status'] === 'active');
+
         return Inertia::render('Customer/DineIn', [
             'products' => $products,
             'tableNumber' => (string) $tableNumber,
+            'initialTableSession' => $initialSession,
         ]);
     }
 
@@ -86,6 +114,20 @@ class OrderController extends Controller
             'customer_phone.regex' => 'The mobile number must consist of exactly 11 numeric digits (e.g. 09171234567).',
             'account_email.unique' => 'An account with this email already exists. Please sign in or use a different email.',
         ]);
+
+        // Enforce Table Session Security for Dine-In Orders:
+        // Table must have an active session opened by staff/cashier within the time limit.
+        if ($validated['order_type'] === 'dine_in') {
+            $tableNum = $validated['table_number'] ?? '01';
+            $branch = $validated['branch'] ?? $request->input('branch', 'Bulihan');
+            if (!\App\Models\TableSession::isTableActive((string)$tableNum, (string)$branch)) {
+                throw ValidationException::withMessages([
+                    'table_number' => [
+                        "Table #{$tableNum} is currently closed or its dining session has expired. Please ask your server or cashier to activate this table."
+                    ],
+                ]);
+            }
+        }
 
         // Enforce Delivery Payment Policy: No Cash on Delivery allowed (QRPh / e-Wallets Payment First only)
         if ($validated['order_type'] === 'delivery') {

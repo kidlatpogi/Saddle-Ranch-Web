@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     ShoppingBag,
@@ -29,7 +29,8 @@ import {
     User,
     RotateCcw,
     Star,
-    Sparkles
+    Sparkles,
+    ShieldAlert
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -53,14 +54,29 @@ interface Product {
     is_active: boolean;
 }
 
+export interface TableSessionData {
+    id?: number | null;
+    table_number: string;
+    branch: string;
+    status: 'active' | 'closed' | 'expired';
+    opened_at?: string | null;
+    expires_at?: string | null;
+    duration_minutes?: number;
+    remaining_seconds: number;
+    formatted_remaining: string;
+    opened_by?: string | null;
+    is_active?: boolean;
+}
+
 interface DineInProps {
     products?: Product[];
     tableNumber?: string;
+    initialTableSession?: TableSessionData;
 }
 
 type CategoryType = 'Popular' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
 
-export default function DineInOrder({ products = [], tableNumber: initialTableNumber = '05' }: DineInProps) {
+export default function DineInOrder({ products = [], tableNumber: initialTableNumber = '05', initialTableSession }: DineInProps) {
     const { flash, auth } = usePage<PageProps>().props;
     const authUser: any = auth?.user;
     const [currentUser, setCurrentUser] = useState<any>(authUser);
@@ -87,6 +103,68 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
+
+    // Table Session State & Live Polling
+    const [tableSession, setTableSession] = useState<TableSessionData>(initialTableSession || {
+        table_number: tableNumber,
+        branch: selectedBranch,
+        status: 'closed',
+        remaining_seconds: 0,
+        formatted_remaining: 'Closed',
+        is_active: false,
+    });
+    const [sessionSeconds, setSessionSeconds] = useState<number>(initialTableSession?.remaining_seconds || 0);
+    const [showUnlockedToast, setShowUnlockedToast] = useState(false);
+    const prevStatusRef = useRef(initialTableSession?.status || 'closed');
+
+    useEffect(() => {
+        let isMounted = true;
+        const pollSession = async () => {
+            try {
+                const res = await fetch(`/api/v1/table-sessions/${encodeURIComponent(tableNumber)}?branch=${encodeURIComponent(selectedBranch)}`);
+                if (res.ok && isMounted) {
+                    const json = await res.json();
+                    if (json.status === 'success' && json.data) {
+                        const sData = json.data;
+                        setTableSession(sData);
+                        setSessionSeconds(sData.remaining_seconds || 0);
+                        if (prevStatusRef.current !== 'active' && sData.status === 'active') {
+                            setShowUnlockedToast(true);
+                            setTimeout(() => setShowUnlockedToast(false), 7000);
+                        }
+                        prevStatusRef.current = sData.status;
+                    }
+                }
+            } catch (e) {}
+        };
+
+        pollSession();
+        const sessionInterval = setInterval(pollSession, 2500);
+        return () => {
+            isMounted = false;
+            clearInterval(sessionInterval);
+        };
+    }, [tableNumber, selectedBranch]);
+
+    useEffect(() => {
+        if (tableSession.status !== 'active' || sessionSeconds <= 0) return;
+        const ticker = setInterval(() => {
+            setSessionSeconds((prev) => {
+                if (prev <= 1) {
+                    setTableSession((curr) => ({ ...curr, status: 'expired', is_active: false }));
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(ticker);
+    }, [tableSession.status, sessionSeconds]);
+
+    const formatTimer = (secs: number) => {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
 
     // Call Waiter State
     const [waiterCalled, setWaiterCalled] = useState(false);
@@ -461,6 +539,15 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         e.preventDefault();
         setValidationError('');
 
+        if (fulfillmentMode === 'dine_in' && tableSession.status !== 'active') {
+            setValidationError(
+                tableSession.status === 'expired'
+                    ? `Dining session for Table #${tableNumber} has expired. Please ask your server or cashier to extend or re-open the table.`
+                    : `Table #${tableNumber} is currently locked. Please ask your server or cashier to open this table session to start ordering.`
+            );
+            return;
+        }
+
         if (cart.length === 0) {
             setValidationError('Your basket is empty. Please add sizzling items before placing your order.');
             return;
@@ -636,11 +723,30 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     </span>
                                 </button>
 
-                                {/* Table Badge Pill */}
-                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                    <QrCode className="w-3.5 h-3.5" />
-                                    Table #{tableNumber}
-                                </span>
+                                {/* Table Badge & Live Session Pill */}
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
+                                        <QrCode className="w-3.5 h-3.5" />
+                                        Table #{tableNumber}
+                                    </span>
+                                    {tableSession.status === 'active' ? (
+                                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-[10px] sm:text-xs tracking-wider flex items-center gap-1.5 shrink-0 animate-pulse" title="Session Active">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                            <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                                            <span>{formatTimer(sessionSeconds)}</span>
+                                        </span>
+                                    ) : tableSession.status === 'expired' ? (
+                                        <span className="px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 font-black text-[10px] sm:text-xs tracking-wider flex items-center gap-1 shrink-0" title="Session Expired">
+                                            <Clock className="w-3.5 h-3.5 text-rose-400" />
+                                            <span>Expired</span>
+                                        </span>
+                                    ) : (
+                                        <span className="px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 font-black text-[10px] sm:text-xs tracking-wider flex items-center gap-1 shrink-0" title="Table Locked">
+                                            <Lock className="w-3.5 h-3.5 text-amber-500" />
+                                            <span>Locked</span>
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -707,6 +813,54 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
                     </div>
                 </header>
+
+                {/* Real-Time Table Unlocked Toast Notification */}
+                {showUnlockedToast && (
+                    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl bg-emerald-600 text-white font-bold shadow-2xl flex items-center gap-3 border border-emerald-400 animate-in slide-in-from-top-4 duration-300">
+                        <Sparkles className="w-6 h-6 shrink-0 text-amber-300 animate-spin" />
+                        <div className="text-xs leading-snug">
+                            <div className="font-black text-sm uppercase">Table #{tableNumber} Unlocked!</div>
+                            <div>Dining session is active. You may now place your order!</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Table Locked / Session Status Banner */}
+                {fulfillmentMode === 'dine_in' && tableSession.status !== 'active' && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+                        <div className={`p-4 rounded-2xl border ${
+                            tableSession.status === 'expired'
+                                ? 'bg-rose-950/40 border-rose-500/40 text-rose-200'
+                                : 'bg-[#1f1a14] border-amber-500/40 text-amber-200'
+                        } flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg`}>
+                            <div className="flex items-start gap-3">
+                                <div className={`p-2 rounded-xl shrink-0 ${
+                                    tableSession.status === 'expired' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'
+                                }`}>
+                                    {tableSession.status === 'expired' ? <Clock className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+                                </div>
+                                <div>
+                                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                                        {tableSession.status === 'expired' ? `Table #${tableNumber} Session Expired` : `Table #${tableNumber} is Currently Locked`}
+                                    </h4>
+                                    <p className="text-[11px] text-[#d8c3ad] mt-0.5">
+                                        {tableSession.status === 'expired'
+                                            ? 'Dining session has expired. Ask your server to extend the session, or call a waiter below.'
+                                            : 'To prevent remote spam ordering, this table must be opened by staff. Ask your server or call a waiter to activate.'}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleCallWaiter}
+                                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-md transition-transform hover:scale-105 cursor-pointer self-stretch sm:self-auto justify-center"
+                            >
+                                <BellRing className="w-4 h-4" />
+                                <span>Call Server to Unlock</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Call Waiter Toast Alert */}
                 {showWaiterToast && (

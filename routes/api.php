@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\MobileAuthController;
@@ -248,6 +249,14 @@ Route::prefix('v1')->group(function () {
 
         return response()->json(['status' => 'success']);
     });
+
+    // In-House Table Session Management & Real-Time Status
+    Route::get('/table-sessions', [\App\Http\Controllers\Api\TableSessionController::class, 'index']);
+    Route::get('/table-sessions/{tableNumber}', [\App\Http\Controllers\Api\TableSessionController::class, 'show']);
+    Route::post('/table-sessions/open', [\App\Http\Controllers\Api\TableSessionController::class, 'open']);
+    Route::post('/table-sessions/close', [\App\Http\Controllers\Api\TableSessionController::class, 'close']);
+    Route::post('/table-sessions/extend', [\App\Http\Controllers\Api\TableSessionController::class, 'extend']);
+    Route::post('/table-sessions/batch', [\App\Http\Controllers\Api\TableSessionController::class, 'batch']);
 
     // Customer Web Checkout Auth & Voucher Validation (Session Based - Web Middleware Group)
     Route::middleware(['web'])->group(function () {

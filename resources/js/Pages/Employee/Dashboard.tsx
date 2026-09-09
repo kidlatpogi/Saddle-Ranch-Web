@@ -29,7 +29,11 @@ import {
     RotateCcw,
     ShieldAlert,
     Lock,
-    Bell
+    Bell,
+    QrCode,
+    Square,
+    Timer,
+    Sparkles
 } from 'lucide-react';
 
 interface OrderItem {
@@ -74,6 +78,20 @@ interface PosCartItem {
     quantity: number;
 }
 
+interface TableSessionInfo {
+    id?: number | null;
+    table_number: string;
+    branch: string;
+    status: 'active' | 'closed' | 'expired';
+    opened_at?: string | null;
+    expires_at?: string | null;
+    duration_minutes?: number;
+    remaining_seconds: number;
+    formatted_remaining: string;
+    opened_by?: string | null;
+    is_active: boolean;
+}
+
 interface EmployeeDashboardProps {
     initialOrders?: OrderItem[];
     userBranch?: string;
@@ -82,7 +100,7 @@ interface EmployeeDashboardProps {
 
 export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan', products: serverProducts }: EmployeeDashboardProps) {
     // POS is default active tab for Cashiers!
-    const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
+    const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales' | 'tables'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState('All');
@@ -142,6 +160,151 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     }, []);
 
     // POS Walk-In Cart State
+    // Table Session Staff Management
+    const [tableSessions, setTableSessions] = useState<TableSessionInfo[]>([]);
+    const [tableBranch, setTableBranch] = useState<string>(userBranch || 'Bulihan');
+    const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null);
+    const [sessionFeedback, setSessionFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+    const fetchTableSessions = async () => {
+        try {
+            const res = await fetch(`/api/v1/table-sessions?branch=${encodeURIComponent(tableBranch)}`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.status === 'success' && json.data) {
+                    setTableSessions(json.data.tables || []);
+                }
+            }
+        } catch (e) {}
+    };
+
+    useEffect(() => {
+        fetchTableSessions();
+        const tInterval = setInterval(fetchTableSessions, 3000);
+        return () => clearInterval(tInterval);
+    }, [tableBranch]);
+
+    const handleOpenSession = async (tableNum: string, durationMinutes = 60) => {
+        setSessionActionLoading(`open-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/open', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: tableBranch,
+                    duration_minutes: durationMinutes,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: `Table #${tableNum} is now ACTIVE for ${durationMinutes} mins!`, type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Failed to open table session', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error communicating with table session engine', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const handleCloseSession = async (tableNum: string) => {
+        setSessionActionLoading(`close-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/close', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: tableBranch,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: `Table #${tableNum} session has been CLOSED.`, type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Failed to close table session', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error closing table session', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const handleExtendSession = async (tableNum: string, minutes = 15) => {
+        setSessionActionLoading(`extend-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/extend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: tableBranch,
+                    minutes,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: `Extended Table #${tableNum} by +${minutes} mins!`, type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Failed to extend session', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error extending table session', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const handleBatchSession = async (action: 'open_all' | 'close_all') => {
+        setSessionActionLoading(`batch-${action}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    action,
+                    branch: tableBranch,
+                    duration_minutes: 60,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: json.message || 'Batch table operation completed!', type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Batch operation failed', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error executing batch operation', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const activeSessionsCount = tableSessions.filter((t) => t.status === 'active').length;
+
     const [posCart, setPosCart] = useState<PosCartItem[]>([]);
     const [posCustomerName, setPosCustomerName] = useState('Walk-In Guest');
     const [posTableNumber, setPosTableNumber] = useState('01');
@@ -565,6 +728,16 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                             >
                                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                                 <span>Shift Sales</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('tables')}
+                                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'tables' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                }`}
+                            >
+                                <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span>Table Sessions ({activeSessionsCount} Active)</span>
                             </button>
                         </div>
 
