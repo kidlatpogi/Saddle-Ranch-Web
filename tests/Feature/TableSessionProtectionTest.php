@@ -276,4 +276,33 @@ class TableSessionProtectionTest extends TestCase
         $activeUnlocksFinal = $this->getJson('/api/v1/table-unlock-requests')->json('data');
         $this->assertFalse(collect($activeUnlocksFinal)->contains('table_number', '07'));
     }
+
+    public function test_table_sessions_index_returns_all_tables_with_accurate_active_count(): void
+    {
+        // Activate Table 01
+        TableSession::updateOrCreate(
+            ['table_number' => '01', 'branch' => 'Bulihan'],
+            [
+                'status' => 'active',
+                'opened_at' => now(),
+                'expires_at' => now()->addMinutes(60),
+                'duration_minutes' => 60,
+            ]
+        );
+
+        $response = $this->getJson('/api/v1/table-sessions?branch=Bulihan');
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'status',
+            'data',
+            'tables',
+            'branch',
+            'active_count',
+            'closed_count',
+        ]);
+
+        $this->assertCount(25, $response->json('data'));
+        $this->assertCount(25, $response->json('tables'));
+        $this->assertGreaterThanOrEqual(1, $response->json('active_count'));
+    }
 }

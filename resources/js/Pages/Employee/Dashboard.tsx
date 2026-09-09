@@ -205,8 +205,11 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
             const res = await fetch(`/api/v1/table-sessions?branch=${encodeURIComponent(tableBranch)}`);
             if (res.ok) {
                 const json = await res.json();
-                if (json.status === 'success' && json.data) {
-                    setTableSessions(json.data.tables || []);
+                if (json.status === 'success') {
+                    const list = Array.isArray(json.data)
+                        ? json.data
+                        : (json.tables || json.data?.tables || []);
+                    setTableSessions(list);
                 }
             }
         } catch (e) {}
@@ -1424,7 +1427,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                         Open tables when guests arrive to allow ordering. Prevents off-premise troll & spam orders.
                                     </p>
                                     <div className="flex items-center gap-3 mt-2 text-xs font-bold font-mono">
-                                        <span className="text-emerald-400">?? {activeSessionsCount} Active</span>
+                                        <span className="text-emerald-400">{activeSessionsCount} Active</span>
                                         <span className="text-[#71717a]">&bull;</span>
                                         <span className="text-[#a1a1aa]">{tableSessions.length - activeSessionsCount} Locked / Inactive</span>
                                         <span className="text-[#71717a]">&bull;</span>
@@ -1437,10 +1440,9 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                         type="button"
                                         disabled={sessionActionLoading !== null}
                                         onClick={() => handleBatchSession('open_all')}
-                                        className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg cursor-pointer disabled:opacity-40"
+                                        className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg cursor-pointer disabled:opacity-40"
                                         title="Unlock all tables for 60 minutes"
                                     >
-                                        <Sparkles className="w-4 h-4 text-amber-300" />
                                         <span>Open All (60m)</span>
                                     </button>
 
@@ -1448,10 +1450,9 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                         type="button"
                                         disabled={sessionActionLoading !== null}
                                         onClick={() => handleBatchSession('close_all')}
-                                        className="px-4 py-2.5 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 hover:text-white text-rose-300 text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                                        className="px-4 py-2.5 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 hover:text-white text-rose-300 text-xs font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
                                         title="Lock all tables against orders"
                                     >
-                                        <Lock className="w-4 h-4" />
                                         <span>Close All</span>
                                     </button>
 
@@ -1497,10 +1498,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                                         : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
                                                 }`}>
                                                     {isActive ? (
-                                                        <>
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                                            {session.formatted_remaining || 'Active'}
-                                                        </>
+                                                        session.formatted_remaining || 'Active'
                                                     ) : isExpired ? (
                                                         'Expired'
                                                     ) : (

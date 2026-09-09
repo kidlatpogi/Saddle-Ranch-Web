@@ -67,6 +67,7 @@ class TableSessionController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $result,
+            'tables' => $result,
             'branch' => $branchKey,
             'active_count' => $activeCount,
             'closed_count' => $closedCount,

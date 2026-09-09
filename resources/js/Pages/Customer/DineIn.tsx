@@ -702,7 +702,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     <span className="text-[#534434]">&bull;</span>
                                     {tableSession.status === 'active' ? (
                                         <span className="flex items-center gap-1 font-mono text-emerald-300 shrink-0">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                             <Clock className="w-3 h-3 text-emerald-400" />
                                             <span>{formatTimer(sessionSeconds)}</span>
                                         </span>
