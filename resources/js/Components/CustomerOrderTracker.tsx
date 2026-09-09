@@ -224,12 +224,12 @@ export default function CustomerOrderTracker() {
     );
 
     return (
-        <div className={`fixed right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end font-sans transition-all duration-300 ${
-            isOrderPage && hasCartItems ? 'bottom-[98px]' : 'bottom-4'
+        <div className={`fixed right-3 sm:right-6 z-40 flex flex-col items-end font-sans transition-all duration-300 max-w-[calc(100vw-24px)] ${
+            isOrderPage && hasCartItems ? 'bottom-[98px]' : 'bottom-4 sm:bottom-6'
         }`}>
             {/* FLOATING EXPANDED TRACKING PANEL */}
             {isOpen && (
-                <div className="mb-3 w-80 sm:w-96 rounded-2xl bg-[#1c150e]/95 border-2 border-[#f59e0b]/50 shadow-2xl backdrop-blur-md text-[#f0e0d1] overflow-hidden animate-in slide-in-from-bottom-5 duration-200 z-[100000]">
+                <div className="mb-3 w-[calc(100vw-24px)] sm:w-96 max-w-sm rounded-2xl bg-[#1c150e]/95 border-2 border-[#f59e0b]/50 shadow-2xl backdrop-blur-md text-[#f0e0d1] overflow-hidden animate-in slide-in-from-bottom-5 duration-200 z-[100000]">
                     {/* Header */}
                     <div className="p-4 bg-gradient-to-r from-[#261e15] to-[#19120a] border-b border-[#534434] flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
@@ -404,28 +404,30 @@ export default function CustomerOrderTracker() {
             {/* FLOATING TRIGGER BUTTON (ALWAYS VISIBLE WITH Z-[9999]) */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="group relative flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#472a00] font-black text-xs uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/50 hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-[#ffc174]/70"
+                className="group relative flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-[#472a00] font-black text-xs uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/50 hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-[#ffc174]/70 max-w-[calc(100vw-24px)] shrink-0"
                 aria-label="See My Orders"
             >
-                <div className="relative">
-                    <ShoppingBag className="w-5 h-5" />
+                <div className="relative shrink-0">
+                    <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                     {activeOrders.length > 0 && (
                         <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-[#1c150e]" />
                     )}
                 </div>
 
-                <span>
+                <span className="truncate max-w-[140px] sm:max-w-none">
                     {latestActiveOrder ? (
-                        <span className="flex items-center gap-1.5">
-                            <span>#{latestActiveOrder.order_number}:</span>
-                            <span className="capitalize">{latestActiveOrder.status}</span>
+                        <span className="flex items-center gap-1.5 truncate">
+                            <span className="shrink-0">#{latestActiveOrder.order_number}:</span>
+                            <span className="capitalize truncate">{latestActiveOrder.status}</span>
                         </span>
                     ) : (
                         'See My Orders'
                     )}
                 </span>
 
-                {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                <div className="shrink-0">
+                    {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                </div>
             </button>
         </div>
     );

@@ -115,6 +115,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     });
     const [sessionSeconds, setSessionSeconds] = useState<number>(initialTableSession?.remaining_seconds || 0);
     const [showUnlockedToast, setShowUnlockedToast] = useState(false);
+    const [isLockModalOpen, setIsLockModalOpen] = useState<boolean>(initialTableSession ? initialTableSession.status !== 'active' : true);
     const prevStatusRef = useRef(initialTableSession?.status || 'closed');
 
     useEffect(() => {
@@ -130,6 +131,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         setSessionSeconds(sData.remaining_seconds || 0);
                         if (prevStatusRef.current !== 'active' && sData.status === 'active') {
                             setShowUnlockedToast(true);
+                            setIsLockModalOpen(false);
                             setTimeout(() => setShowUnlockedToast(false), 7000);
                         }
                         prevStatusRef.current = sData.status;
@@ -540,6 +542,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         setValidationError('');
 
         if (fulfillmentMode === 'dine_in' && tableSession.status !== 'active') {
+            setIsLockModalOpen(true);
             setValidationError(
                 tableSession.status === 'expired'
                     ? `Dining session for Table #${tableNumber} has expired. Please ask your server or cashier to extend or re-open the table.`
@@ -642,21 +645,118 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         <>
             <Head title={`Table ${tableNumber} In-House Order | Saddle Ranch`} />
 
-            <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
+            <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28 overflow-x-hidden w-full max-w-[100vw]">
 
-                {/* Header matching Order.tsx 1:1 */}
+                {/* Header matching Order.tsx 1:1 - Fully Responsive & Non-Overwhelming */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
+                    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 space-y-2">
 
-                        {/* Top Bar Row 1 */}
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors">
+                        {/* Top Bar Row 1: Back + Unified Table Status Pill + Essential Actions */}
+                        <div className="flex items-center justify-between gap-2 w-full">
+                            {/* Left: Back Arrow + Unified Table Status Pill */}
+                            <div className="flex items-center gap-2 min-w-0">
+                                <Link
+                                    href="/"
+                                    className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors"
+                                    title="Return to Home"
+                                >
                                     <ArrowLeft className="w-4 h-4" />
                                 </Link>
+
+                                {/* Unified Interactive Table & Live Session Pill */}
+                                <button
+                                    type="button"
+                                    onClick={() => tableSession.status !== 'active' && setIsLockModalOpen(true)}
+                                    className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 ${
+                                        tableSession.status === 'active'
+                                            ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-500/20'
+                                            : tableSession.status === 'expired'
+                                            ? 'bg-rose-500/20 border border-rose-500/40 text-rose-300 cursor-pointer hover:bg-rose-500/30'
+                                            : 'bg-[#261e15] border border-amber-500/40 text-[#ffc174] cursor-pointer hover:bg-[#31281f] shadow-sm'
+                                    }`}
+                                    title={tableSession.status !== 'active' ? 'Click to view table unlock details' : 'Table session is active'}
+                                >
+                                    <QrCode className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                                    <span>Table #{tableNumber}</span>
+                                    <span className="text-[#534434]">&bull;</span>
+                                    {tableSession.status === 'active' ? (
+                                        <span className="flex items-center gap-1 font-mono text-emerald-300">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            <Clock className="w-3 h-3 text-emerald-400" />
+                                            <span>{formatTimer(sessionSeconds)}</span>
+                                        </span>
+                                    ) : tableSession.status === 'expired' ? (
+                                        <span className="flex items-center gap-1 text-rose-300">
+                                            <Clock className="w-3 h-3 text-rose-400" />
+                                            <span>Expired</span>
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-1 text-amber-400">
+                                            <Lock className="w-3 h-3 text-amber-500" />
+                                            <span>Locked</span>
+                                        </span>
+                                    )}
+                                </button>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            {/* Right: Actions */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                {/* Call Waiter Pill */}
+                                <button
+                                    onClick={handleCallWaiter}
+                                    className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${
+                                        waiterStatus === 'acknowledged'
+                                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
+                                                : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
+                                    }`}
+                                    title="Call restaurant server"
+                                >
+                                    <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
+                                    <span className="hidden xs:inline">
+                                        {waiterStatus === 'acknowledged'
+                                            ? 'Server On The Way!'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'Waiter Notified'
+                                                : 'Call Waiter'}
+                                    </span>
+                                    <span className="xs:hidden">
+                                        {waiterStatus === 'acknowledged'
+                                            ? 'On The Way'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'Notified'
+                                                : 'Waiter'}
+                                    </span>
+                                </button>
+
+                                {/* Privacy Pill */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                    className="p-1.5 sm:px-2.5 sm:py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Privacy Policy"
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span className="hidden md:inline">Privacy</span>
+                                </button>
+
+                                {/* Return Policy (Desktop Only) */}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setIsReturnModalOpen(true);
+                                    }}
+                                    className="hidden lg:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Return & Cancellation Policy"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Return Policy</span>
+                                </button>
+
+                                {/* Desktop Account / Sign In */}
                                 {currentUser ? (
                                     <button
                                         type="button"
@@ -676,88 +776,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         <span>Sign In</span>
                                     </button>
                                 )}
-
-                                {/* Return Policy Pill */}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setIsReturnModalOpen(true);
-                                    }}
-                                    className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
-                                    title="Return & Cancellation Policy"
-                                >
-                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                    <span>Return Policy</span>
-                                </button>
-
-                                {/* Privacy Policy Pill */}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsPrivacyModalOpen(true)}
-                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
-                                    title="Privacy & Data Safety Policy"
-                                >
-                                    <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                    <span>Privacy</span>
-                                </button>
-
-                                {/* Call Waiter Pill */}
-                                <button
-                                    onClick={handleCallWaiter}
-                                    className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${waiterStatus === 'acknowledged'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
-                                        : waiterStatus === 'pending' || waiterCalled
-                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
-                                            : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
-                                        }`}
-                                >
-                                    <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
-                                    <span>
-                                        {waiterStatus === 'acknowledged'
-                                            ? 'Server On The Way!'
-                                            : waiterStatus === 'pending' || waiterCalled
-                                                ? 'Waiter Notified'
-                                                : 'Call Waiter'}
-                                    </span>
-                                </button>
-
-                                {/* Table Badge & Live Session Pill */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                        <QrCode className="w-3.5 h-3.5" />
-                                        Table #{tableNumber}
-                                    </span>
-                                    {tableSession.status === 'active' ? (
-                                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-[10px] sm:text-xs tracking-wider flex items-center gap-1.5 shrink-0 animate-pulse" title="Session Active">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                            <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                                            <span>{formatTimer(sessionSeconds)}</span>
-                                        </span>
-                                    ) : tableSession.status === 'expired' ? (
-                                        <span className="px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 font-black text-[10px] sm:text-xs tracking-wider flex items-center gap-1 shrink-0" title="Session Expired">
-                                            <Clock className="w-3.5 h-3.5 text-rose-400" />
-                                            <span>Expired</span>
-                                        </span>
-                                    ) : (
-                                        <span className="px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 font-black text-[10px] sm:text-xs tracking-wider flex items-center gap-1 shrink-0" title="Table Locked">
-                                            <Lock className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>Locked</span>
-                                        </span>
-                                    )}
-                                </div>
                             </div>
                         </div>
 
-                        {/* Mobile Viewport Dedicated Sub-Header Banner */}
-                        <div className="flex sm:hidden items-center justify-between text-[11px] font-semibold text-[#d8c3ad] px-0.5">
-                            <span className="flex items-center gap-1.5 text-[#ffc174] font-bold">
-                                <QrCode className="w-3.5 h-3.5 text-[#f59e0b]" /> Saddle Ranch In-House QR Table Order
-                            </span>
-                        </div>
-
-                        {/* Top Bar Row 2 - 80% Search & 20% Account Button (Mobile View) */}
+                        {/* Top Bar Row 2 - Search & Mobile Account */}
                         <div className="flex items-center gap-2 w-full">
                             <div className="relative flex-1">
                                 <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -795,13 +817,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
 
                         {/* Top Bar Row 3 - Category Navigation Tabs */}
-                        <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
+                        <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-4 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors cursor-pointer ${selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
-                                        }`}
+                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors cursor-pointer ${
+                                        selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
+                                    }`}
                                 >
                                     <span>{cat}</span>
                                     {selectedCategory === cat && (
@@ -825,43 +848,97 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 )}
 
-                {/* Table Locked / Session Status Banner */}
-                {fulfillmentMode === 'dine_in' && tableSession.status !== 'active' && (
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-                        <div className={`p-4 rounded-2xl border ${
-                            tableSession.status === 'expired'
-                                ? 'bg-rose-950/40 border-rose-500/40 text-rose-200'
-                                : 'bg-[#1f1a14] border-amber-500/40 text-amber-200'
-                        } flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg`}>
-                            <div className="flex items-start gap-3">
-                                <div className={`p-2 rounded-xl shrink-0 ${
-                                    tableSession.status === 'expired' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'
-                                }`}>
-                                    {tableSession.status === 'expired' ? <Clock className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
-                                </div>
-                                <div>
-                                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                                        {tableSession.status === 'expired' ? `Table #${tableNumber} Session Expired` : `Table #${tableNumber} is Currently Locked`}
-                                    </h4>
-                                    <p className="text-[11px] text-[#d8c3ad] mt-0.5">
-                                        {tableSession.status === 'expired'
-                                            ? 'Dining session has expired. Ask your server to extend the session, or call a waiter below.'
-                                            : 'To prevent remote spam ordering, this table must be opened by staff. Ask your server or call a waiter to activate.'}
-                                    </p>
-                                </div>
-                            </div>
+                {/* MODAL SCRIM: Table Locked / Expired Session (Requested by User) */}
+                {fulfillmentMode === 'dine_in' && tableSession.status !== 'active' && isLockModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="relative w-full max-w-md p-6 sm:p-7 rounded-3xl bg-[#1c150e] border-2 border-amber-500/50 shadow-2xl shadow-black/80 text-center space-y-5 animate-in zoom-in-95 duration-200">
+                            {/* Close Button to preview/browse menu while waiting */}
                             <button
                                 type="button"
-                                onClick={handleCallWaiter}
-                                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-[#3f2000] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-md transition-transform hover:scale-105 cursor-pointer self-stretch sm:self-auto justify-center"
+                                onClick={() => setIsLockModalOpen(false)}
+                                className="absolute top-4 right-4 p-2 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-white transition-colors cursor-pointer"
+                                title="Browse menu while waiting"
                             >
-                                <BellRing className="w-4 h-4" />
-                                <span>Call Server to Unlock</span>
+                                <X className="w-4 h-4" />
                             </button>
+
+                            {/* Glowing Icon */}
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-xl ${
+                                tableSession.status === 'expired'
+                                    ? 'bg-rose-500/20 border border-rose-500/50 text-rose-400 shadow-rose-500/20'
+                                    : 'bg-amber-500/20 border border-amber-500/50 text-amber-400 shadow-amber-500/20'
+                            }`}>
+                                {tableSession.status === 'expired' ? (
+                                    <Clock className="w-8 h-8 text-rose-400" />
+                                ) : (
+                                    <Lock className="w-8 h-8 text-[#f59e0b]" />
+                                )}
+                            </div>
+
+                            {/* Title & Subtitle */}
+                            <div className="space-y-2">
+                                <div className="inline-block px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[#ffc174] font-mono text-[11px] font-bold uppercase tracking-widest">
+                                    Table #{tableNumber} Security
+                                </div>
+                                <h3 className="font-domine text-xl sm:text-2xl font-black text-[#ffc174] tracking-tight">
+                                    {tableSession.status === 'expired'
+                                        ? `Table #${tableNumber} Session Expired`
+                                        : `Table #${tableNumber} is Currently Locked`}
+                                </h3>
+                                <p className="text-xs sm:text-sm text-[#d8c3ad] leading-relaxed max-w-sm mx-auto">
+                                    {tableSession.status === 'expired'
+                                        ? 'Your dining session has ended. To prevent off-premise spam ordering, please ask your server or cashier to extend the session.'
+                                        : 'To prevent remote spam ordering from off-premise scans, this table must be opened by staff before placing orders.'}
+                                </p>
+                            </div>
+
+                            {/* Waiter Status Callout */}
+                            {waiterStatus === 'acknowledged' ? (
+                                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                    <span>Server on the way to unlock your table!</span>
+                                </div>
+                            ) : waiterStatus === 'pending' || waiterCalled ? (
+                                <div className="p-3 rounded-xl bg-amber-500/20 border border-amber-500/40 text-[#ffc174] text-xs font-bold flex items-center justify-center gap-2">
+                                    <BellRing className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+                                    <span>Server notified! They will open your table shortly.</span>
+                                </div>
+                            ) : null}
+
+                            {/* Actions */}
+                            <div className="space-y-2.5 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={handleCallWaiter}
+                                    className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
+                                        waiterStatus === 'acknowledged'
+                                            ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'bg-amber-500/30 text-[#ffc174] border border-[#f59e0b]'
+                                                : 'bg-gradient-to-r from-[#f59e0b] via-[#ea580c] to-[#d97706] hover:brightness-110 text-[#3f2000] shadow-amber-500/30'
+                                    }`}
+                                >
+                                    <BellRing className={`w-4 h-4 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce' : ''}`} />
+                                    <span>
+                                        {waiterStatus === 'acknowledged'
+                                            ? 'Server On The Way!'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'Waiter Notified'
+                                                : 'Call Server to Unlock'}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLockModalOpen(false)}
+                                    className="w-full py-2.5 px-4 rounded-xl bg-[#261e15] hover:bg-[#31281f] text-[#d8c3ad] hover:text-[#ffc174] text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                    Preview Menu While Waiting
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
-
                 {/* Call Waiter Toast Alert */}
                 {showWaiterToast && (
                     <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${waiterStatus === 'acknowledged'
