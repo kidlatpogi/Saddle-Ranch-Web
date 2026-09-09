@@ -163,6 +163,17 @@ class TableSessionController extends Controller
             ],
         ]);
 
+        // Automatically resolve any pending table unlock requests for this table
+        $unlockReqs = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
+        $rawNum = $validated['table_number'];
+        $filteredReqs = array_values(array_filter($unlockReqs, function ($r) use ($norm, $rawNum) {
+            $rNum = $r['table_number'] ?? '';
+            return $rNum !== $norm && $rNum !== $rawNum;
+        }));
+        \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $filteredReqs, 1800);
+        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$norm}", ['status' => 'unlocked', 'updated_at' => time()], 300);
+        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$rawNum}", ['status' => 'unlocked', 'updated_at' => time()], 300);
+
         return response()->json([
             'status' => 'success',
             'message' => "Table #{$norm} dining session opened ({$duration} mins).",

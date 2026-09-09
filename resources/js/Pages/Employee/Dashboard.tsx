@@ -149,12 +149,46 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         } catch (e) {}
     };
 
+    // Dedicated Table Session Unlock Requests (Separate from Waiter Assistance)
+    const [activeUnlockRequests, setActiveUnlockRequests] = useState<any[]>([]);
+
+    const fetchUnlockRequests = async () => {
+        try {
+            const res = await fetch('/api/v1/table-unlock-requests');
+            if (res.ok) {
+                const json = await res.json();
+                setActiveUnlockRequests(json.data || []);
+            }
+        } catch (e) {}
+    };
+
+    const handleDismissUnlockRequest = async (tableNumber: string) => {
+        try {
+            await fetch('/api/v1/table-unlock-requests/dismiss', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({ table_number: tableNumber }),
+            });
+            setActiveUnlockRequests((prev) => prev.filter((r) => r.table_number !== tableNumber));
+        } catch (e) {}
+    };
+
+    const handleApproveUnlockRequest = async (tableNumber: string, durationMinutes = 60) => {
+        await handleOpenSession(tableNumber, durationMinutes);
+        await handleDismissUnlockRequest(tableNumber);
+    };
+
     useEffect(() => {
         fetchLatestOrders();
         fetchWaiterCalls();
+        fetchUnlockRequests();
         const interval = setInterval(() => {
             fetchLatestOrders();
             fetchWaiterCalls();
+            fetchUnlockRequests();
         }, 2000);
         return () => clearInterval(interval);
     }, []);
@@ -771,24 +805,52 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
 
                             <div className="flex items-center gap-2 shrink-0 flex-wrap">
                                 {activeWaiterCalls.map((c) => (
-                                    <div key={c.id || c.table_number} className="flex items-center gap-2">
+                                    <button
+                                        key={c.id || c.table_number}
+                                        onClick={() => handleDismissWaiterCall(c.table_number)}
+                                        className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#121213] font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-amber-300 active:scale-95 flex items-center gap-1.5"
+                                        title="Acknowledge waiter call and notify diner server is on the way"
+                                    >
+                                        <Bell className="w-3.5 h-3.5" />
+                                        <span>Acknowledge Call (Table #{c.table_number})</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* DEDICATED TABLE UNLOCK REQUEST BANNER (Strictly QR Table Session Unlock) */}
+                    {activeUnlockRequests.length > 0 && (
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-500/25 via-indigo-600/20 to-cyan-500/25 border-2 border-sky-500/60 shadow-xl shadow-sky-500/10 flex items-center justify-between gap-4 flex-wrap animate-in slide-in-from-top-4 duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 border border-sky-500/40">
+                                    <Lock className="w-6 h-6 text-sky-400 animate-pulse" />
+                                </div>
+                                <div>
+                                    <div className="font-black text-sm uppercase tracking-wider text-sky-300">TABLE UNLOCK REQUESTED!</div>
+                                    <div className="text-xs text-[#d8c3ad] font-bold">
+                                        {activeUnlockRequests.map((r) => `Table #${r.table_number} (${r.branch || 'Bulihan'} Branch)`).join(' ? ')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                                {activeUnlockRequests.map((r) => (
+                                    <div key={r.id || r.table_number} className="flex items-center gap-2">
                                         <button
-                                            onClick={async () => {
-                                                await handleOpenSession(String(c.table_number), 60);
-                                                handleDismissWaiterCall(c.table_number);
-                                            }}
-                                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-emerald-400 flex items-center gap-1.5 active:scale-95"
-                                            title="Unlock Table Session for 60 minutes and clear notification"
+                                            onClick={() => handleApproveUnlockRequest(String(r.table_number), 60)}
+                                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-emerald-400 active:scale-95 flex items-center gap-1.5"
+                                            title="Unlock Table Session for 60 minutes"
                                         >
                                             <Lock className="w-3.5 h-3.5 text-amber-300" />
-                                            <span>Unlock Table #{c.table_number} (60m)</span>
+                                            <span>Unlock Table #{r.table_number} (60m)</span>
                                         </button>
                                         <button
-                                            onClick={() => handleDismissWaiterCall(c.table_number)}
-                                            className="px-3.5 py-2 rounded-xl bg-[#121213] text-[#ffc174] hover:bg-black font-bold text-xs transition-all shadow cursor-pointer border border-[#f59e0b]"
-                                            title="Dismiss notification buzzer only without unlocking"
+                                            onClick={() => handleDismissUnlockRequest(r.table_number)}
+                                            className="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-black text-[#a1a1aa] hover:text-white font-bold text-xs transition-all border border-[#3f3f46] cursor-pointer"
+                                            title="Dismiss unlock notification"
                                         >
-                                            Dismiss Buzzer
+                                            Dismiss
                                         </button>
                                     </div>
                                 ))}

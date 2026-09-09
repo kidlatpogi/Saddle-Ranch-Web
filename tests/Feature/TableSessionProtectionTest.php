@@ -224,4 +224,56 @@ class TableSessionProtectionTest extends TestCase
         ]);
         $this->assertGreaterThan(0, $response2->json('data.remaining_seconds'));
     }
+
+    public function test_waiter_call_and_table_unlock_are_two_distinct_functions(): void
+    {
+        // 1. Calling waiter does NOT unlock the table
+        $waiterResponse = $this->postJson('/api/v1/waiter-call', [
+            'table_number' => '07',
+            'branch' => 'Bulihan',
+        ]);
+        $waiterResponse->assertOk();
+
+        // Ensure table remains closed
+        $this->assertFalse(TableSession::isTableActive('07', 'Bulihan'));
+
+        // Waiter calls has Table 07, Unlock requests does NOT
+        $activeWaiters = $this->getJson('/api/v1/waiter-calls')->json('data');
+        $this->assertTrue(collect($activeWaiters)->contains('table_number', '07'));
+
+        $activeUnlocks = $this->getJson('/api/v1/table-unlock-requests')->json('data');
+        $this->assertFalse(collect($activeUnlocks)->contains('table_number', '07'));
+
+        // 2. Dismissing/Acknowledging waiter call does NOT unlock the table
+        $dismissWaiter = $this->postJson('/api/v1/waiter-calls/dismiss', [
+            'table_number' => '07',
+        ]);
+        $dismissWaiter->assertOk();
+        $this->assertFalse(TableSession::isTableActive('07', 'Bulihan'));
+
+        // 3. Requesting table unlock is a separate function
+        $unlockReq = $this->postJson('/api/v1/table-unlock-request', [
+            'table_number' => '07',
+            'branch' => 'Bulihan',
+        ]);
+        $unlockReq->assertOk();
+
+        $activeUnlocksAfter = $this->getJson('/api/v1/table-unlock-requests')->json('data');
+        $this->assertTrue(collect($activeUnlocksAfter)->contains('table_number', '07'));
+
+        // 4. Staff opening the table unlocks it and resolves the unlock request
+        $staff = User::factory()->create(['role' => 'cashier']);
+        $openResponse = $this->actingAs($staff)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '07',
+            'branch' => 'Bulihan',
+            'duration_minutes' => 60,
+        ]);
+        $openResponse->assertOk();
+
+        $this->assertTrue(TableSession::isTableActive('07', 'Bulihan'));
+
+        // Unlock request is resolved/cleared
+        $activeUnlocksFinal = $this->getJson('/api/v1/table-unlock-requests')->json('data');
+        $this->assertFalse(collect($activeUnlocksFinal)->contains('table_number', '07'));
+    }
 }

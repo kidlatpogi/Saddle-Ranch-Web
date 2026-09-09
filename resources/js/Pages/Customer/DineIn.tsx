@@ -168,10 +168,31 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    // Call Waiter State
+    // Call Waiter State (Strictly Waiter Assistance)
     const [waiterCalled, setWaiterCalled] = useState(false);
     const [showWaiterToast, setShowWaiterToast] = useState(false);
     const [waiterStatus, setWaiterStatus] = useState<'idle' | 'pending' | 'acknowledged'>('idle');
+
+    // Dedicated QR Table Session Unlock State (Completely separate from calling waiter)
+    const [unlockRequestStatus, setUnlockRequestStatus] = useState<'idle' | 'pending' | 'unlocked'>('idle');
+
+    const handleRequestTableUnlock = async () => {
+        try {
+            setUnlockRequestStatus('pending');
+            await fetch('/api/v1/table-unlock-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNumber,
+                    branch: selectedBranch || 'Bulihan',
+                }),
+            });
+        } catch (e) {}
+    };
 
     useEffect(() => {
         let ackTimer: NodeJS.Timeout;
@@ -879,39 +900,31 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </p>
                             </div>
 
-                            {/* Waiter Status Callout */}
-                            {waiterStatus === 'acknowledged' ? (
-                                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                                    <span>Server on the way to unlock your table!</span>
-                                </div>
-                            ) : waiterStatus === 'pending' || waiterCalled ? (
-                                <div className="p-3 rounded-xl bg-amber-500/20 border border-amber-500/40 text-[#ffc174] text-xs font-bold flex items-center justify-center gap-2">
-                                    <BellRing className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
-                                    <span>Server notified! They will open your table shortly.</span>
+                            {/* Unlock Request Status Callout */}
+                            {unlockRequestStatus === 'pending' ? (
+                                <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
+                                    <Lock className="w-4 h-4 text-sky-400 shrink-0" />
+                                    <span>Unlock request sent! Cashier or staff will activate Table #{tableNumber} shortly.</span>
                                 </div>
                             ) : null}
 
-                            {/* Actions */}
+                            {/* Actions: Distinct Unlock Button */}
                             <div className="space-y-2.5 pt-1">
                                 <button
                                     type="button"
-                                    onClick={handleCallWaiter}
+                                    disabled={unlockRequestStatus === 'pending'}
+                                    onClick={handleRequestTableUnlock}
                                     className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
-                                        waiterStatus === 'acknowledged'
-                                            ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                                            : waiterStatus === 'pending' || waiterCalled
-                                                ? 'bg-amber-500/30 text-[#ffc174] border border-[#f59e0b]'
-                                                : 'bg-gradient-to-r from-[#f59e0b] via-[#ea580c] to-[#d97706] hover:brightness-110 text-[#3f2000] shadow-amber-500/30'
+                                        unlockRequestStatus === 'pending'
+                                            ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 cursor-default'
+                                            : 'bg-gradient-to-r from-[#f59e0b] via-[#ea580c] to-[#d97706] hover:brightness-110 text-[#3f2000] shadow-amber-500/30 active:scale-[0.98]'
                                     }`}
                                 >
-                                    <BellRing className={`w-4 h-4 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce' : ''}`} />
+                                    <Lock className={`w-4 h-4 ${unlockRequestStatus === 'pending' ? 'animate-pulse' : ''}`} />
                                     <span>
-                                        {waiterStatus === 'acknowledged'
-                                            ? 'Server On The Way!'
-                                            : waiterStatus === 'pending' || waiterCalled
-                                                ? 'Waiter Notified'
-                                                : 'Call Server to Unlock'}
+                                        {unlockRequestStatus === 'pending'
+                                            ? 'Unlock Requested ? Waiting for Staff'
+                                            : 'Request Table Unlock'}
                                     </span>
                                 </button>
 
