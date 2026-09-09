@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import {
     ShoppingBag,
@@ -29,7 +29,7 @@ import {
     User,
     RotateCcw,
     Star,
-    Sparkles
+    ShieldAlert
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import { PageProps } from '@/types';
@@ -53,14 +53,30 @@ interface Product {
     is_active: boolean;
 }
 
+export interface TableSessionData {
+    id?: number | null;
+    table_number: string;
+    branch: string;
+    status: 'active' | 'closed' | 'expired';
+    opened_at?: string | null;
+    expires_at?: string | null;
+    duration_minutes?: number;
+    remaining_seconds: number;
+    formatted_remaining: string;
+    opened_by?: string | null;
+    is_active?: boolean;
+}
+
 interface DineInProps {
     products?: Product[];
     tableNumber?: string;
+    initialTableSession?: TableSessionData;
+    completedOrder?: any;
 }
 
 type CategoryType = 'Popular' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
 
-export default function DineInOrder({ products = [], tableNumber: initialTableNumber = '05' }: DineInProps) {
+export default function DineInOrder({ products = [], tableNumber: initialTableNumber = '05', initialTableSession, completedOrder: initialCompletedOrder }: DineInProps) {
     const { flash, auth } = usePage<PageProps>().props;
     const authUser: any = auth?.user;
     const [currentUser, setCurrentUser] = useState<any>(authUser);
@@ -88,10 +104,97 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Popular');
     const [isBasketSheetOpen, setIsBasketSheetOpen] = useState(false);
 
-    // Call Waiter State
+    // Table Session State & Live Polling
+    const [tableSession, setTableSession] = useState<TableSessionData>(initialTableSession || {
+        table_number: tableNumber,
+        branch: selectedBranch,
+        status: 'closed',
+        remaining_seconds: 0,
+        formatted_remaining: 'Closed',
+        is_active: false,
+    });
+    const [sessionSeconds, setSessionSeconds] = useState<number>(initialTableSession?.remaining_seconds || 0);
+    const [showUnlockedToast, setShowUnlockedToast] = useState(false);
+    const [isLockModalOpen, setIsLockModalOpen] = useState<boolean>(initialTableSession ? initialTableSession.status !== 'active' : true);
+    const prevStatusRef = useRef(initialTableSession?.status || 'closed');
+
+    useEffect(() => {
+        let isMounted = true;
+        const pollSession = async () => {
+            try {
+                const res = await fetch(`/api/v1/table-sessions/${encodeURIComponent(tableNumber)}?branch=${encodeURIComponent(selectedBranch)}`);
+                if (res.ok && isMounted) {
+                    const json = await res.json();
+                    if (json.status === 'success' && json.data) {
+                        const sData = json.data;
+                        setTableSession(sData);
+                        setSessionSeconds(sData.remaining_seconds || 0);
+                        if (prevStatusRef.current !== 'active' && sData.status === 'active') {
+                            setShowUnlockedToast(true);
+                            setIsLockModalOpen(false);
+                            setTimeout(() => setShowUnlockedToast(false), 3000);
+                        }
+                        prevStatusRef.current = sData.status;
+                    }
+                }
+            } catch (e) {}
+        };
+
+        pollSession();
+        const sessionInterval = setInterval(pollSession, 2500);
+        return () => {
+            isMounted = false;
+            clearInterval(sessionInterval);
+        };
+    }, [tableNumber, selectedBranch]);
+
+    useEffect(() => {
+        if (tableSession.status !== 'active' || sessionSeconds <= 0) return;
+        const ticker = setInterval(() => {
+            setSessionSeconds((prev) => {
+                if (prev <= 1) {
+                    setTableSession((curr) => ({ ...curr, status: 'expired', is_active: false }));
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(ticker);
+    }, [tableSession.status, sessionSeconds]);
+
+    const formatTimer = (secs: number) => {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    // Call Waiter State (Strictly Waiter Assistance)
     const [waiterCalled, setWaiterCalled] = useState(false);
     const [showWaiterToast, setShowWaiterToast] = useState(false);
     const [waiterStatus, setWaiterStatus] = useState<'idle' | 'pending' | 'acknowledged'>('idle');
+    const lastAckTimestampRef = useRef<number>(0);
+    const waiterToastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Dedicated QR Table Session Unlock State (Completely separate from calling waiter)
+    const [unlockRequestStatus, setUnlockRequestStatus] = useState<'idle' | 'pending' | 'unlocked'>('idle');
+
+    const handleRequestTableUnlock = async () => {
+        try {
+            setUnlockRequestStatus('pending');
+            await fetch('/api/v1/table-unlock-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNumber,
+                    branch: selectedBranch || 'Bulihan',
+                }),
+            });
+        } catch (e) {}
+    };
 
     useEffect(() => {
         let ackTimer: NodeJS.Timeout;
@@ -101,17 +204,19 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 if (res.ok) {
                     const json = await res.json();
                     const currentStatus = json.data?.status || 'idle';
+                    const updatedAt = json.data?.updated_at || 0;
                     setWaiterStatus(currentStatus);
-                    if (currentStatus === 'acknowledged') {
+                    if (currentStatus === 'acknowledged' && updatedAt !== lastAckTimestampRef.current) {
+                        lastAckTimestampRef.current = updatedAt;
                         setWaiterCalled(false);
                         setShowWaiterToast(true);
 
-                        // Keep "Server on the way" active for 12 seconds, then revert back to Call Waiter
+                        // Staff Acknowledged banner only lasts 3 seconds at QR ordering
                         clearTimeout(ackTimer);
                         ackTimer = setTimeout(() => {
-                            setWaiterStatus('idle');
                             setShowWaiterToast(false);
-                        }, 12000);
+                            setWaiterStatus('idle');
+                        }, 3000);
                     }
                 }
             } catch (e) { }
@@ -336,19 +441,57 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     };
 
     useEffect(() => {
+        if (initialCompletedOrder) {
+            setCompletedOrder(initialCompletedOrder);
+            setIsPaymentConfirmed(initialCompletedOrder.payment_status === 'paid');
+            clearCart();
+            try {
+                const existing = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+                const updated = Array.from(new Set([initialCompletedOrder.order_number, ...existing]));
+                localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                localStorage.setItem('saddle_ranch_last_order', initialCompletedOrder.order_number);
+                window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: initialCompletedOrder }));
+            } catch (e) {}
+        }
+    }, [initialCompletedOrder]);
+
+    useEffect(() => {
         if (flash?.order) {
             setCompletedOrder(flash.order);
+            setIsPaymentConfirmed(flash.order.payment_status === 'paid');
             clearCart();
+            try {
+                const existing = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+                const updated = Array.from(new Set([flash.order.order_number, ...existing]));
+                localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                localStorage.setItem('saddle_ranch_last_order', flash.order.order_number);
+                window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: flash.order }));
+            } catch (e) {}
         }
         const params = new URLSearchParams(window.location.search);
-        if (params.get('success') === '1' && params.get('order_number')) {
-            const orderNum = params.get('order_number');
-            setCompletedOrder({
-                order_number: orderNum,
-                total_amount: '0.00',
-                customer_name: 'Guest',
-            });
+        const orderNum = params.get('order_number');
+        const isSuccess = params.get('success') === '1' || params.get('paid') === '1';
+
+        if (isSuccess && orderNum) {
             clearCart();
+            fetch(`/api/v1/orders/track?query=${encodeURIComponent(orderNum)}`)
+                .then(res => res.json())
+                .then(json => {
+                    const found = json.data && json.data.length > 0 ? json.data[0] : null;
+                    if (found) {
+                        setCompletedOrder(found);
+                        setIsPaymentConfirmed(found.payment_status === 'paid');
+                        try {
+                            const existing = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+                            const updated = Array.from(new Set([found.order_number, ...existing]));
+                            localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                            localStorage.setItem('saddle_ranch_last_order', found.order_number);
+                            window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: found }));
+                        } catch (e) {}
+                    }
+                })
+                .catch(console.error);
+
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, [flash]);
@@ -356,6 +499,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const handleCallWaiter = async () => {
         setWaiterCalled(true);
         setShowWaiterToast(true);
+
+        if (waiterToastTimerRef.current) {
+            clearTimeout(waiterToastTimerRef.current);
+        }
+        // Staff Notified banner only lasts 3 seconds at QR ordering
+        waiterToastTimerRef.current = setTimeout(() => {
+            setShowWaiterToast(false);
+        }, 3000);
 
         try {
             await fetch('/api/v1/waiter-call', {
@@ -371,10 +522,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 }),
             });
         } catch (e) { }
-
-        setTimeout(() => {
-            setShowWaiterToast(false);
-        }, 6000);
     };
 
     const handleApplyVoucher = async (e?: React.FormEvent) => {
@@ -461,6 +608,16 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         e.preventDefault();
         setValidationError('');
 
+        if (fulfillmentMode === 'dine_in' && tableSession.status !== 'active') {
+            setIsLockModalOpen(true);
+            setValidationError(
+                tableSession.status === 'expired'
+                    ? `Dining session for Table #${tableNumber} has expired. Please ask your server or cashier to extend or re-open the table.`
+                    : `Table #${tableNumber} is currently locked. Please ask your server or cashier to open this table session to start ordering.`
+            );
+            return;
+        }
+
         if (cart.length === 0) {
             setValidationError('Your basket is empty. Please add sizzling items before placing your order.');
             return;
@@ -538,6 +695,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 const itemsErrKey = Object.keys(errors).find(k => k.startsWith('items'));
                 if (errors.items) {
                     setValidationError(errors.items);
+                } else if (errors.payment) {
+                    setValidationError(errors.payment);
                 } else if (itemsErrKey) {
                     setValidationError('One or more selected items are no longer available. Please update your cart.');
                 } else {
@@ -555,21 +714,117 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         <>
             <Head title={`Table ${tableNumber} In-House Order | Saddle Ranch`} />
 
-            <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28">
+            <div className="min-h-screen bg-[#121213] text-[#f0e0d1] font-sans antialiased pb-28 overflow-x-hidden w-full max-w-[100vw]">
 
-                {/* Header matching Order.tsx 1:1 */}
+                {/* Header matching Order.tsx 1:1 - Fully Responsive & Non-Overwhelming */}
                 <header className="sticky top-0 z-40 bg-[#1A1A1B]/95 backdrop-blur-md border-b border-[#534434]/40 shadow-xl">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2.5">
+                    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 space-y-2">
 
-                        {/* Top Bar Row 1 */}
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                                <Link href="/" className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors">
+                        {/* Top Bar Row 1: Back + Compact Table Status Pill + Essential Actions (Zero Overlap Guaranteed) */}
+                        <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full">
+                            {/* Left: Back Arrow + Compact Unified Table Status Pill */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                <Link
+                                    href="/"
+                                    className="w-8 h-8 rounded-full bg-[#261e15] border border-[#534434] text-[#ffc174] flex items-center justify-center shrink-0 hover:bg-[#31281f] transition-colors"
+                                    title="Return to Home"
+                                >
                                     <ArrowLeft className="w-4 h-4" />
                                 </Link>
+
+                                {/* Compact Unified Table & Live Session Pill */}
+                                <button
+                                    type="button"
+                                    onClick={() => tableSession.status !== 'active' && setIsLockModalOpen(true)}
+                                    className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all shrink-0 ${
+                                        tableSession.status === 'active'
+                                            ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-500/20'
+                                            : tableSession.status === 'expired'
+                                            ? 'bg-rose-500/20 border border-rose-500/40 text-rose-300 cursor-pointer hover:bg-rose-500/30'
+                                            : 'bg-[#261e15] border border-amber-500/40 text-[#ffc174] cursor-pointer hover:bg-[#31281f] shadow-sm'
+                                    }`}
+                                    title={tableSession.status !== 'active' ? 'Click to view table unlock details' : 'Table session is active'}
+                                >
+                                    <QrCode className="w-3.5 h-3.5 text-[#f59e0b] shrink-0" />
+                                    <span>T-{tableNumber}</span>
+                                    <span className="text-[#534434]">&bull;</span>
+                                    {tableSession.status === 'active' ? (
+                                        <span className="flex items-center gap-1 font-mono text-emerald-300 shrink-0">
+                                            <Clock className="w-3 h-3 text-emerald-400" />
+                                            <span>{formatTimer(sessionSeconds)}</span>
+                                        </span>
+                                    ) : tableSession.status === 'expired' ? (
+                                        <span className="flex items-center gap-1 text-rose-300 shrink-0">
+                                            <Clock className="w-3 h-3 text-rose-400" />
+                                            <span className="hidden xs:inline">Expired</span>
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-1 text-amber-400 shrink-0">
+                                            <Lock className="w-3 h-3 text-amber-500" />
+                                            <span className="hidden xs:inline">Locked</span>
+                                        </span>
+                                    )}
+                                </button>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            {/* Right: Actions */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                {/* Call Waiter Pill */}
+                                <button
+                                    onClick={handleCallWaiter}
+                                    className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer shrink-0 ${
+                                        waiterStatus === 'acknowledged'
+                                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
+                                                : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
+                                    }`}
+                                    title="Call restaurant server"
+                                >
+                                    <BellRing className={`w-3.5 h-3.5 shrink-0 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
+                                    <span className="hidden sm:inline">
+                                        {waiterStatus === 'acknowledged'
+                                            ? 'Server On The Way!'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'Waiter Notified'
+                                                : 'Call Waiter'}
+                                    </span>
+                                    <span className="sm:hidden">
+                                        {waiterStatus === 'acknowledged'
+                                            ? 'On Way'
+                                            : waiterStatus === 'pending' || waiterCalled
+                                                ? 'Notified'
+                                                : 'Waiter'}
+                                    </span>
+                                </button>
+
+                                {/* Privacy Pill */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPrivacyModalOpen(true)}
+                                    className="p-1.5 sm:px-2.5 sm:py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Privacy Policy"
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span className="hidden md:inline">Privacy</span>
+                                </button>
+
+                                {/* Return Policy (Desktop Only) */}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setIsReturnModalOpen(true);
+                                    }}
+                                    className="hidden lg:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
+                                    title="Return & Cancellation Policy"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
+                                    <span>Return Policy</span>
+                                </button>
+
+                                {/* Desktop Account / Sign In */}
                                 {currentUser ? (
                                     <button
                                         type="button"
@@ -589,69 +844,10 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                         <span>Sign In</span>
                                     </button>
                                 )}
-
-                                {/* Return Policy Pill */}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setIsReturnModalOpen(true);
-                                    }}
-                                    className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold items-center gap-1 shrink-0 shadow-sm cursor-pointer"
-                                    title="Return & Cancellation Policy"
-                                >
-                                    <RotateCcw className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                    <span>Return Policy</span>
-                                </button>
-
-                                {/* Privacy Policy Pill */}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsPrivacyModalOpen(true)}
-                                    className="px-2.5 py-1 rounded-full bg-[#261e15] border border-[#534434] text-[#d8c3ad] hover:text-[#ffc174] text-[10px] sm:text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
-                                    title="Privacy & Data Safety Policy"
-                                >
-                                    <ShieldCheck className="w-3.5 h-3.5 text-[#f59e0b]" />
-                                    <span>Privacy</span>
-                                </button>
-
-                                {/* Call Waiter Pill */}
-                                <button
-                                    onClick={handleCallWaiter}
-                                    className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all btn-bevel cursor-pointer ${waiterStatus === 'acknowledged'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-emerald-500/20'
-                                        : waiterStatus === 'pending' || waiterCalled
-                                            ? 'bg-amber-500/20 text-[#ffc174] border border-[#f59e0b]'
-                                            : 'bg-gradient-to-r from-amber-500 to-orange-500 text-[#472a00] hover:scale-105'
-                                        }`}
-                                >
-                                    <BellRing className={`w-3.5 h-3.5 ${waiterStatus === 'pending' || waiterCalled ? 'animate-bounce text-[#f59e0b]' : waiterStatus === 'acknowledged' ? 'text-emerald-400' : ''}`} />
-                                    <span>
-                                        {waiterStatus === 'acknowledged'
-                                            ? 'Server On The Way!'
-                                            : waiterStatus === 'pending' || waiterCalled
-                                                ? 'Waiter Notified'
-                                                : 'Call Waiter'}
-                                    </span>
-                                </button>
-
-                                {/* Table Badge Pill */}
-                                <span className="px-3 py-1 rounded-full bg-[#f59e0b] text-[#472a00] font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm">
-                                    <QrCode className="w-3.5 h-3.5" />
-                                    Table #{tableNumber}
-                                </span>
                             </div>
                         </div>
 
-                        {/* Mobile Viewport Dedicated Sub-Header Banner */}
-                        <div className="flex sm:hidden items-center justify-between text-[11px] font-semibold text-[#d8c3ad] px-0.5">
-                            <span className="flex items-center gap-1.5 text-[#ffc174] font-bold">
-                                <QrCode className="w-3.5 h-3.5 text-[#f59e0b]" /> Saddle Ranch In-House QR Table Order
-                            </span>
-                        </div>
-
-                        {/* Top Bar Row 2 - 80% Search & 20% Account Button (Mobile View) */}
+                        {/* Top Bar Row 2 - Search & Mobile Account */}
                         <div className="flex items-center gap-2 w-full">
                             <div className="relative flex-1">
                                 <Search className="w-4 h-4 text-[#8c7a6b] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -689,13 +885,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         </div>
 
                         {/* Top Bar Row 3 - Category Navigation Tabs */}
-                        <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-5 sm:gap-8 scrollbar-none">
+                        <div className="overflow-x-auto border-t border-[#262627] pt-2 flex items-center gap-4 sm:gap-8 scrollbar-none">
                             {(['Popular', 'Rice Meals', 'Authentic Filipino', 'Barkada Platters', 'Drinks & Extra Rice'] as CategoryType[]).map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors cursor-pointer ${selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
-                                        }`}
+                                    className={`text-xs font-bold whitespace-nowrap relative pb-1 transition-colors cursor-pointer ${
+                                        selectedCategory === cat ? 'text-[#ffc174] font-black' : 'text-[#8c7a6b] hover:text-white'
+                                    }`}
                                 >
                                     <span>{cat}</span>
                                     {selectedCategory === cat && (
@@ -708,8 +905,88 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                     </div>
                 </header>
 
-                {/* Call Waiter Toast Alert */}
-                {showWaiterToast && (
+                {/* Real-Time Table Unlocked Toast Notification */}
+                {showUnlockedToast && (
+                    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl bg-emerald-600 text-white font-bold shadow-2xl flex items-center gap-3 border border-emerald-400 animate-in slide-in-from-top-4 duration-300">
+                        <div className="text-xs leading-snug">
+                            <div className="font-black text-sm uppercase">Table #{tableNumber} Unlocked!</div>
+                            <div>Dining session is active. You may now place your order!</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL SCRIM: Table Locked / Expired Session (Requested by User: Removed 'Table # Security' & 'X' button) */}
+                {fulfillmentMode === 'dine_in' && tableSession.status !== 'active' && isLockModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#1c150e] border-2 border-amber-500/50 shadow-2xl shadow-black/80 text-center space-y-5 animate-in zoom-in-95 duration-200">
+                            {/* Glowing Icon */}
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-xl ${
+                                tableSession.status === 'expired'
+                                    ? 'bg-rose-500/20 border border-rose-500/50 text-rose-400 shadow-rose-500/20'
+                                    : 'bg-amber-500/20 border border-amber-500/50 text-amber-400 shadow-amber-500/20'
+                            }`}>
+                                {tableSession.status === 'expired' ? (
+                                    <Clock className="w-8 h-8 text-rose-400" />
+                                ) : (
+                                    <Lock className="w-8 h-8 text-[#f59e0b]" />
+                                )}
+                            </div>
+
+                            {/* Title & Subtitle */}
+                            <div className="space-y-2">
+                                <h3 className="font-domine text-xl sm:text-2xl font-black text-[#ffc174] tracking-tight">
+                                    {tableSession.status === 'expired'
+                                        ? `Table #${tableNumber} Session Expired`
+                                        : `Table #${tableNumber} is Currently Locked`}
+                                </h3>
+                                <p className="text-xs sm:text-sm text-[#d8c3ad] leading-relaxed max-w-sm mx-auto">
+                                    {tableSession.status === 'expired'
+                                        ? 'Your dining session has ended. To prevent off-premise spam ordering, please ask your server or cashier to extend the session.'
+                                        : 'To prevent remote spam ordering from off-premise scans, this table must be opened by staff before placing orders.'}
+                                </p>
+                            </div>
+
+                            {/* Unlock Request Status Callout */}
+                            {unlockRequestStatus === 'pending' ? (
+                                <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
+                                    <Lock className="w-4 h-4 text-sky-400 shrink-0" />
+                                    <span>Unlock request sent! Cashier or staff will activate Table #{tableNumber} shortly.</span>
+                                </div>
+                            ) : null}
+
+                            {/* Actions: Distinct Unlock Button */}
+                            <div className="space-y-2.5 pt-1">
+                                <button
+                                    type="button"
+                                    disabled={unlockRequestStatus === 'pending'}
+                                    onClick={handleRequestTableUnlock}
+                                    className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
+                                        unlockRequestStatus === 'pending'
+                                            ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 cursor-default'
+                                            : 'bg-gradient-to-r from-[#f59e0b] via-[#ea580c] to-[#d97706] hover:brightness-110 text-[#3f2000] shadow-amber-500/30 active:scale-[0.98]'
+                                    }`}
+                                >
+                                    <Lock className={`w-4 h-4 ${unlockRequestStatus === 'pending' ? 'animate-pulse' : ''}`} />
+                                    <span>
+                                        {unlockRequestStatus === 'pending'
+                                            ? 'Unlock Requested ? Waiting for Staff'
+                                            : 'Request Table Unlock'}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLockModalOpen(false)}
+                                    className="w-full py-2.5 px-4 rounded-xl bg-[#261e15] hover:bg-[#31281f] text-[#d8c3ad] hover:text-[#ffc174] text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                    Preview Menu While Waiting
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* Call Waiter Toast Alert (Hidden when Modal Scrim is open to avoid visual overlap) */}
+                {showWaiterToast && !isLockModalOpen && (
                     <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border animate-in slide-in-from-top-4 duration-300 ${waiterStatus === 'acknowledged'
                         ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-600/30'
                         : 'bg-amber-500 text-[#472a00] border-[#ffc174]'
@@ -1241,6 +1518,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                             <span className="text-[#ffc174] font-mono text-lg">₱ {finalTotal.toFixed(2)}</span>
                                         </div>
 
+                                        {validationError && (
+                                            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-medium flex items-center gap-2.5">
+                                                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                                                <span>{validationError}</span>
+                                            </div>
+                                        )}
+
                                         <button
                                             type="submit"
                                             disabled={isSubmitting}
@@ -1533,6 +1817,13 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     </div>
                                 </div>
 
+                                {validationError && (
+                                    <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-medium flex items-center gap-2.5">
+                                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                                        <span>{validationError}</span>
+                                    </div>
+                                )}
+
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
@@ -1594,69 +1885,26 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                 </div>
                             </div>
 
-                            {/* QRPH PAYMENT FIRST SECTION */}
-                            {completedOrder.payment_method?.includes('QRPh') && (
-                                <div className="p-4 rounded-2xl bg-[#121213] border-2 border-[#f59e0b] text-left space-y-3 shadow-xl">
-                                    <div className="flex items-center justify-between border-b border-[#3D3126] pb-2">
-                                        <div className="flex items-center gap-1.5 text-[#ffc174] font-bold text-xs">
-                                            <QrCode className="w-4 h-4 text-[#f59e0b]" />
-                                            <span>Payment First (QRPh / e-Wallets)</span>
-                                        </div>
-                                        <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black">
-                                            Required
-                                        </span>
+                            {/* PAYMENT RECEIVED BANNER FOR ONLINE / PAYMONGO / PAID ORDERS */}
+                            {completedOrder.payment_status === 'paid' ? (
+                                <div className="p-4 rounded-2xl bg-[#121213] border border-emerald-500/50 text-left space-y-2 shadow-xl animate-in fade-in">
+                                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                        <span>Payment Received & Verified!</span>
                                     </div>
-
                                     <p className="text-[11px] text-[#f0e0d1] leading-relaxed">
-                                        Please scan the official QRPh code below to settle <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> via GCash, Maya, or any banking app:
+                                        Your payment of <strong className="text-emerald-400 font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> via {completedOrder.payment_method || 'Online Payment'} has been verified. The kitchen has received your order and started preparation!
                                     </p>
-
-                                    {/* QR Code display */}
-                                    <div className="bg-white p-3 rounded-2xl w-44 mx-auto flex flex-col items-center justify-center space-y-1.5 shadow-md">
-                                        <img
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`saddleranch_dinein_${completedOrder.order_number}_amount_${completedOrder.total_amount}`)}`}
-                                            alt="QRPh Payment Code"
-                                            className="w-36 h-36 object-contain"
-                                        />
-                                        <span className="text-[9px] font-mono font-black text-[#141416] uppercase tracking-wider">
-                                            Scan via GCash / Maya
-                                        </span>
+                                </div>
+                            ) : (
+                                <div className="p-4 rounded-2xl bg-[#121213] border border-amber-500/40 text-left space-y-2 shadow-xl">
+                                    <div className="flex items-center gap-2 text-[#ffc174] font-bold text-xs">
+                                        <Info className="w-4 h-4 text-[#f59e0b] shrink-0" />
+                                        <span>Payment Pending (Cash)</span>
                                     </div>
-
-                                    <div className="space-y-1 text-[11px] font-mono bg-[#1c150e] p-2.5 rounded-xl border border-[#3D3126]">
-                                        <div className="flex justify-between text-[#d8c3ad]">
-                                            <span>GCash / Maya No.:</span>
-                                            <span className="font-bold text-[#ffc174]">0917 123 4567</span>
-                                        </div>
-                                        <div className="flex justify-between text-[#d8c3ad]">
-                                            <span>Reference:</span>
-                                            <span className="font-bold text-[#fbbf24]">#{completedOrder.order_number}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Button to Confirm Payment Sent */}
-                                    {isPaymentConfirmed ? (
-                                        <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-center gap-2 font-bold animate-in fade-in">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                                            <span>Payment Received! Sent to kitchen.</span>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            disabled={isConfirmingPayment}
-                                            onClick={() => handleConfirmPaymentSent(completedOrder.order_number)}
-                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5 shadow"
-                                        >
-                                            {isConfirmingPayment ? (
-                                                <span>Verifying Payment...</span>
-                                            ) : (
-                                                <>
-                                                    <CheckCircle2 className="w-4 h-4" />
-                                                    <span>I Have Sent Payment (Verify & Settle)</span>
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
+                                    <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                        Please prepare <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> in cash to settle with your server or at the cashier counter.
+                                    </p>
                                 </div>
                             )}
 
@@ -1665,8 +1913,9 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                                     type="button"
                                     onClick={() => {
                                         setIsBasketSheetOpen(false);
+                                        const orderNum = completedOrder?.order_number;
                                         setCompletedOrder(null);
-                                        window.dispatchEvent(new CustomEvent('saddle_ranch_open_all_orders'));
+                                        window.dispatchEvent(new CustomEvent('saddle_ranch_track_order', { detail: orderNum }));
                                     }}
                                     className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow hover:bg-[#ffc174] transition-all cursor-pointer"
                                 >

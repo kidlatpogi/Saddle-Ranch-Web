@@ -29,7 +29,11 @@ import {
     RotateCcw,
     ShieldAlert,
     Lock,
-    Bell
+    Bell,
+    QrCode,
+    Square,
+    Timer,
+    Sparkles
 } from 'lucide-react';
 
 interface OrderItem {
@@ -74,6 +78,20 @@ interface PosCartItem {
     quantity: number;
 }
 
+interface TableSessionInfo {
+    id?: number | null;
+    table_number: string;
+    branch: string;
+    status: 'active' | 'closed' | 'expired';
+    opened_at?: string | null;
+    expires_at?: string | null;
+    duration_minutes?: number;
+    remaining_seconds: number;
+    formatted_remaining: string;
+    opened_by?: string | null;
+    is_active: boolean;
+}
+
 interface EmployeeDashboardProps {
     initialOrders?: OrderItem[];
     userBranch?: string;
@@ -82,7 +100,7 @@ interface EmployeeDashboardProps {
 
 export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan', products: serverProducts }: EmployeeDashboardProps) {
     // POS is default active tab for Cashiers!
-    const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales'>('pos');
+    const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales' | 'tables'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState('All');
@@ -131,17 +149,199 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         } catch (e) {}
     };
 
+    // Dedicated Table Session Unlock Requests (Separate from Waiter Assistance)
+    const [activeUnlockRequests, setActiveUnlockRequests] = useState<any[]>([]);
+
+    const fetchUnlockRequests = async () => {
+        try {
+            const res = await fetch('/api/v1/table-unlock-requests');
+            if (res.ok) {
+                const json = await res.json();
+                setActiveUnlockRequests(json.data || []);
+            }
+        } catch (e) {}
+    };
+
+    const handleDismissUnlockRequest = async (tableNumber: string) => {
+        try {
+            await fetch('/api/v1/table-unlock-requests/dismiss', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({ table_number: tableNumber }),
+            });
+            setActiveUnlockRequests((prev) => prev.filter((r) => r.table_number !== tableNumber));
+        } catch (e) {}
+    };
+
+    const handleApproveUnlockRequest = async (tableNumber: string, durationMinutes = 60) => {
+        await handleOpenSession(tableNumber, durationMinutes);
+        await handleDismissUnlockRequest(tableNumber);
+    };
+
     useEffect(() => {
         fetchLatestOrders();
         fetchWaiterCalls();
+        fetchUnlockRequests();
         const interval = setInterval(() => {
             fetchLatestOrders();
             fetchWaiterCalls();
+            fetchUnlockRequests();
         }, 2000);
         return () => clearInterval(interval);
     }, []);
 
     // POS Walk-In Cart State
+    // Table Session Staff Management
+    const [tableSessions, setTableSessions] = useState<TableSessionInfo[]>([]);
+    const [tableBranch, setTableBranch] = useState<string>(userBranch || 'Bulihan');
+    const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null);
+    const [sessionFeedback, setSessionFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+    const fetchTableSessions = async () => {
+        try {
+            const res = await fetch(`/api/v1/table-sessions?branch=${encodeURIComponent(tableBranch)}`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.status === 'success') {
+                    const list = Array.isArray(json.data)
+                        ? json.data
+                        : (json.tables || json.data?.tables || []);
+                    setTableSessions(list);
+                }
+            }
+        } catch (e) {}
+    };
+
+    useEffect(() => {
+        fetchTableSessions();
+        const tInterval = setInterval(fetchTableSessions, 3000);
+        return () => clearInterval(tInterval);
+    }, [tableBranch]);
+
+    const handleOpenSession = async (tableNum: string, durationMinutes = 60) => {
+        setSessionActionLoading(`open-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/open', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: tableBranch,
+                    duration_minutes: durationMinutes,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: `Table #${tableNum} is now ACTIVE for ${durationMinutes} mins!`, type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Failed to open table session', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error communicating with table session engine', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const handleCloseSession = async (tableNum: string) => {
+        setSessionActionLoading(`close-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/close', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: tableBranch,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: `Table #${tableNum} session has been CLOSED.`, type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Failed to close table session', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error closing table session', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const handleExtendSession = async (tableNum: string, minutes = 15) => {
+        setSessionActionLoading(`extend-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/extend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: tableBranch,
+                    minutes,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: `Extended Table #${tableNum} by +${minutes} mins!`, type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Failed to extend session', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error extending table session', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const handleBatchSession = async (action: 'open_all' | 'close_all') => {
+        setSessionActionLoading(`batch-${action}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    action,
+                    branch: tableBranch,
+                    duration_minutes: 60,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setSessionFeedback({ text: json.message || 'Batch table operation completed!', type: 'success' });
+                fetchTableSessions();
+            } else {
+                setSessionFeedback({ text: json.message || 'Batch operation failed', type: 'error' });
+            }
+        } catch (e) {
+            setSessionFeedback({ text: 'Network error executing batch operation', type: 'error' });
+        } finally {
+            setSessionActionLoading(null);
+            setTimeout(() => setSessionFeedback(null), 4000);
+        }
+    };
+
+    const activeSessionsCount = tableSessions.filter((t) => t.status === 'active').length;
+
     const [posCart, setPosCart] = useState<PosCartItem[]>([]);
     const [posCustomerName, setPosCustomerName] = useState('Walk-In Guest');
     const [posTableNumber, setPosTableNumber] = useState('01');
@@ -566,6 +766,16 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                                 <span>Shift Sales</span>
                             </button>
+
+                            <button
+                                onClick={() => setActiveTab('tables')}
+                                className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+                                    activeTab === 'tables' ? 'bg-[#f59e0b] text-[#3f2000] font-black shadow-lg' : 'text-[#a1a1aa] hover:text-white hover:bg-[#27272a]'
+                                }`}
+                            >
+                                <QrCode className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span>Table Sessions ({activeSessionsCount} Active)</span>
+                            </button>
                         </div>
 
                         {/* Search Control */}
@@ -596,15 +806,56 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
                                 {activeWaiterCalls.map((c) => (
                                     <button
                                         key={c.id || c.table_number}
                                         onClick={() => handleDismissWaiterCall(c.table_number)}
-                                        className="px-3.5 py-1.5 rounded-xl bg-[#121213] text-[#ffc174] hover:bg-black font-black text-xs transition-all shadow cursor-pointer border border-[#f59e0b]"
+                                        className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#121213] font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-amber-300 active:scale-95 flex items-center gap-1.5"
+                                        title="Acknowledge waiter call and notify diner server is on the way"
                                     >
-                                        Acknowledge Table #{c.table_number}
+                                        <Bell className="w-3.5 h-3.5" />
+                                        <span>Acknowledge Call (Table #{c.table_number})</span>
                                     </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* DEDICATED TABLE UNLOCK REQUEST BANNER (Strictly QR Table Session Unlock) */}
+                    {activeUnlockRequests.length > 0 && (
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-500/25 via-indigo-600/20 to-cyan-500/25 border-2 border-sky-500/60 shadow-xl shadow-sky-500/10 flex items-center justify-between gap-4 flex-wrap animate-in slide-in-from-top-4 duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 border border-sky-500/40">
+                                    <Lock className="w-6 h-6 text-sky-400 animate-pulse" />
+                                </div>
+                                <div>
+                                    <div className="font-black text-sm uppercase tracking-wider text-sky-300">TABLE UNLOCK REQUESTED!</div>
+                                    <div className="text-xs text-[#d8c3ad] font-bold">
+                                        {activeUnlockRequests.map((r) => `Table #${r.table_number} (${r.branch || 'Bulihan'} Branch)`).join(' ? ')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                                {activeUnlockRequests.map((r) => (
+                                    <div key={r.id || r.table_number} className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleApproveUnlockRequest(String(r.table_number), 60)}
+                                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-emerald-400 active:scale-95 flex items-center gap-1.5"
+                                            title="Unlock Table Session for 60 minutes"
+                                        >
+                                            <Lock className="w-3.5 h-3.5 text-amber-300" />
+                                            <span>Unlock Table #{r.table_number} (60m)</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDismissUnlockRequest(r.table_number)}
+                                            className="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-black text-[#a1a1aa] hover:text-white font-bold text-xs transition-all border border-[#3f3f46] cursor-pointer"
+                                            title="Dismiss unlock notification"
+                                        >
+                                            Dismiss
+                                        </button>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -1146,6 +1397,180 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                     <div className="text-3xl font-mono font-black text-[#ffffff]">₱ {(shiftRevenue / Math.max(1, orders.length)).toFixed(2)}</div>
                                     <p className="text-[11px] text-emerald-400 font-bold">Good throughput</p>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TAB 4: IN-HOUSE QR TABLE SESSIONS MANAGEMENT */}
+                    {activeTab === 'tables' && (
+                        <div className="space-y-6">
+                            {/* Feedback Notification */}
+                            {sessionFeedback && (
+                                <div className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-bold border animate-in slide-in-from-top-2 ${
+                                    sessionFeedback.type === 'success'
+                                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                                        : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                                }`}>
+                                    <CheckCircle2 className="w-5 h-5 shrink-0" />
+                                    <span>{sessionFeedback.text}</span>
+                                </div>
+                            )}
+
+                            {/* Control Bar */}
+                            <div className="p-6 rounded-3xl bg-[#202024] border border-[#333338] shadow-xl flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <QrCode className="w-5 h-5 text-[#f59e0b]" />
+                                        <h3 className="font-domine font-black text-white text-lg sm:text-xl">In-House QR Table Sessions</h3>
+                                    </div>
+                                    <p className="text-xs text-[#a1a1aa] mt-1">
+                                        Open tables when guests arrive to allow ordering. Prevents off-premise troll & spam orders.
+                                    </p>
+                                    <div className="flex items-center gap-3 mt-2 text-xs font-bold font-mono">
+                                        <span className="text-emerald-400">{activeSessionsCount} Active</span>
+                                        <span className="text-[#71717a]">&bull;</span>
+                                        <span className="text-[#a1a1aa]">{tableSessions.length - activeSessionsCount} Locked / Inactive</span>
+                                        <span className="text-[#71717a]">&bull;</span>
+                                        <span className="text-amber-400">Branch: {tableBranch}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <button
+                                        type="button"
+                                        disabled={sessionActionLoading !== null}
+                                        onClick={() => handleBatchSession('open_all')}
+                                        className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg cursor-pointer disabled:opacity-40"
+                                        title="Unlock all tables for 60 minutes"
+                                    >
+                                        <span>Open All (60m)</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={sessionActionLoading !== null}
+                                        onClick={() => handleBatchSession('close_all')}
+                                        className="px-4 py-2.5 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 hover:text-white text-rose-300 text-xs font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40"
+                                        title="Lock all tables against orders"
+                                    >
+                                        <span>Close All</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={fetchTableSessions}
+                                        className="p-2.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white transition-colors cursor-pointer"
+                                        title="Refresh table states"
+                                    >
+                                        <RotateCcw className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Tables Grid */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {tableSessions.map((session) => {
+                                    const tableNum = session.table_number;
+                                    const isActive = session.status === 'active';
+                                    const isExpired = session.status === 'expired';
+                                    const isLoading = sessionActionLoading?.includes(tableNum);
+
+                                    return (
+                                        <div
+                                            key={tableNum}
+                                            className={`p-4 rounded-2xl border shadow-lg space-y-3 transition-all flex flex-col justify-between ${
+                                                isActive
+                                                    ? 'bg-gradient-to-b from-[#18261e] to-[#202024] border-emerald-500/60 shadow-emerald-500/10'
+                                                    : isExpired
+                                                    ? 'bg-[#241719] border-rose-500/40'
+                                                    : 'bg-[#202024] border-[#333338]'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-domine font-black text-base text-white">
+                                                    Table #{tableNum}
+                                                </span>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
+                                                    isActive
+                                                        ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 animate-pulse'
+                                                        : isExpired
+                                                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                                        : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                                                }`}>
+                                                    {isActive ? (
+                                                        session.formatted_remaining || 'Active'
+                                                    ) : isExpired ? (
+                                                        'Expired'
+                                                    ) : (
+                                                        'Locked'
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            {/* Status Detail */}
+                                            <div className="text-[11px] font-mono">
+                                                {isActive ? (
+                                                    <span className="text-emerald-400 flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        <span>{session.formatted_remaining} remaining</span>
+                                                    </span>
+                                                ) : isExpired ? (
+                                                    <span className="text-rose-400">Session expired</span>
+                                                ) : (
+                                                    <span className="text-[#71717a] flex items-center gap-1">
+                                                        <Lock className="w-3 h-3" />
+                                                        <span>Ordering blocked</span>
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="space-y-1.5 pt-1">
+                                                {isActive ? (
+                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                        <button
+                                                            type="button"
+                                                            disabled={isLoading}
+                                                            onClick={() => handleExtendSession(tableNum, 15)}
+                                                            className="py-1.5 px-2 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-amber-400 font-bold text-[11px] border border-[#3f3f46] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1"
+                                                        >
+                                                            <Timer className="w-3 h-3" />
+                                                            <span>+15m</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isLoading}
+                                                            onClick={() => handleCloseSession(tableNum)}
+                                                            className="py-1.5 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-300 hover:text-white font-bold text-[11px] border border-rose-500/30 transition-all cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                        <button
+                                                            type="button"
+                                                            disabled={isLoading}
+                                                            onClick={() => handleOpenSession(tableNum, 60)}
+                                                            className="py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-1"
+                                                        >
+                                                            <Lock className="w-3 h-3 text-amber-300" />
+                                                            <span>Open 60m</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isLoading}
+                                                            onClick={() => handleOpenSession(tableNum, 120)}
+                                                            className="py-2 px-2 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-[#ffc174] font-bold text-[11px] border border-[#3f3f46] transition-all cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            Open 2h
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\MobileAuthController;
@@ -213,7 +214,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/waiter-call/status', function (Request $request) {
         $tableNumber = $request->query('table_number', '05');
         $data = \Illuminate\Support\Facades\Cache::get("waiter_status_{$tableNumber}", ['status' => 'idle', 'updated_at' => 0]);
-        if (($data['status'] ?? '') === 'acknowledged' && (time() - ($data['updated_at'] ?? 0)) > 15) {
+        if (($data['status'] ?? '') === 'acknowledged' && (time() - ($data['updated_at'] ?? 0)) > 4) {
             $data = ['status' => 'idle', 'updated_at' => time()];
             \Illuminate\Support\Facades\Cache::put("waiter_status_{$tableNumber}", $data, 300);
         }
@@ -248,6 +249,84 @@ Route::prefix('v1')->group(function () {
 
         return response()->json(['status' => 'success']);
     });
+
+    // Dedicated QR Table Session Unlock Request Endpoints (Completely distinct from Waiter Assistance)
+    Route::post('/table-unlock-request', function (Request $request) {
+        $tableNumber = $request->input('table_number', '01');
+        $branch = $request->input('branch', 'Bulihan');
+
+        $requests = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
+        $newReq = [
+            'id' => time() . '_' . rand(100, 999),
+            'table_number' => $tableNumber,
+            'branch' => $branch,
+            'time' => now()->format('h:i A'),
+            'timestamp' => time(),
+        ];
+
+        $filtered = array_filter($requests, function ($r) use ($tableNumber) {
+            return ($r['table_number'] ?? '') !== $tableNumber && (time() - ($r['timestamp'] ?? 0) < 1800);
+        });
+
+        $filtered[] = $newReq;
+        \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', array_values($filtered), 1800);
+        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$tableNumber}", [
+            'status' => 'pending',
+            'updated_at' => time()
+        ], 600);
+
+        \App\Models\AuditLog::create([
+            'action' => "TABLE UNLOCK REQUEST: Table #{$tableNumber} requested session unlock at {$branch} Branch",            'ip_address' => $request->ip(),            'payload' => $newReq,        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Unlock request sent for Table #{$tableNumber}",
+            'data' => $newReq,
+        ]);
+    });
+
+    Route::get('/table-unlock-requests', function () {
+        $requests = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
+        $active = array_values(array_filter($requests, function ($r) {
+            return (time() - ($r['timestamp'] ?? 0)) < 1800;
+        }));
+        return response()->json([
+            'status' => 'success',
+            'data' => $active,
+        ]);
+    });
+
+    Route::get('/table-unlock-request/status', function (Request $request) {
+        $tableNumber = $request->query('table_number', '01');
+        $data = \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$tableNumber}", ['status' => 'idle', 'updated_at' => 0]);
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+        ]);
+    });
+
+    Route::post('/table-unlock-requests/dismiss', function (Request $request) {
+        $tableNumber = $request->input('table_number');
+        $requests = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
+        $updated = array_values(array_filter($requests, function ($r) use ($tableNumber) {
+            return ($r['table_number'] ?? '') !== $tableNumber;
+        }));
+        \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $updated, 1800);
+        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$tableNumber}", [
+            'status' => 'dismissed',
+            'updated_at' => time()
+        ], 300);
+
+        return response()->json(['status' => 'success']);
+    });
+
+    // In-House Table Session Management & Real-Time Status
+    Route::get('/table-sessions', [\App\Http\Controllers\Api\TableSessionController::class, 'index']);
+    Route::get('/table-sessions/{tableNumber}', [\App\Http\Controllers\Api\TableSessionController::class, 'show']);
+    Route::post('/table-sessions/open', [\App\Http\Controllers\Api\TableSessionController::class, 'open']);
+    Route::post('/table-sessions/close', [\App\Http\Controllers\Api\TableSessionController::class, 'close']);
+    Route::post('/table-sessions/extend', [\App\Http\Controllers\Api\TableSessionController::class, 'extend']);
+    Route::post('/table-sessions/batch', [\App\Http\Controllers\Api\TableSessionController::class, 'batch']);
 
     // Customer Web Checkout Auth & Voucher Validation (Session Based - Web Middleware Group)
     Route::middleware(['web'])->group(function () {

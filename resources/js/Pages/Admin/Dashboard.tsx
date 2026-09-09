@@ -38,7 +38,11 @@ import {
     ChevronLeft,
     ChevronRight,
     MapPin,
-    Star
+    Star,
+    Timer,
+    Square,
+    Sparkles,
+    Lock
 } from 'lucide-react';
 
 interface ProductItem {
@@ -484,7 +488,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         }
     }, [initialVouchers]);
 
-    const [tables, setTables] = useState<string[]>(['01', '02', '03', '04', '05', '06', '07', '08']);
+    const [tables, setTables] = useState<string[]>(Array.from({ length: 25 }, (_, i) => (i + 1).toString().padStart(2, '0')));
     const [selectedPrintTable, setSelectedPrintTable] = useState<string | null>(null);
 
     // Order Void & Delete Modals State
@@ -596,6 +600,169 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     // Products Category, Branch, Sort Filter, Status Filter & 10-Item Pagination
     const [productCategoryFilter, setProductCategoryFilter] = useState<string>('All');
     const [productBranchFilter, setProductBranchFilter] = useState<string>('Bulihan');
+
+// Live Staff Table Session State for Admin
+    interface AdminTableSession {
+        id?: number | null;
+        table_number: string;
+        branch: string;
+        status: 'active' | 'closed' | 'expired';
+        opened_at?: string | null;
+        expires_at?: string | null;
+        duration_minutes?: number;
+        remaining_seconds: number;
+        formatted_remaining: string;
+        opened_by?: string | null;
+        is_active: boolean;
+    }
+
+    const [adminTableSessions, setAdminTableSessions] = useState<Record<string, AdminTableSession>>({});
+    const [tableActionLoading, setTableActionLoading] = useState<string | null>(null);
+    const [tableActionToast, setTableActionToast] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+    const fetchAdminTableSessions = async () => {
+        try {
+            const res = await fetch(`/api/v1/table-sessions?branch=${encodeURIComponent(productBranchFilter)}`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.status === 'success' && json.data && json.data.tables) {
+                    const map: Record<string, AdminTableSession> = {};
+                    json.data.tables.forEach((t: AdminTableSession) => {
+                        const num = t.table_number.padStart(2, '0');
+                        map[num] = t;
+                    });
+                    setAdminTableSessions(map);
+                }
+            }
+        } catch (e) {}
+    };
+
+    React.useEffect(() => {
+        if (activeTab === 'tables') {
+            fetchAdminTableSessions();
+            const poll = setInterval(fetchAdminTableSessions, 3000);
+            return () => clearInterval(poll);
+        }
+    }, [activeTab, productBranchFilter]);
+
+    const handleAdminOpenSession = async (tableNum: string, durationMinutes = 60) => {
+        setTableActionLoading(`open-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/open', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: productBranchFilter,
+                    duration_minutes: durationMinutes,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setTableActionToast({ text: `Table #${tableNum} is now ACTIVE for ${durationMinutes} mins!`, type: 'success' });
+                fetchAdminTableSessions();
+            } else {
+                setTableActionToast({ text: json.message || 'Failed to open table', type: 'error' });
+            }
+        } catch (e) {
+            setTableActionToast({ text: 'Network error communicating with table session engine', type: 'error' });
+        } finally {
+            setTableActionLoading(null);
+            setTimeout(() => setTableActionToast(null), 4000);
+        }
+    };
+
+    const handleAdminCloseSession = async (tableNum: string) => {
+        setTableActionLoading(`close-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/close', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: productBranchFilter,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setTableActionToast({ text: `Table #${tableNum} session CLOSED and locked.`, type: 'success' });
+                fetchAdminTableSessions();
+            } else {
+                setTableActionToast({ text: json.message || 'Failed to close table', type: 'error' });
+            }
+        } catch (e) {
+            setTableActionToast({ text: 'Network error closing table session', type: 'error' });
+        } finally {
+            setTableActionLoading(null);
+            setTimeout(() => setTableActionToast(null), 4000);
+        }
+    };
+
+    const handleAdminExtendSession = async (tableNum: string, minutes = 15) => {
+        setTableActionLoading(`extend-${tableNum}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/extend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    table_number: tableNum,
+                    branch: productBranchFilter,
+                    minutes,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setTableActionToast({ text: `Extended Table #${tableNum} by +${minutes} mins!`, type: 'success' });
+                fetchAdminTableSessions();
+            } else {
+                setTableActionToast({ text: json.message || 'Failed to extend session', type: 'error' });
+            }
+        } catch (e) {
+            setTableActionToast({ text: 'Network error extending table session', type: 'error' });
+        } finally {
+            setTableActionLoading(null);
+            setTimeout(() => setTableActionToast(null), 4000);
+        }
+    };
+
+    const handleAdminBatchSession = async (action: 'open_all' | 'close_all') => {
+        setTableActionLoading(`batch-${action}`);
+        try {
+            const res = await fetch('/api/v1/table-sessions/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    action,
+                    branch: productBranchFilter,
+                    duration_minutes: 60,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setTableActionToast({ text: json.message || 'Batch table update applied!', type: 'success' });
+                fetchAdminTableSessions();
+            } else {
+                setTableActionToast({ text: json.message || 'Batch action failed', type: 'error' });
+            }
+        } catch (e) {
+            setTableActionToast({ text: 'Network error processing batch update', type: 'error' });
+        } finally {
+            setTableActionLoading(null);
+            setTimeout(() => setTableActionToast(null), 4000);
+        }
+    };
     const [productStatusFilter, setProductStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
     const [productSortBy, setProductSortBy] = useState<'default' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc'>('default');
     const [productPage, setProductPage] = useState<number>(1);
@@ -1961,13 +2128,35 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                             </div>
                         )}
 
-                        {/* TAB 4: TABLE AND QR GENERATOR WITH BRANCH SORT */}
+                        {/* TAB 4: TABLE AND QR GENERATOR WITH BRANCH SORT & LIVE SESSION CONTROLS */}
                         {activeTab === 'tables' && (
                             <div className="space-y-6">
+                                {/* Admin Feedback Alert Toast */}
+                                {tableActionToast && (
+                                    <div className={`p-4 rounded-2xl font-bold text-xs flex items-center justify-between border shadow-xl animate-in slide-in-from-top-2 duration-200 ${
+                                        tableActionToast.type === 'success'
+                                            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                                            : 'bg-rose-500/20 border-rose-500/50 text-rose-300'
+                                    }`}>
+                                        <div className="flex items-center gap-2">
+                                            {tableActionToast.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <AlertCircle className="w-5 h-5 text-rose-400" />}
+                                            <span>{tableActionToast.text}</span>
+                                        </div>
+                                        <button onClick={() => setTableActionToast(null)} className="text-white/60 hover:text-white">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white font-domine">Table QR Code Generator</h3>
-                                        <p className="text-xs text-[#a1a1aa]">Generate, test, print, and delete scannable table QR badges for Bulihan and Dasmariñas</p>
+                                        <h3 className="text-lg font-bold text-white font-domine flex items-center gap-2">
+                                            <QrCode className="w-5 h-5 text-[#f59e0b]" />
+                                            <span>Table QR Generator & Session Security</span>
+                                        </h3>
+                                        <p className="text-xs text-[#a1a1aa]">
+                                            Monitor live dining sessions, lock tables against off-premise troll scans, and generate print badges.
+                                        </p>
                                     </div>
                                     <button
                                         onClick={handleGenerateNewTableQR}
@@ -1978,22 +2167,59 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                     </button>
                                 </div>
 
-                                {/* BRANCH SORT FILTER TOOLBAR */}
+                                {/* BRANCH SORT & BATCH SESSION TOOLBAR */}
                                 <div className="p-4 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg flex flex-wrap items-center justify-between gap-4">
-                                    <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
-                                        <MapPin className="w-4 h-4 text-[#f59e0b]" />
-                                        <span className="text-[#a1a1aa] font-bold">Branch View:</span>
-                                        <select
-                                            value={productBranchFilter}
-                                            onChange={(e) => setProductBranchFilter(e.target.value)}
-                                            className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
-                                            <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
-                                        </select>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 bg-[#18181b] border border-[#3f3f46] px-3.5 py-2 rounded-xl text-xs">
+                                            <MapPin className="w-4 h-4 text-[#f59e0b]" />
+                                            <span className="text-[#a1a1aa] font-bold">Branch View:</span>
+                                            <select
+                                                value={productBranchFilter}
+                                                onChange={(e) => setProductBranchFilter(e.target.value)}
+                                                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="Bulihan" className="bg-[#18181b]">Bulihan Branch</option>
+                                                <option value="Dasma" className="bg-[#18181b]">Dasmariñas Branch</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="text-xs text-[#a1a1aa]">
+                                            Showing <strong className="text-[#fbbf24] font-bold">{tables.length} Tables</strong> for {productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-[#a1a1aa]">
-                                        Tables for <strong className="text-[#fbbf24] font-bold">{productBranchFilter === 'Bulihan' ? 'Bulihan Store' : 'Dasmariñas Store'}</strong>
+
+                                    {/* Batch Actions for School Defense Demo */}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            disabled={tableActionLoading !== null}
+                                            onClick={() => handleAdminBatchSession('open_all')}
+                                            className="px-3.5 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600 hover:text-white text-emerald-300 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                                            title="Open all tables for 60 minutes"
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                            <span>Open All (60m)</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            disabled={tableActionLoading !== null}
+                                            onClick={() => handleAdminBatchSession('close_all')}
+                                            className="px-3.5 py-2 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 hover:text-white text-rose-300 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                                            title="Lock all tables against remote orders"
+                                        >
+                                            <Lock className="w-3.5 h-3.5" />
+                                            <span>Close All</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={fetchAdminTableSessions}
+                                            className="p-2 rounded-xl bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white transition-colors cursor-pointer"
+                                            title="Refresh table states"
+                                        >
+                                            <Clock className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
 
@@ -2002,9 +2228,22 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         const branchPrefix = productBranchFilter === 'Bulihan' ? 'B' : 'D';
                                         const tableCode = `${branchPrefix}-${tableNum}`;
                                         const realQrUrl = getRealQrCodeUrl(tableCode);
+                                        const session = adminTableSessions[tableNum] || adminTableSessions[parseInt(tableNum, 10).toString()];
+                                        const isActive = session?.status === 'active';
+                                        const isExpired = session?.status === 'expired';
+                                        const isLoading = tableActionLoading?.includes(tableNum);
+
                                         return (
-                                            <div key={tableNum} className="p-5 rounded-3xl bg-[#202024] border border-[#333338] shadow-lg text-center space-y-4 relative group">
-                                                
+                                            <div
+                                                key={tableNum}
+                                                className={`p-5 rounded-3xl border shadow-lg text-center space-y-3.5 relative group transition-all ${
+                                                    isActive
+                                                        ? 'bg-gradient-to-b from-[#18261e] to-[#202024] border-emerald-500/60 shadow-emerald-500/10'
+                                                        : isExpired
+                                                        ? 'bg-[#241719] border-rose-500/40'
+                                                        : 'bg-[#202024] border-[#333338]'
+                                                }`}
+                                            >
                                                 {/* Delete Table Button */}
                                                 <button
                                                     onClick={() => handleDeleteTableQR(tableNum)}
@@ -2014,25 +2253,83 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
 
-                                                <div className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase inline-block border ${
-                                                    productBranchFilter === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                                                }`}>
-                                                    {productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'}
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <div className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase inline-block border ${
+                                                        productBranchFilter === 'Bulihan' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                                                    }`}>
+                                                        {productBranchFilter === 'Bulihan' ? 'Bulihan' : 'Dasmariñas'}
+                                                    </div>
+
+                                                    {/* Live Session Status Pill */}
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
+                                                        isActive
+                                                            ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 animate-pulse'
+                                                            : isExpired
+                                                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                                            : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                                                    }`}>
+                                                        {isActive ? (
+                                                            <>
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                                                {session?.formatted_remaining || 'Active'}
+                                                            </>
+                                                        ) : isExpired ? (
+                                                            'Expired'
+                                                        ) : (
+                                                            'Closed'
+                                                        )}
+                                                    </span>
                                                 </div>
 
-                                                <div className="w-14 h-14 rounded-2xl bg-[#f59e0b] text-[#3f2000] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-md">
+                                                <div className="w-12 h-12 rounded-2xl bg-[#f59e0b] text-[#3f2000] font-black text-sm mx-auto flex items-center justify-center font-domine shadow-md">
                                                     #{tableCode}
                                                 </div>
 
                                                 {/* Real Scannable Barcode Image */}
-                                                <div className="w-32 h-32 mx-auto p-2 bg-white rounded-2xl shadow-inner flex items-center justify-center border-2 border-[#3f3f46]">
+                                                <div className="w-28 h-28 mx-auto p-2 bg-white rounded-2xl shadow-inner flex items-center justify-center border-2 border-[#3f3f46]">
                                                     <img src={realQrUrl} alt={`Table ${tableCode} QR`} className="w-full h-full object-contain" />
                                                 </div>
 
-                                                <div className="space-y-2">
+                                                {/* Quick Session Control Bar */}
+                                                <div className="pt-1">
+                                                    {isActive ? (
+                                                        <div className="grid grid-cols-2 gap-1.5">
+                                                            <button
+                                                                type="button"
+                                                                disabled={isLoading}
+                                                                onClick={() => handleAdminExtendSession(tableNum, 15)}
+                                                                className="py-1.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-white font-bold text-[11px] border border-[#3f3f46] transition-colors cursor-pointer disabled:opacity-40"
+                                                                title="Extend table session by 15 mins"
+                                                            >
+                                                                +15m
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={isLoading}
+                                                                onClick={() => handleAdminCloseSession(tableNum)}
+                                                                className="py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 hover:text-white text-rose-300 font-bold text-[11px] border border-rose-500/40 transition-colors cursor-pointer disabled:opacity-40"
+                                                                title="Close table session"
+                                                            >
+                                                                Close
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            disabled={isLoading}
+                                                            onClick={() => handleAdminOpenSession(tableNum, 60)}
+                                                            className="w-full py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 shadow"
+                                                        >
+                                                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                                            <span>Open Table (60m)</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-1.5 pt-1">
                                                     <button
                                                         onClick={() => setSelectedPrintTable(tableCode)}
-                                                        className="w-full py-2 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/30 text-[#fbbf24] font-bold text-xs hover:bg-[#f59e0b] hover:text-[#3f2000] flex items-center justify-center gap-1.5 btn-bevel transition-all"
+                                                        className="w-full py-2 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/30 text-[#fbbf24] font-bold text-xs hover:bg-[#f59e0b] hover:text-[#3f2000] flex items-center justify-center gap-1.5 btn-bevel transition-all cursor-pointer"
                                                     >
                                                         <Printer className="w-3.5 h-3.5" />
                                                         <span>View & Print QR</span>
@@ -2040,7 +2337,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
                                                     <button
                                                         onClick={() => copyTableLink(tableCode)}
-                                                        className="w-full py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-semibold text-[11px] flex items-center justify-center gap-1.5"
+                                                        className="w-full py-1.5 rounded-xl bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:text-white font-semibold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
                                                     >
                                                         <Copy className="w-3 h-3" />
                                                         <span>{copiedTable === tableCode ? 'Copied Link!' : 'Copy Link'}</span>

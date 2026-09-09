@@ -53,6 +53,7 @@ interface Product {
 
 interface OrderProps {
     products?: Product[];
+    completedOrder?: any;
 }
 
 type CategoryType = 'Popular' | 'Rice Meals' | 'Authentic Filipino' | 'Barkada Platters' | 'Drinks & Extra Rice';
@@ -129,7 +130,7 @@ const CAVITE_LOCATIONS: Record<string, string[]> = {
     ]
 };
 
-export default function CustomerOrder({ products = [] }: OrderProps) {
+export default function CustomerOrder({ products = [], completedOrder: initialCompletedOrder }: OrderProps) {
     const { flash, auth } = usePage<PageProps>().props;
     const authUser: any = auth?.user;
     const [currentUser, setCurrentUser] = useState<any>(authUser);
@@ -242,16 +243,45 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
     const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
 
     useEffect(() => {
+        if (initialCompletedOrder) {
+            setCompletedOrder(initialCompletedOrder);
+            setIsPaymentConfirmed(initialCompletedOrder.payment_status === 'paid');
+            clearCart();
+            try {
+                const existing = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+                const updated = Array.from(new Set([initialCompletedOrder.order_number, ...existing]));
+                localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                localStorage.setItem('saddle_ranch_last_order', initialCompletedOrder.order_number);
+                window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: initialCompletedOrder }));
+            } catch (e) {}
+        }
+    }, [initialCompletedOrder]);
+
+    useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('success') === '1' && params.get('order_number')) {
-            const orderNum = params.get('order_number');
-            setCompletedOrder({
-                order_number: orderNum,
-                total_amount: '0.00',
-                customer_name: 'Customer',
-                payment_status: 'paid',
-            });
-            setIsPaymentConfirmed(true);
+        const orderNum = params.get('order_number');
+        const isSuccess = params.get('success') === '1' || params.get('paid') === '1';
+
+        if (isSuccess && orderNum) {
+            clearCart();
+            fetch(`/api/v1/orders/track?query=${encodeURIComponent(orderNum)}`)
+                .then(res => res.json())
+                .then(json => {
+                    const found = json.data && json.data.length > 0 ? json.data[0] : null;
+                    if (found) {
+                        setCompletedOrder(found);
+                        setIsPaymentConfirmed(found.payment_status === 'paid');
+                        try {
+                            const existing = JSON.parse(localStorage.getItem('saddle_ranch_customer_orders') || '[]');
+                            const updated = Array.from(new Set([found.order_number, ...existing]));
+                            localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                            localStorage.setItem('saddle_ranch_last_order', found.order_number);
+                            window.dispatchEvent(new CustomEvent('saddle_ranch_order_placed', { detail: found }));
+                        } catch (e) {}
+                    }
+                })
+                .catch(console.error);
+
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, []);
@@ -596,6 +626,8 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                 const itemsErrKey = Object.keys(errors).find(k => k.startsWith('items'));
                 if (errors.items) {
                     setValidationError(errors.items);
+                } else if (errors.payment) {
+                    setValidationError(errors.payment);
                 } else if (itemsErrKey) {
                     setValidationError('One or more selected items are no longer available. Please update your cart.');
                 } else {
@@ -1386,6 +1418,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                         </div>
                                     </div>
 
+                                    {validationError && (
+                                        <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-medium flex items-center gap-2.5">
+                                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                                            <span>{validationError}</span>
+                                        </div>
+                                    )}
+
                                     <button
                                         type="submit"
                                         disabled={cart.length === 0 || isSubmitting}
@@ -1772,6 +1811,13 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     </div>
                                 </div>
 
+                                {validationError && (
+                                    <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-medium flex items-center gap-2.5">
+                                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                                        <span>{validationError}</span>
+                                    </div>
+                                )}
+
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
@@ -1834,77 +1880,26 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                 </div>
                             </div>
 
-                            {/* QRPH / E-WALLET PAYMENT FIRST SECTION */}
-                            {(completedOrder.payment_method?.includes('QRPh') || completedOrder.order_type === 'delivery') && (
-                                <div className="p-4 rounded-2xl bg-[#121213] border-2 border-[#f59e0b] text-left space-y-3 shadow-xl">
-                                    <div className="flex items-center justify-between border-b border-[#3D3126] pb-2">
-                                        <div className="flex items-center gap-1.5 text-[#ffc174] font-bold text-xs">
-                                            <QrCode className="w-4 h-4 text-[#f59e0b]" />
-                                            <span>Payment First (QRPh / e-Wallets)</span>
-                                        </div>
-                                        <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#3f2000] font-black">
-                                            Required
-                                        </span>
+                            {/* PAYMENT RECEIVED BANNER FOR ONLINE / PAYMONGO / PAID ORDERS */}
+                            {completedOrder.payment_status === 'paid' ? (
+                                <div className="p-4 rounded-2xl bg-[#121213] border border-emerald-500/50 text-left space-y-2 shadow-xl animate-in fade-in">
+                                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                        <span>Payment Received & Verified!</span>
                                     </div>
-
                                     <p className="text-[11px] text-[#f0e0d1] leading-relaxed">
-                                        Please scan the official QRPh code below to settle <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount).toFixed(2)}</strong> via GCash, Maya, or any banking app:
+                                        Your payment of <strong className="text-emerald-400 font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> via {completedOrder.payment_method || 'Online Payment'} has been verified. The kitchen has received your order and started preparation!
                                     </p>
-
-                                    {/* QR Code display */}
-                                    <div className="bg-white p-3 rounded-2xl w-44 mx-auto flex flex-col items-center justify-center space-y-1.5 shadow-md">
-                                        <img
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`saddleranch_order_${completedOrder.order_number}_amount_${completedOrder.total_amount}`)}`}
-                                            alt="QRPh Payment Code"
-                                            className="w-36 h-36 object-contain"
-                                        />
-                                        <span className="text-[9px] font-mono font-black text-[#141416] uppercase tracking-wider">
-                                            Scan via GCash / Maya
-                                        </span>
+                                </div>
+                            ) : (
+                                <div className="p-4 rounded-2xl bg-[#121213] border border-amber-500/40 text-left space-y-2 shadow-xl">
+                                    <div className="flex items-center gap-2 text-[#ffc174] font-bold text-xs">
+                                        <Info className="w-4 h-4 text-[#f59e0b] shrink-0" />
+                                        <span>Payment Pending (Cash)</span>
                                     </div>
-
-                                    <div className="space-y-1 text-[11px] font-mono bg-[#1c150e] p-2.5 rounded-xl border border-[#3D3126]">
-                                        <div className="flex justify-between text-[#d8c3ad]">
-                                            <span>GCash / Maya No.:</span>
-                                            <span className="font-bold text-[#ffc174]">0917 123 4567</span>
-                                        </div>
-                                        <div className="flex justify-between text-[#d8c3ad]">
-                                            <span>Account Name:</span>
-                                            <span className="font-bold text-white">Saddle Ranch PH</span>
-                                        </div>
-                                        <div className="flex justify-between text-[#d8c3ad]">
-                                            <span>Reference:</span>
-                                            <span className="font-bold text-[#fbbf24]">#{completedOrder.order_number}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-2 rounded-lg bg-[#261e15] border border-[#534434] text-[10px] text-[#fbbf24] text-center font-bold">
-                                        Kitchen preparation commences upon verified payment receipt.
-                                    </div>
-
-                                    {/* Action Button to Confirm Payment Sent */}
-                                    {isPaymentConfirmed ? (
-                                        <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-center gap-2 font-bold animate-in fade-in">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                                            <span>Payment Received! Sent to kitchen.</span>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            disabled={isConfirmingPayment}
-                                            onClick={() => handleConfirmPaymentSent(completedOrder.order_number)}
-                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#3f2000] font-black text-xs uppercase tracking-wider transition-all btn-bevel cursor-pointer flex items-center justify-center gap-1.5 shadow"
-                                        >
-                                            {isConfirmingPayment ? (
-                                                <span>Verifying Payment...</span>
-                                            ) : (
-                                                <>
-                                                    <CheckCircle2 className="w-4 h-4" />
-                                                    <span>I Have Sent Payment (Verify & Settle)</span>
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
+                                    <p className="text-[11px] text-[#d8c3ad] leading-relaxed">
+                                        Please prepare <strong className="text-[#fbbf24] font-mono font-bold">₱{parseFloat(completedOrder.total_amount || '0').toFixed(2)}</strong> in cash to settle at the cashier counter upon claiming your order.
+                                    </p>
                                 </div>
                             )}
 
@@ -1996,8 +1991,9 @@ export default function CustomerOrder({ products = [] }: OrderProps) {
                                     type="button"
                                     onClick={() => {
                                         setIsBasketSheetOpen(false);
+                                        const orderNum = completedOrder?.order_number;
                                         setCompletedOrder(null);
-                                        window.dispatchEvent(new CustomEvent('saddle_ranch_open_all_orders'));
+                                        window.dispatchEvent(new CustomEvent('saddle_ranch_track_order', { detail: orderNum }));
                                     }}
                                     className="w-full py-3 rounded-xl bg-[#f59e0b] text-[#472a00] font-bold text-xs uppercase tracking-wider btn-bevel shadow hover:bg-[#ffc174] transition-all cursor-pointer"
                                 >
