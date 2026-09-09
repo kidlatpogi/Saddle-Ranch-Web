@@ -29,7 +29,6 @@ import {
     User,
     RotateCcw,
     Star,
-    Sparkles,
     ShieldAlert
 } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
@@ -132,7 +131,7 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         if (prevStatusRef.current !== 'active' && sData.status === 'active') {
                             setShowUnlockedToast(true);
                             setIsLockModalOpen(false);
-                            setTimeout(() => setShowUnlockedToast(false), 7000);
+                            setTimeout(() => setShowUnlockedToast(false), 3000);
                         }
                         prevStatusRef.current = sData.status;
                     }
@@ -172,6 +171,8 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
     const [waiterCalled, setWaiterCalled] = useState(false);
     const [showWaiterToast, setShowWaiterToast] = useState(false);
     const [waiterStatus, setWaiterStatus] = useState<'idle' | 'pending' | 'acknowledged'>('idle');
+    const lastAckTimestampRef = useRef<number>(0);
+    const waiterToastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Dedicated QR Table Session Unlock State (Completely separate from calling waiter)
     const [unlockRequestStatus, setUnlockRequestStatus] = useState<'idle' | 'pending' | 'unlocked'>('idle');
@@ -202,17 +203,19 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 if (res.ok) {
                     const json = await res.json();
                     const currentStatus = json.data?.status || 'idle';
+                    const updatedAt = json.data?.updated_at || 0;
                     setWaiterStatus(currentStatus);
-                    if (currentStatus === 'acknowledged') {
+                    if (currentStatus === 'acknowledged' && updatedAt !== lastAckTimestampRef.current) {
+                        lastAckTimestampRef.current = updatedAt;
                         setWaiterCalled(false);
                         setShowWaiterToast(true);
 
-                        // Keep "Server on the way" active for 12 seconds, then revert back to Call Waiter
+                        // Staff Acknowledged banner only lasts 3 seconds at QR ordering
                         clearTimeout(ackTimer);
                         ackTimer = setTimeout(() => {
-                            setWaiterStatus('idle');
                             setShowWaiterToast(false);
-                        }, 12000);
+                            setWaiterStatus('idle');
+                        }, 3000);
                     }
                 }
             } catch (e) { }
@@ -458,6 +461,14 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
         setWaiterCalled(true);
         setShowWaiterToast(true);
 
+        if (waiterToastTimerRef.current) {
+            clearTimeout(waiterToastTimerRef.current);
+        }
+        // Staff Notified banner only lasts 3 seconds at QR ordering
+        waiterToastTimerRef.current = setTimeout(() => {
+            setShowWaiterToast(false);
+        }, 3000);
+
         try {
             await fetch('/api/v1/waiter-call', {
                 method: 'POST',
@@ -472,10 +483,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 }),
             });
         } catch (e) { }
-
-        setTimeout(() => {
-            setShowWaiterToast(false);
-        }, 6000);
     };
 
     const handleApplyVoucher = async (e?: React.FormEvent) => {
@@ -860,7 +867,6 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                 {/* Real-Time Table Unlocked Toast Notification */}
                 {showUnlockedToast && (
                     <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm p-4 rounded-2xl bg-emerald-600 text-white font-bold shadow-2xl flex items-center gap-3 border border-emerald-400 animate-in slide-in-from-top-4 duration-300">
-                        <Sparkles className="w-6 h-6 shrink-0 text-amber-300 animate-spin" />
                         <div className="text-xs leading-snug">
                             <div className="font-black text-sm uppercase">Table #{tableNumber} Unlocked!</div>
                             <div>Dining session is active. You may now place your order!</div>
