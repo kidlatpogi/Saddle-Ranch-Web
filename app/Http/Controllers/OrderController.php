@@ -346,10 +346,13 @@ class OrderController extends Controller
             return $order;
         });
 
-        $secretKey = env('PAYMONGO_SECRET_KEY');
+        $secretKey = config('services.paymongo.secret_key') ?: env('PAYMONGO_SECRET_KEY');
         $payMethod = strtolower($validated['payment_method']);
-
-        if ($secretKey && (str_contains($payMethod, 'paymongo') || str_contains($payMethod, 'qrph') || str_contains($payMethod, 'wallet') || str_contains($payMethod, 'online') || str_contains($payMethod, 'gcash') || str_contains($payMethod, 'card'))) {
+        $finalTotalAmount = (float) $createdOrder->total_amount;
+        $discountAmount = (float) ($createdOrder->discount_amount ?? 0);
+        $orderBranch = $createdOrder->branch ?? 'Bulihan';
+        $isTesting = app()->environment('testing');
+        if ((!$isTesting || config('services.paymongo.fake_testing', false)) && $secretKey && (str_contains($payMethod, 'paymongo') || str_contains($payMethod, 'qrph') || str_contains($payMethod, 'wallet') || str_contains($payMethod, 'online') || str_contains($payMethod, 'gcash') || str_contains($payMethod, 'card'))) {
             $lineItems = [];
             foreach ($createdOrder->orderItems as $item) {
                 $lineItem = [
@@ -378,9 +381,51 @@ class OrderController extends Controller
                 $lineItems[] = $lineItem;
             }
 
+            // Adjust line items proportionally if voucher discount was applied so PayMongo charge matches $finalTotalAmount
+            $targetTotalCents = (int) round($finalTotalAmount * 100);
+            $sumCents = array_reduce($lineItems, fn($carry, $item) => $carry + ($item['amount'] * $item['quantity']), 0);
+            if ($sumCents > 0 && $sumCents !== $targetTotalCents && count($lineItems) > 0) {
+                $ratio = $targetTotalCents / $sumCents;
+                $runningTotal = 0;
+                $count = count($lineItems);
+                for ($i = 0; $i < $count; $i++) {
+                    if ($i === $count - 1) {
+                        $lineItems[$i]['amount'] = max(100, (int) round(($targetTotalCents - $runningTotal) / $lineItems[$i]['quantity']));
+                    } else {
+                        $newLineAmount = max(100, (int) round($lineItems[$i]['amount'] * $ratio));
+                        $lineItems[$i]['amount'] = $newLineAmount;
+                        $runningTotal += $newLineAmount * $lineItems[$i]['quantity'];
+                    }
+                }
+            }
+
+            // Construct clean return URLs without duplicating or preserving stale query parameters
+            if ($validated['order_type'] === 'dine_in' || $validated['order_type'] === 'express_takeout') {
+                $cleanReturnUrl = route('dine-in');
+                if (!empty($validated['table_number'])) {
+                    $cleanReturnUrl .= '?table=' . urlencode($validated['table_number']);
+                }
+            } else {
+                $cleanReturnUrl = route('order') . '?mode=' . urlencode($validated['order_type']);
+            }
+
+            $successUrl = $cleanReturnUrl . (str_contains($cleanReturnUrl, '?') ? '&' : '?') . 'success=1&order_number=' . $createdOrder->order_number;
+            $cancelUrl = $cleanReturnUrl;
+
+            $checkoutUrl = null;
             try {
-                $referer = $request->header('referer') ?: route('order');
-                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                $response = \Illuminate\Support\Facades\Http::withOptions([
+                    'curl' => [
+                        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                    ],
+                    'timeout' => 25,
+                    'connect_timeout' => 10,
+                ])
+                ->retry(3, 250, function ($exception) {
+                    return $exception instanceof \Illuminate\Http\Client\ConnectionException
+                        || ($exception instanceof \Exception && str_contains($exception->getMessage(), 'cURL error'));
+                }, throw: false)
+                ->withHeaders([
                     'Authorization' => 'Basic ' . base64_encode($secretKey . ':'),
                     'Content-Type' => 'application/json',
                 ])->post('https://api.paymongo.com/v1/checkout_sessions', [
@@ -389,8 +434,8 @@ class OrderController extends Controller
                             'send_email_receipt' => true,
                             'show_description' => true,
                             'show_line_items' => true,
-                            'cancel_url' => $referer,
-                            'success_url' => $referer . (str_contains($referer, '?') ? '&' : '?') . 'success=1&order_number=' . $createdOrder->order_number,
+                            'cancel_url' => $cancelUrl,
+                            'success_url' => $successUrl,
                             'payment_method_types' => ['qrph', 'gcash', 'paymaya', 'card'],
                             'line_items' => $lineItems,
                             'description' => 'Saddle Ranch Order #' . $createdOrder->order_number,
@@ -401,15 +446,34 @@ class OrderController extends Controller
 
                 if ($response->successful()) {
                     $checkoutUrl = $response->json('data.attributes.checkout_url');
-                    if ($checkoutUrl) {
-                        return Inertia::location($checkoutUrl);
-                    }
                 } else {
-                    \Illuminate\Support\Facades\Log::error('PayMongo Checkout Session Error: ' . $response->body());
+                    \Illuminate\Support\Facades\Log::error("PayMongo Checkout Session Error for {$createdOrder->order_number}: " . $response->body());
                 }
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('PayMongo Request Exception: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error("PayMongo Request Exception for {$createdOrder->order_number}: " . $e->getMessage());
             }
+
+            if ($checkoutUrl) {
+                return Inertia::location($checkoutUrl);
+            }
+
+            // PayMongo failed: Restore product inventory and clean up the order
+            foreach ($createdOrder->orderItems as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock_quantity', $item->quantity);
+                    if ($orderBranch === 'Bulihan') {
+                        $item->product->increment('stock_bulihan', $item->quantity);
+                    } else {
+                        $item->product->increment('stock_dasmarinas', $item->quantity);
+                    }
+                }
+            }
+            $createdOrder->orderItems()->delete();
+            $createdOrder->delete();
+
+            return back()->withErrors([
+                'payment' => 'Unable to initiate online payment session with PayMongo. Please check your internet connection and try again.',
+            ]);
         }
 
         return back()->with([
