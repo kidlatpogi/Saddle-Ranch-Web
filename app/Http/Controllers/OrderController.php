@@ -22,14 +22,21 @@ class OrderController extends Controller
      */
     public function order(Request $request): Response
     {
+        $completedOrder = null;
         if ($request->has('order_number') && ($request->has('success') || $request->has('paid'))) {
-            Order::where('order_number', $request->query('order_number'))->update(['payment_status' => 'paid']);
+            $completedOrder = Order::with('orderItems.product')
+                ->where('order_number', $request->query('order_number'))
+                ->first();
+            if ($completedOrder) {
+                $completedOrder->update(['payment_status' => 'paid']);
+            }
         }
 
         $products = Product::orderBy('id', 'asc')->get();
 
         return Inertia::render('Customer/Order', [
             'products' => $products,
+            'completedOrder' => $completedOrder,
         ]);
     }
 
@@ -38,8 +45,14 @@ class OrderController extends Controller
      */
     public function dineIn(Request $request): Response
     {
+        $completedOrder = null;
         if ($request->has('order_number') && ($request->has('success') || $request->has('paid'))) {
-            Order::where('order_number', $request->query('order_number'))->update(['payment_status' => 'paid']);
+            $completedOrder = Order::with('orderItems.product')
+                ->where('order_number', $request->query('order_number'))
+                ->first();
+            if ($completedOrder) {
+                $completedOrder->update(['payment_status' => 'paid']);
+            }
         }
 
         $tableNumber = $request->query('table');
@@ -83,6 +96,7 @@ class OrderController extends Controller
             'products' => $products,
             'tableNumber' => (string) $tableNumber,
             'initialTableSession' => $initialSession,
+            'completedOrder' => $completedOrder,
         ]);
     }
 
@@ -338,13 +352,30 @@ class OrderController extends Controller
         if ($secretKey && (str_contains($payMethod, 'paymongo') || str_contains($payMethod, 'qrph') || str_contains($payMethod, 'wallet') || str_contains($payMethod, 'online') || str_contains($payMethod, 'gcash') || str_contains($payMethod, 'card'))) {
             $lineItems = [];
             foreach ($createdOrder->orderItems as $item) {
-                $lineItems[] = [
+                $lineItem = [
                     'currency' => 'PHP',
                     'amount' => (int) round($item->unit_price * 100),
                     'description' => $item->product->description ?? $item->product->name,
                     'name' => $item->product->name,
                     'quantity' => (int) $item->quantity,
                 ];
+
+                if (!empty($item->product->image_path)) {
+                    $img = $item->product->image_path;
+                    if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+                        $lineItem['images'] = [$img];
+                    } else {
+                        $host = $request->getHost();
+                        if (in_array($host, ['localhost', '127.0.0.1']) || !str_starts_with(url('/'), 'https://')) {
+                            $cleanPath = ltrim($img, '/');
+                            $lineItem['images'] = ['https://raw.githubusercontent.com/kidlatpogi/Saddle-Ranch-Web/1.1.0/public/' . $cleanPath];
+                        } else {
+                            $lineItem['images'] = [asset($img)];
+                        }
+                    }
+                }
+
+                $lineItems[] = $lineItem;
             }
 
             try {

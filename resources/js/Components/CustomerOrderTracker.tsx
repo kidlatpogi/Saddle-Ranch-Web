@@ -130,7 +130,7 @@ export default function CustomerOrderTracker() {
         }
 
         const handleOrderPlaced = (e: any) => {
-            const orderNum = e?.detail?.order_number;
+            const orderNum = e?.detail?.order_number || (typeof e?.detail === 'string' ? e.detail : null);
             if (orderNum) {
                 try {
                     const current = getStoredOrders();
@@ -138,20 +138,44 @@ export default function CustomerOrderTracker() {
                     localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
                     localStorage.setItem('saddle_ranch_last_order', orderNum);
                     setSavedOrderNumbers(updated);
-                    setSearchQuery(updated.join(', '));
-                    fetchOrders(updated.join(','));
+                    setSearchQuery(orderNum);
+                    setActiveTab('my');
+                    fetchOrders(orderNum, false);
                     setIsOpen(true); // Auto open tracker when new order placed!
                 } catch (err) {}
             }
         };
 
+        const handleTrackOrder = (e: any) => {
+            const orderNum = typeof e?.detail === 'string' ? e.detail : e?.detail?.order_number;
+            if (orderNum) {
+                try {
+                    const current = getStoredOrders();
+                    const updated = Array.from(new Set([orderNum, ...current]));
+                    localStorage.setItem('saddle_ranch_customer_orders', JSON.stringify(updated));
+                    localStorage.setItem('saddle_ranch_last_order', orderNum);
+                    setSavedOrderNumbers(updated);
+                    setSearchQuery(orderNum);
+                } catch (err) {}
+                setActiveTab('my');
+                setIsOpen(true);
+                fetchOrders(orderNum, false);
+            } else {
+                setActiveTab('my');
+                setIsOpen(true);
+                fetchOrders(undefined, false);
+            }
+        };
+
         window.addEventListener('saddle_ranch_order_placed', handleOrderPlaced);
+        window.addEventListener('saddle_ranch_track_order', handleTrackOrder);
         const handleOpenAll = () => { setActiveTab('all'); setIsOpen(true); fetchOrders('', true); };
         window.addEventListener('saddle_ranch_open_all_orders', handleOpenAll);
         window.addEventListener('storage', handleOrderPlaced);
 
         return () => {
             window.removeEventListener('saddle_ranch_order_placed', handleOrderPlaced);
+            window.removeEventListener('saddle_ranch_track_order', handleTrackOrder);
             window.removeEventListener('saddle_ranch_open_all_orders', handleOpenAll);
             window.removeEventListener('storage', handleOrderPlaced);
         };
@@ -224,7 +248,7 @@ export default function CustomerOrderTracker() {
     );
 
     return (
-        <div className={`fixed right-3 sm:right-6 z-40 flex flex-col items-end font-sans transition-all duration-300 max-w-[calc(100vw-24px)] ${
+        <div className={`fixed right-3 sm:right-6 z-[9999] flex flex-col items-end font-sans transition-all duration-300 max-w-[calc(100vw-24px)] ${
             isOrderPage && hasCartItems ? 'bottom-[98px]' : 'bottom-4 sm:bottom-6'
         }`}>
             {/* FLOATING EXPANDED TRACKING PANEL */}
@@ -323,6 +347,19 @@ export default function CustomerOrderTracker() {
                                                     {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
+
+                                            {/* Payment Received Confirmation for Paid Orders */}
+                                            {order.payment_status === 'paid' && (
+                                                <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-[11px] text-emerald-300 flex items-center justify-between">
+                                                    <span className="font-bold flex items-center gap-1">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                                        <span>Paid Online</span>
+                                                    </span>
+                                                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+                                                        {order.payment_method || 'Verified'}
+                                                    </span>
+                                                </div>
+                                            )}
 
                                             {/* Payment Pending Alert for QRPh Orders */}
                                             {order.payment_status === 'pending' && !order.payment_method?.toLowerCase().includes('cash') && (
