@@ -63,7 +63,36 @@ Route::prefix('v1')->group(function () {
         ]);
     });
 
-    Route::post('/ratings', function (Request $request) {
+    Route::middleware(['web'])->get('/ratings/my-review', function (Request $request) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user) {
+            return response()->json([
+                'status' => 'unauthenticated',
+                'is_logged_in' => false,
+                'is_verified' => false,
+                'has_reviewed' => false,
+                'review' => null,
+            ]);
+        }
+
+        $isVerified = !empty($user->email_verified_at);
+        $review = \App\Models\Rating::where('user_id', $user->id)->orderBy('id', 'desc')->first();
+
+        return response()->json([
+            'status' => 'success',
+            'is_logged_in' => true,
+            'is_verified' => $isVerified,
+            'has_reviewed' => !empty($review),
+            'review' => $review,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+        ]);
+    });
+
+    Route::middleware(['web'])->post('/ratings', function (Request $request) {
         $validated = $request->validate([
             'order_id' => 'nullable|integer',
             'order_number' => 'nullable|string|max:50',
@@ -79,11 +108,66 @@ Route::prefix('v1')->group(function () {
             'favorite_dish' => 'nullable|string|max:255',
         ]);
 
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $order = null;
+
+        // 1. Check if Per-Order review
+        $isPerOrder = !empty($validated['order_number']) || !empty($validated['order_id']);
+
+        if ($isPerOrder) {
+            $query = \App\Models\Order::query();
+            if (!empty($validated['order_number'])) {
+                $query->where('order_number', trim($validated['order_number']));
+            }
+            if (!empty($validated['order_id'])) {
+                $query->orWhere('id', $validated['order_id']);
+            }
+            $order = $query->first();
+
+            if (!$order) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Order not found. Please provide a valid order number.',
+                ], 404);
+            }
+
+            if ($order->status === 'cancelled') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cancelled orders cannot be reviewed.',
+                ], 422);
+            }
+
+            // Must be completed before reviewing
+            if ($order->status !== 'completed') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You can review this order once it has been completed and served.',
+                ], 422);
+            }
+        } else {
+            // 2. Landing Page review (strictly for verified users!)
+            if (!$user) {
+                return response()->json([
+                    'status' => 'unauthenticated',
+                    'message' => 'Please sign in or create an account to leave a review.',
+                ], 401);
+            }
+
+            if (empty($user->email_verified_at)) {
+                return response()->json([
+                    'status' => 'needs_verification',
+                    'message' => 'Please verify your email address before leaving a review.',
+                    'email' => $user->email,
+                ], 403);
+            }
+        }
+
         $filterService = new \App\Services\ProfanityFilterService();
 
         // Run filter scan & normalization across all user-supplied text
         $commentResult = $filterService->filter($validated['comment'] ?? '');
-        $nameResult = $filterService->filter($validated['customer_name'] ?? '');
+        $nameResult = $filterService->filter($validated['customer_name'] ?? ($user ? $user->name : ''));
         $dishResult = $filterService->filter($validated['favorite_dish'] ?? '');
         $hasAdultLinks = $commentResult['has_adult_links'] || $nameResult['has_adult_links'] || $dishResult['has_adult_links'];
         $hasProfanity = $commentResult['has_profanity'] || $nameResult['has_profanity'] || $dishResult['has_profanity'];
@@ -108,16 +192,67 @@ Route::prefix('v1')->group(function () {
         }
 
         $cleanComment = $commentResult['cleaned_text'];
-        $cleanName = $nameResult['cleaned_text'] ?: ($validated['customer_name'] ?? 'Customer');
+        $cleanName = $nameResult['cleaned_text'] ?: ($user ? $user->name : ($validated['customer_name'] ?? 'Valued Customer'));
         $cleanDish = $dishResult['cleaned_text'];
 
+        // 3. Check for existing review to UPDATE rather than duplicate
+        $existingRating = null;
+
+        if ($order) {
+            // Find existing review for this specific order
+            $existingRating = \App\Models\Rating::where('order_id', $order->id)
+                ->orWhere('order_number', $order->order_number)
+                ->first();
+        } elseif ($user) {
+            // Find existing landing page review for this verified user (strictly 1 review per user)
+            $existingRating = \App\Models\Rating::where('user_id', $user->id)->first();
+        }
+
+        if ($existingRating) {
+            // UPDATE existing review
+            $existingRating->update([
+                'customer_name' => $cleanName,
+                'customer_phone' => $validated['customer_phone'] ?? $existingRating->customer_phone ?? ($user?->phone_number),
+                'branch' => $validated['branch'] ?? ($order?->branch ?: $existingRating->branch),
+                'overall_rating' => $validated['overall_rating'],
+                'food_quality_rating' => $validated['food_quality_rating'],
+                'customer_service_rating' => $validated['customer_service_rating'],
+                'delivery_speed_rating' => $validated['delivery_speed_rating'],
+                'packaging_rating' => $validated['packaging_rating'],
+                'comment' => $cleanComment ?: null,
+                'favorite_dish' => $cleanDish ?: null,
+                'is_approved' => true,
+                'is_flagged' => false,
+                'moderation_flag' => 'clean',
+            ]);
+
+            \App\Models\AuditLog::create([
+                'user_id' => $user?->id,
+                'action' => "Rating updated ({$validated['overall_rating']}★) by {$cleanName}" . ($existingRating->order_number ? " for Order #{$existingRating->order_number}" : ""),
+                'ip_address' => $request->ip(),
+                'payload' => [
+                    'rating_id' => $existingRating->id,
+                    'overall' => $existingRating->overall_rating,
+                    'is_update' => true,
+                ],
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'is_update' => true,
+                'message' => 'Your review has been updated successfully!',
+                'data' => $existingRating->fresh(),
+            ], 200);
+        }
+
+        // CREATE new review
         $rating = \App\Models\Rating::create([
-            'order_id' => $validated['order_id'] ?? null,
-            'order_number' => $validated['order_number'] ?? null,
-            'user_id' => auth()->id(),
+            'order_id' => $order?->id,
+            'order_number' => $order?->order_number,
+            'user_id' => $user?->id,
             'customer_name' => $cleanName,
-            'customer_phone' => $validated['customer_phone'] ?? null,
-            'branch' => $validated['branch'] ?? 'Bulihan',
+            'customer_phone' => $validated['customer_phone'] ?? ($order?->customer_phone) ?? ($user?->phone_number),
+            'branch' => $validated['branch'] ?? ($order?->branch ?: 'Bulihan'),
             'overall_rating' => $validated['overall_rating'],
             'food_quality_rating' => $validated['food_quality_rating'],
             'customer_service_rating' => $validated['customer_service_rating'],
@@ -132,7 +267,7 @@ Route::prefix('v1')->group(function () {
         ]);
 
         \App\Models\AuditLog::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user?->id,
             'action' => "New {$validated['overall_rating']}★ Rating submitted by {$rating->customer_name}" . ($rating->order_number ? " for Order #{$rating->order_number}" : ""),
             'ip_address' => $request->ip(),
             'payload' => [
@@ -145,7 +280,8 @@ Route::prefix('v1')->group(function () {
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Thank you for your feedback! Your rating has been received and published.',
+            'is_update' => false,
+            'message' => 'Thank you for your feedback! Your review has been received and published.',
             'data' => $rating,
         ], 201);
     });
@@ -414,7 +550,7 @@ Route::prefix('v1')->group(function () {
                 return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
             }
 
-            $orders = Order::with('orderItems.product')
+            $orders = Order::with(['orderItems.product', 'rating'])
                 ->where('user_id', $user->id)
                 ->orWhere('customer_name', $user->name)
                 ->orWhere(function ($query) use ($user) {
@@ -502,7 +638,7 @@ Route::prefix('v1')->group(function () {
         $showAll = $request->boolean('all') || strtolower($query) === 'all';
         
         if ($showAll) {
-            $orders = Order::with('orderItems.product')
+            $orders = Order::with(['orderItems.product', 'rating'])
                 ->orderBy('created_at', 'desc')
                 ->take(30)
                 ->get();
@@ -522,7 +658,7 @@ Route::prefix('v1')->group(function () {
 
         $terms = array_filter(array_map('trim', explode(',', $query)));
 
-        $orders = Order::with('orderItems.product')
+        $orders = Order::with(['orderItems.product', 'rating'])
             ->where(function ($q) use ($terms) {
                 foreach ($terms as $term) {
                     $q->orWhere('order_number', 'LIKE', "%{$term}%")

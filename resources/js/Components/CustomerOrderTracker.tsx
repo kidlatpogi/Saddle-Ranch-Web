@@ -23,8 +23,10 @@ interface Order {
     customer_name?: string;
     customer_phone?: string;
     delivery_address?: string;
+    branch?: string;
     created_at: string;
     order_items?: OrderItem[];
+    rating?: any;
 }
 
 export default function CustomerOrderTracker() {
@@ -401,13 +403,23 @@ export default function CustomerOrderTracker() {
                                             )}
                                             {/* Rate Completed Order Button */}
                                             {order.status === 'completed' && (
-                                                <button
-                                                    onClick={() => setRatingOrder(order)}
-                                                    className="w-full py-1.5 rounded-lg bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                                                >
-                                                    <Star className="w-3 h-3 fill-[#f59e0b] text-[#f59e0b]" />
-                                                    <span>Rate Your Meal & Service (5★)</span>
-                                                </button>
+                                                order.rating ? (
+                                                    <button
+                                                        onClick={() => setRatingOrder(order)}
+                                                        className="w-full py-1.5 rounded-lg bg-[#261e15] border border-[#f59e0b]/50 hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                                    >
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                                        <span>Rated {order.rating.overall_rating}★ • Update Order Review</span>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setRatingOrder(order)}
+                                                        className="w-full py-1.5 rounded-lg bg-[#261e15] border border-[#534434] hover:border-[#f59e0b] text-[#ffc174] hover:text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                                    >
+                                                        <Star className="w-3 h-3 fill-[#f59e0b] text-[#f59e0b]" />
+                                                        <span>Rate Your Meal & Service (5★)</span>
+                                                    </button>
+                                                )
                                             )}
                                         </div>
                                     );
@@ -435,6 +447,14 @@ export default function CustomerOrderTracker() {
                     orderNumber={ratingOrder.order_number}
                     initialCustomerName={ratingOrder.customer_name}
                     initialCustomerPhone={ratingOrder.customer_phone}
+                    branch={ratingOrder.branch || 'Bulihan'}
+                    existingRating={ratingOrder.rating || null}
+                    isUpdateMode={!!ratingOrder.rating}
+                    onRatingSubmitted={(savedRating) => {
+                        setOrders((prev) =>
+                            prev.map((o) => (o.id === ratingOrder.id ? { ...o, rating: savedRating } : o))
+                        );
+                    }}
                 />
             )}
 
