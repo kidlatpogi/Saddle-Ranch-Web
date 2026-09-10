@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
-import { Star, MessageSquareQuote, Flame, Utensils, Heart, Sparkles, Plus, ThumbsUp } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Star, MessageSquareQuote, Flame, Utensils, Heart, Sparkles, Plus, ThumbsUp, Edit3, CheckCircle2, ShieldCheck } from 'lucide-react';
 import RatingModal from '@/Components/RatingModal';
+import CustomerAuthModal from '@/Components/CustomerAuthModal';
 
 export interface ReviewItem {
     id?: number;
+    order_id?: number | null;
+    order_number?: string | null;
+    user_id?: number | null;
     customer_name?: string;
     branch?: string;
     overall_rating: number;
+    food_quality_rating?: number;
+    customer_service_rating?: number;
+    delivery_speed_rating?: number;
+    packaging_rating?: number;
     comment?: string;
     favorite_dish?: string;
     created_at?: string;
@@ -19,9 +27,74 @@ interface ReviewsMarqueeProps {
 export default function ReviewsMarquee({ initialReviews = [] }: ReviewsMarqueeProps) {
     const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews || []);
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-    const handleNewRating = (newRating: ReviewItem) => {
-        setReviews((prev) => [newRating, ...prev]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
+    const [userReview, setUserReview] = useState<ReviewItem | null>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    // Fetch user review status and account verification status
+    const checkUserReviewStatus = useCallback(async () => {
+        try {
+            const res = await fetch('/api/v1/ratings/my-review', {
+                headers: { Accept: 'application/json' },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success') {
+                    setIsLoggedIn(true);
+                    setIsVerified(Boolean(data.is_verified));
+                    setUserReview(data.review || null);
+                    setCurrentUser(data.user || null);
+                } else {
+                    setIsLoggedIn(false);
+                    setIsVerified(false);
+                    setUserReview(null);
+                    setCurrentUser(null);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching user review status:', err);
+        }
+    }, []);
+
+    useEffect(() => {
+        checkUserReviewStatus();
+    }, [checkUserReviewStatus]);
+
+    const handleLeaveReviewClick = () => {
+        if (!isLoggedIn || !isVerified) {
+            // Require login / verification first
+            setIsAuthModalOpen(true);
+        } else {
+            // Open Rating modal (will be in update mode if userReview exists)
+            setIsRatingModalOpen(true);
+        }
+    };
+
+    const handleAuthSuccess = (user: any) => {
+        setIsAuthModalOpen(false);
+        setIsLoggedIn(true);
+        setIsVerified(Boolean(user?.email_verified_at));
+        setCurrentUser(user);
+        // Re-check review status and open rating modal
+        checkUserReviewStatus().then(() => {
+            setIsRatingModalOpen(true);
+        });
+    };
+
+    const handleRatingSubmitted = (savedRating: ReviewItem) => {
+        setUserReview(savedRating);
+        setReviews((prev) => {
+            const idx = prev.findIndex((r) => r.id === savedRating.id || (savedRating.user_id && r.user_id === savedRating.user_id));
+            if (idx !== -1) {
+                const updated = [...prev];
+                updated[idx] = savedRating;
+                return updated;
+            }
+            return [savedRating, ...prev];
+        });
     };
 
     // Calculate rating statistics
@@ -65,7 +138,7 @@ export default function ReviewsMarquee({ initialReviews = [] }: ReviewsMarqueePr
                             </p>
                         </div>
 
-                        {/* Summary Badge & Leave Review CTA - Matching Exact Equal Height & Width */}
+                        {/* Summary Badge & Leave/Update Review CTA */}
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
                             {/* Counter Card */}
                             <div className="h-14 w-full sm:w-60 px-4 rounded-2xl bg-[#1A1A1B] border border-[#534434] flex items-center justify-between shadow-lg">
@@ -85,13 +158,22 @@ export default function ReviewsMarquee({ initialReviews = [] }: ReviewsMarqueePr
                                 </div>
                             </div>
 
-                            {/* Leave a Review Button */}
+                            {/* Leave / Update a Review Button (Restricted to verified users with 1-review update capability) */}
                             <button
-                                onClick={() => setIsRatingModalOpen(true)}
+                                onClick={handleLeaveReviewClick}
                                 className="h-14 w-full sm:w-60 px-4 rounded-2xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs sm:text-sm uppercase tracking-wider transition-all btn-bevel shadow-lg cursor-pointer flex items-center justify-center gap-2 shrink-0"
                             >
-                                <Plus className="w-4 h-4 stroke-[3]" />
-                                <span>Leave a Review</span>
+                                {userReview ? (
+                                    <>
+                                        <Edit3 className="w-4 h-4 stroke-[2.5]" />
+                                        <span>Update Your Review</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="w-4 h-4 stroke-[3]" />
+                                        <span>Leave a Review</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -106,16 +188,25 @@ export default function ReviewsMarquee({ initialReviews = [] }: ReviewsMarqueePr
                         <div>
                             <h3 className="font-domine text-lg font-bold text-white">No Customer Reviews Yet</h3>
                             <p className="text-xs text-[#d8c3ad] mt-1 max-w-sm mx-auto leading-relaxed">
-                                Be the first guest to share your sizzling dining experience with us!
+                                Be the first verified diner to share your sizzling dining experience with us!
                             </p>
                         </div>
                         <div className="pt-1">
                             <button
-                                onClick={() => setIsRatingModalOpen(true)}
+                                onClick={handleLeaveReviewClick}
                                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#f59e0b] hover:bg-[#ffc174] text-[#472a00] font-black text-xs uppercase tracking-wider transition-all btn-bevel shadow cursor-pointer"
                             >
-                                <Plus className="w-4 h-4 stroke-[3]" />
-                                <span>Leave the First Review</span>
+                                {userReview ? (
+                                    <>
+                                        <Edit3 className="w-4 h-4 stroke-[2.5]" />
+                                        <span>Update Your Review</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="w-4 h-4 stroke-[3]" />
+                                        <span>Leave the First Review</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -163,7 +254,14 @@ export default function ReviewsMarquee({ initialReviews = [] }: ReviewsMarqueePr
                                                     <h4 className="font-bold text-xs text-white leading-tight">
                                                         {review.customer_name || 'Saddle Ranch Diner'}
                                                     </h4>
-                                                    <span className="text-[10px] text-[#a1a1aa]">Verified Diner</span>
+                                                    <span className="text-[10px] text-[#a1a1aa] flex items-center gap-1">
+                                                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 inline" />
+                                                        <span>
+                                                            {review.order_number 
+                                                                ? `Verified Diner • #${review.order_number}` 
+                                                                : 'Verified Diner'}
+                                                        </span>
+                                                    </span>
                                                 </div>
                                             </div>
 
@@ -187,11 +285,21 @@ export default function ReviewsMarquee({ initialReviews = [] }: ReviewsMarqueePr
                 )}
             </section>
 
-            {/* Rating Submission Modal */}
+            {/* Customer Auth Modal for Sign-In / Verification */}
+            <CustomerAuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                onSuccess={handleAuthSuccess}
+            />
+
+            {/* Rating Submission / Update Modal */}
             <RatingModal
                 isOpen={isRatingModalOpen}
                 onClose={() => setIsRatingModalOpen(false)}
-                onRatingSubmitted={handleNewRating}
+                existingRating={userReview}
+                isUpdateMode={!!userReview}
+                initialCustomerName={currentUser?.name || ''}
+                onRatingSubmitted={handleRatingSubmitted}
             />
         </>
     );

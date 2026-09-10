@@ -35,7 +35,6 @@ import LocationModal from '@/Components/LocationModal';
 import PrivacyPolicyModal from '@/Components/PrivacyPolicyModal';
 import ReturnPolicyModal from '@/Components/ReturnPolicyModal';
 import OrderConfirmationModal from '@/Components/OrderConfirmationModal';
-import RatingModal from '@/Components/RatingModal';
 import CustomerAuthModal from '@/Components/CustomerAuthModal';
 import CustomerAccountModal from '@/Components/CustomerAccountModal';
 import CustomerOrderTracker from '@/Components/CustomerOrderTracker';
@@ -166,7 +165,6 @@ export default function CustomerOrder({ products = [], completedOrder: initialCo
     const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
-    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
     // Order Confirmation Quick Register State
@@ -2000,14 +1998,6 @@ export default function CustomerOrder({ products = [], completedOrder: initialCo
                                     Track Order Live Status
                                 </button>
                                 <button
-                                    type="button"
-                                    onClick={() => setIsRatingModalOpen(true)}
-                                    className="w-full py-2.5 rounded-xl bg-[#261e15] border border-[#534434] text-[#ffc174] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                                >
-                                    <Star className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" />
-                                    <span>Rate Your Experience (5★)</span>
-                                </button>
-                                <button
                                     onClick={() => {
                                         setIsBasketSheetOpen(false);
                                         setCompletedOrder(null);
@@ -2042,16 +2032,6 @@ export default function CustomerOrder({ products = [], completedOrder: initialCo
                 <ReturnPolicyModal
                     isOpen={isReturnModalOpen}
                     onClose={() => setIsReturnModalOpen(false)}
-                />
-
-                {/* Customer 5-Star Rating Modal */}
-                <RatingModal
-                    isOpen={isRatingModalOpen}
-                    onClose={() => setIsRatingModalOpen(false)}
-                    orderNumber={completedOrder?.order_number}
-                    initialCustomerName={customerName}
-                    initialCustomerPhone={customerPhone}
-                    branch={currentBranch === 'Dasma' ? 'Dasmarinas' : 'Bulihan'}
                 />
 
                 {/* Floating AI Chatbot at Bottom Left (Desktop Only on /order) */}

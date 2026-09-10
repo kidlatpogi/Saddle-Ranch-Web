@@ -1,5 +1,21 @@
-import React, { useState } from 'react';
-import { Star, Flame, Sparkles, CheckCircle2, X, MessageSquare, Utensils, ThumbsUp, Heart, ShieldAlert, AlertTriangle, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Flame, Sparkles, CheckCircle2, X, MessageSquare, Utensils, ThumbsUp, Heart, ShieldAlert, AlertTriangle, ArrowLeft, Edit3 } from 'lucide-react';
+
+export interface ExistingRatingData {
+    id?: number;
+    order_id?: number | null;
+    order_number?: string | null;
+    customer_name?: string | null;
+    customer_phone?: string | null;
+    branch?: string | null;
+    overall_rating?: number;
+    food_quality_rating?: number;
+    customer_service_rating?: number;
+    delivery_speed_rating?: number;
+    packaging_rating?: number;
+    comment?: string | null;
+    favorite_dish?: string | null;
+}
 
 interface RatingModalProps {
     isOpen: boolean;
@@ -9,6 +25,8 @@ interface RatingModalProps {
     initialCustomerName?: string;
     initialCustomerPhone?: string;
     branch?: string;
+    existingRating?: ExistingRatingData | null;
+    isUpdateMode?: boolean;
     onRatingSubmitted?: (ratingData: any) => void;
 }
 
@@ -20,20 +38,42 @@ export default function RatingModal({
     initialCustomerName = '',
     initialCustomerPhone = '',
     branch = 'Bulihan',
+    existingRating = null,
+    isUpdateMode = false,
     onRatingSubmitted,
 }: RatingModalProps) {
-    const [overall, setOverall] = useState<number>(5);
-    const [foodQuality, setFoodQuality] = useState<number>(5);
-    const [service, setService] = useState<number>(5);
-    const [speed, setSpeed] = useState<number>(5);
-    const [packaging, setPackaging] = useState<number>(5);
+    const isUpdate = isUpdateMode || !!existingRating;
 
-    const [customerName, setCustomerName] = useState(initialCustomerName || '');
-    const [favoriteDish, setFavoriteDish] = useState('');
-    const [comment, setComment] = useState('');
+    const [overall, setOverall] = useState<number>(existingRating?.overall_rating || 5);
+    const [foodQuality, setFoodQuality] = useState<number>(existingRating?.food_quality_rating || 5);
+    const [service, setService] = useState<number>(existingRating?.customer_service_rating || 5);
+    const [speed, setSpeed] = useState<number>(existingRating?.delivery_speed_rating || 5);
+    const [packaging, setPackaging] = useState<number>(existingRating?.packaging_rating || 5);
+
+    const [customerName, setCustomerName] = useState(existingRating?.customer_name || initialCustomerName || '');
+    const [favoriteDish, setFavoriteDish] = useState(existingRating?.favorite_dish || '');
+    const [comment, setComment] = useState(existingRating?.comment || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedSuccess, setSubmittedSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+
+    // Sync state when existingRating or initial values change
+    useEffect(() => {
+        if (isOpen) {
+            setOverall(existingRating?.overall_rating ?? 5);
+            setFoodQuality(existingRating?.food_quality_rating ?? 5);
+            setService(existingRating?.customer_service_rating ?? 5);
+            setSpeed(existingRating?.delivery_speed_rating ?? 5);
+            setPackaging(existingRating?.packaging_rating ?? 5);
+            setCustomerName(existingRating?.customer_name ?? initialCustomerName ?? '');
+            setFavoriteDish(existingRating?.favorite_dish ?? '');
+            setComment(existingRating?.comment ?? '');
+            setErrorMsg('');
+            setRejectionData(null);
+            setSubmittedSuccess(false);
+        }
+    }, [isOpen, existingRating, initialCustomerName]);
 
     // Rejection state for prohibited curse words / adult link content
     const [rejectionData, setRejectionData] = useState<{
@@ -85,13 +125,14 @@ export default function RatingModal({
 
             if (res.ok && data.status === 'success') {
                 setSubmittedSuccess(true);
+                setSuccessMessage(data.message || (data.is_update ? 'Your review has been updated successfully!' : 'Thank you for your feedback! Your rating has been received and published.'));
                 if (onRatingSubmitted) {
                     onRatingSubmitted(data.data);
                 }
                 setTimeout(() => {
                     setSubmittedSuccess(false);
                     onClose();
-                }, 2500);
+                }, 2200);
             } else if (data.status === 'rejected' || data.reason === 'inappropriate_language' || data.reason === 'prohibited_links') {
                 setRejectionData({
                     message: data.message || 'Your review was not accepted because it contains prohibited language.',
@@ -212,14 +253,14 @@ export default function RatingModal({
                         </div>
                         <div>
                             <h3 className="font-domine text-2xl font-black text-[#ffc174]">
-                                Thank You for Your Feedback!
+                                {isUpdate ? 'Review Updated Successfully!' : 'Thank You for Your Feedback!'}
                             </h3>
                             <p className="text-xs text-[#d8c3ad] mt-1 max-w-xs mx-auto">
-                                Your review helps our roadhouse team keep sizzling and serving the best Filipino meals in Cavite!
+                                {successMessage || (isUpdate ? 'Your review changes have been saved and updated.' : 'Your review helps our roadhouse team keep sizzling and serving the best Filipino meals in Cavite!')}
                             </p>
                         </div>
                         <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#261e15] border border-[#534434] text-xs font-mono text-[#fbbf24]">
-                            <Sparkles className="w-3.5 h-3.5 text-[#f59e0b]" /> 5.0★ Experience Recorded
+                            <Sparkles className="w-3.5 h-3.5 text-[#f59e0b]" /> {overall}.0★ Experience Recorded
                         </div>
                     </div>
                 ) : (
@@ -227,14 +268,14 @@ export default function RatingModal({
                         {/* Header */}
                         <div className="flex items-center gap-3 border-b border-[#3D3126] pb-3.5 pr-8">
                             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#f59e0b] to-[#b45309] flex items-center justify-center text-[#3f2000] shadow-md shadow-[#f59e0b]/20 shrink-0">
-                                <Flame className="w-6 h-6" />
+                                {isUpdate ? <Edit3 className="w-6 h-6" /> : <Flame className="w-6 h-6" />}
                             </div>
                             <div>
                                 <h3 className="font-domine text-base sm:text-lg font-bold text-[#ffc174] leading-tight">
-                                    Rate Your Sizzling Experience
+                                    {isUpdate ? 'Update Your Roadhouse Review' : 'Rate Your Sizzling Experience'}
                                 </h3>
                                 <p className="text-xs text-[#d8c3ad]">
-                                    {orderNumber ? `Order #${orderNumber} • ${branch} Branch` : `${branch} Branch • Saddle Ranch`}
+                                    {orderNumber ? `Order #${orderNumber} • ${branch} Branch` : `${branch} Branch • Verified Diner Review`}
                                 </p>
                             </div>
                         </div>
@@ -303,11 +344,11 @@ export default function RatingModal({
                                 className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#ffc174] hover:to-[#f59e0b] disabled:opacity-50 text-[#3f2000] font-black text-xs sm:text-sm uppercase tracking-wide shadow-xl shadow-[#f59e0b]/20 transition-all btn-bevel cursor-pointer flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? (
-                                    <span>Submitting Review...</span>
+                                    <span>{isUpdate ? 'Updating Review...' : 'Submitting Review...'}</span>
                                 ) : (
                                     <>
-                                        <ThumbsUp className="w-4 h-4" />
-                                        <span>Submit Roadhouse Rating</span>
+                                        {isUpdate ? <Edit3 className="w-4 h-4" /> : <ThumbsUp className="w-4 h-4" />}
+                                        <span>{isUpdate ? 'Update Roadhouse Rating' : 'Submit Roadhouse Rating'}</span>
                                     </>
                                 )}
                             </button>
