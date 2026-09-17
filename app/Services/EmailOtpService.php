@@ -17,12 +17,7 @@ class EmailOtpService
     public const MAX_ATTEMPTS = 5;
     public const RESEND_COOLDOWN_SECONDS = 60;
 
-    /**
-     * Create and (attempt to) email an OTP.
-     *
-     * @return array{code: string, delivered: bool}
-     */
-    public function issue(string $email, string $purpose, ?User $user = null): array
+    public function issue(string $email, string $purpose, ?User $user = null): string
     {
         $email = strtolower(trim($email));
         $code = (string) random_int(100000, 999999);
@@ -38,34 +33,20 @@ class EmailOtpService
         ]);
 
         $name = $user?->name ?? 'Customer';
-        $mailer = (string) config('mail.default', 'log');
-        $realTransport = ! in_array($mailer, ['log', 'array'], true);
-        $delivered = false;
 
         try {
+            // Send immediately so OTP delivery does not depend on a queue worker.
             Mail::to($email)->send(new OtpCodeMail($code, $purpose, $name));
-            // log/array "succeed" without leaving the server — treat as not delivered.
-            $delivered = $realTransport;
-            if (! $delivered) {
-                Log::info('OTP written to mail log only (no real SMTP).', [
-                    'email' => $email,
-                    'purpose' => $purpose,
-                    'mailer' => $mailer,
-                ]);
-            }
         } catch (Throwable $e) {
+            // Keep OTP usable even when SMTP fails — do not fail register/login.
             Log::warning('OTP email send failed; code still stored.', [
                 'email' => $email,
                 'purpose' => $purpose,
-                'mailer' => $mailer,
                 'error' => $e->getMessage(),
             ]);
         }
 
-        return [
-            'code' => $code,
-            'delivered' => $delivered,
-        ];
+        return $code;
     }
 
     /**
