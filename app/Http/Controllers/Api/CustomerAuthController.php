@@ -25,8 +25,11 @@ class CustomerAuthController extends Controller
      */
     private function withDebugOtp(array $payload, ?string $code): array
     {
-        $show = app()->environment('local')
-            && filter_var(env('MAIL_SHOW_DEBUG_OTP', true), FILTER_VALIDATE_BOOLEAN);
+        // Explicit env flag (any environment). Defaults on for local only.
+        $show = filter_var(
+            env('MAIL_SHOW_DEBUG_OTP', app()->environment('local') ? 'true' : 'false'),
+            FILTER_VALIDATE_BOOLEAN
+        );
 
         if ($show && $code) {
             $payload['debug_code'] = $code;
