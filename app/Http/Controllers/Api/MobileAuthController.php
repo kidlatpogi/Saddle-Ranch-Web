@@ -19,24 +19,6 @@ class MobileAuthController extends Controller
 {
     public function __construct(private EmailOtpService $otpService) {}
 
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
-     */
-    private function withDebugOtp(array $payload, ?string $code): array
-    {
-        $show = filter_var(
-            env('MAIL_SHOW_DEBUG_OTP', app()->environment('local') ? 'true' : 'false'),
-            FILTER_VALIDATE_BOOLEAN
-        );
-
-        if ($show && $code) {
-            $payload['debug_code'] = $code;
-        }
-
-        return $payload;
-    }
-
     private function userPayload(User $user): array
     {
         return [
@@ -197,7 +179,7 @@ class MobileAuthController extends Controller
             ], 429);
         }
 
-        $code = $this->otpService->issue($user->email, EmailOtp::PURPOSE_VERIFY, $user);
+        $this->otpService->issue($user->email, EmailOtp::PURPOSE_VERIFY, $user);
 
         AuditLog::create([
             'user_id' => $user->id,
@@ -206,12 +188,12 @@ class MobileAuthController extends Controller
             'payload' => ['email' => $user->email, 'purpose' => EmailOtp::PURPOSE_VERIFY, 'client' => 'flutter'],
         ]);
 
-        return response()->json($this->withDebugOtp([
+        return response()->json([
             'status' => 'success',
             'message' => 'A new 6-digit verification code has been sent.',
             'email' => $user->email,
             'retry_after' => EmailOtpService::RESEND_COOLDOWN_SECONDS,
-        ], $code));
+        ]);
     }
 
     /**
