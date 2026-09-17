@@ -70,6 +70,7 @@ interface OrderItem {
     phone: string;
     amount: number;
     payment: string;
+    paymentStatus: 'paid' | 'pending';
     status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
     time: string;
     itemsCount: number;
@@ -292,12 +293,10 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     const formatOrders = (rawOrders: any[]): OrderItem[] => {
         if (!rawOrders) return [];
         return rawOrders
-            .filter((o: any) => {
+            .map((o: any) => {
                 const isCash = (o.payment_method || o.payment || '').toLowerCase().includes('cash');
-                const isPaid = o.payment_status === 'paid';
-                return isCash || isPaid;
-            })
-            .map((o: any) => ({
+                const isPaid = o.payment_status === 'paid' || isCash;
+                return {
                 id: o.order_number || o.id?.toString(),
                 order_number: o.order_number || o.id?.toString(),
                 type: o.order_type === 'dine_in' ? 'Dine-In' : o.order_type === 'pickup' ? 'Pick-Up' : 'Delivery',
@@ -307,11 +306,13 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                 phone: o.customer_phone || '',
                 amount: Number(o.total_amount || o.amount || 0),
                 payment: o.payment_method || 'Cash',
+                paymentStatus: (isPaid ? 'paid' : 'pending') as 'paid' | 'pending',
                 status: o.status || 'pending',
                 time: o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
                 itemsCount: o.order_items ? o.order_items.length : (o.itemsCount || 1),
                 date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
-            }));
+            };
+            });
     };
 
     const [orders, setOrders] = useState<OrderItem[]>(formatOrders(initialOrders || []));
@@ -837,6 +838,26 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     // Helpers
+    const confirmOrderPayment = async (orderId: string | number) => {
+        try {
+            await fetch(`/api/v1/orders/${orderId}/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+            });
+        } catch (e) {
+            console.error('Failed to confirm payment:', e);
+        }
+        setOrders(orders.map(o =>
+            (o.id === orderId || o.order_number === orderId)
+                ? { ...o, paymentStatus: 'paid' }
+                : o
+        ));
+    };
+
     const updateOrderStatus = async (orderId: string | number, newStatus: OrderItem['status']) => {
         try {
             await fetch(`/orders/${orderId}/status`, {
@@ -1329,8 +1350,9 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
     };
 
-    // Filtered Orders by Status & Search
+    // Filtered Orders by Status, Branch & Search
     const filteredOrders = orders.filter(o => {
+        if (o.branch !== productBranchFilter) return false;
         if (orderStatusFilter !== 'All' && o.status !== orderStatusFilter) return false;
         if (searchQuery && !o.id.toLowerCase().includes(searchQuery.toLowerCase()) && !o.customer.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         return true;
@@ -1781,7 +1803,13 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                 <div className="text-[10px] text-zinc-400">{o.payment}</div>
                                                             </td>
                                                             <td className="py-4 px-4">
-                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                                                <div className="flex flex-col gap-1.5 items-start">
+                                                                    {o.paymentStatus === 'pending' && (
+                                                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                                            AWAITING PAYMENT
+                                                                        </span>
+                                                                    )}
+                                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
                                                                     o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
                                                                     o.status === 'ready' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
                                                                     o.status === 'preparing' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
@@ -1790,10 +1818,19 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                                                 }`}>
                                                                     {o.status === 'cancelled' ? 'VOIDED' : o.status}
                                                                 </span>
+                                                                </div>
                                                             </td>
                                                             <td className="py-4 px-4">
                                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                                    {o.status === 'pending' && (
+                                                                    {o.paymentStatus === 'pending' && o.status !== 'cancelled' && (
+                                                                        <button
+                                                                            onClick={() => confirmOrderPayment(o.id)}
+                                                                            className="px-3 py-1.5 rounded-xl bg-[#f59e0b] text-[#3f2000] font-black text-[11px] hover:bg-[#fbbf24] transition-all btn-bevel"
+                                                                        >
+                                                                            Mark Paid
+                                                                        </button>
+                                                                    )}
+                                                                    {o.paymentStatus === 'paid' && o.status === 'pending' && (
                                                                         <button
                                                                             onClick={() => updateOrderStatus(o.id, 'preparing')}
                                                                             className="px-3 py-1.5 rounded-xl bg-amber-500 text-[#3f2000] font-black text-[11px] hover:bg-[#fbbf24] transition-all btn-bevel"

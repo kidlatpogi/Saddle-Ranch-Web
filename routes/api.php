@@ -23,12 +23,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/kitchen/orders', [EmployeeController::class, 'getKitchenOrders']);
     Route::post('/employee/pos/orders', [EmployeeController::class, 'storePosOrder']);
     Route::get('/admin/orders', function () {
-        // Enforce payment policy: QRPh/E-wallet orders appear on Admin Dashboard only once payment is verified/paid
+        // Include all orders so unpaid QRPh/e-wallet bookings are visible (Awaiting Payment).
+        // Kitchen/KDS endpoints still enforce paid-only before cooking.
         $orders = Order::with('orderItems.product')
-            ->where(function ($q) {
-                $q->where('payment_status', 'paid')
-                  ->orWhere('payment_method', 'LIKE', '%cash%');
-            })
             ->orderBy('created_at', 'desc')
             ->get();
         $products = Product::orderBy('id', 'desc')->get();
@@ -723,16 +720,30 @@ Route::prefix('v1')->group(function () {
     Route::post('/orders', function (Request $request) {
         $validated = $request->validate([
             'order_type' => 'required|in:dine_in,express_takeout,pickup,delivery',
+            'branch' => 'nullable|string|max:50',
             'table_number' => 'nullable|string',
             'payment_method' => 'required|string',
             'customer_name' => 'nullable|string',
             'customer_phone' => 'nullable|string',
             'delivery_address' => 'nullable|string',
             'delivery_notes' => 'nullable|string',
+            'voucher_code' => 'nullable|string',
+            'discount_amount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
+
+        // Delivery: no cash / COD — PayMongo first
+        if ($validated['order_type'] === 'delivery') {
+            $payMethod = strtolower($validated['payment_method']);
+            if (str_contains($payMethod, 'cash') || str_contains($payMethod, 'cod')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Delivery orders require payment via QRPh / e-Wallets (GCash, Maya, card). Cash on Delivery is not supported.',
+                ], 422);
+            }
+        }
 
         $totalAmount = 0;
         $orderItemsData = [];
@@ -750,15 +761,28 @@ Route::prefix('v1')->group(function () {
             ];
         }
 
+        $discountAmount = round((float) ($validated['discount_amount'] ?? 0), 2);
+        $finalTotal = round(max(0, $totalAmount - $discountAmount), 2);
+
         $orderNumber = 'SR-' . strtoupper(substr(uniqid(), -4));
 
+        $payMongo = app(\App\Services\PayMongoService::class);
+        $needsCheckout = $payMongo->requiresCheckout($validated['payment_method']);
+        $isCash = str_contains(strtolower($validated['payment_method']), 'cash')
+            && ! str_contains(strtolower($validated['payment_method']), 'wallet');
+
         $order = Order::create([
+            'user_id' => $request->user()?->id,
             'order_number' => $orderNumber,
+            'branch' => $validated['branch'] ?? 'Bulihan',
             'order_type' => $validated['order_type'],
             'table_number' => $validated['table_number'] ?? null,
             'status' => 'pending',
-            'total_amount' => $totalAmount,
+            'total_amount' => $finalTotal,
             'payment_method' => $validated['payment_method'],
+            'payment_status' => ($isCash && ! $needsCheckout) ? 'paid' : 'pending',
+            'voucher_code' => $validated['voucher_code'] ?? null,
+            'discount_amount' => $discountAmount,
             'customer_name' => $validated['customer_name'] ?? null,
             'customer_phone' => $validated['customer_phone'] ?? null,
             'delivery_address' => $validated['delivery_address'] ?? null,
@@ -769,10 +793,25 @@ Route::prefix('v1')->group(function () {
             $order->orderItems()->create($itemData);
         }
 
+        $order->load('orderItems.product');
+
+        $checkoutUrl = null;
+        if ($needsCheckout) {
+            $checkoutUrl = $payMongo->createCheckoutSession($order);
+        }
+
+        $payload = $order->toArray();
+        if ($checkoutUrl) {
+            $payload['checkout_url'] = $checkoutUrl;
+        }
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Order created successfully.',
-            'data' => $order->load('orderItems.product'),
+            'message' => $checkoutUrl
+                ? 'Order created. Complete payment via PayMongo checkout.'
+                : 'Order created successfully.',
+            'data' => $payload,
+            'checkout_url' => $checkoutUrl,
         ], 201);
     });
 });
