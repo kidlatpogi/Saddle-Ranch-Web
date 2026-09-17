@@ -17,12 +17,8 @@ class AdminDashboardController extends Controller
      */
     public function index(): Response
     {
-        // Only include paid QRPh/e-Wallet orders and cash orders in the Admin Dashboard
+        // Show all bookings in Admin (including unpaid QRPh). KDS stays paid-only.
         $orders = Order::with('orderItems.product')
-            ->where(function ($q) {
-                $q->where('payment_status', 'paid')
-                  ->orWhere('payment_method', 'LIKE', '%cash%');
-            })
             ->orderBy('created_at', 'desc')
             ->get();
         $products = Product::orderBy('id', 'asc')->get();
