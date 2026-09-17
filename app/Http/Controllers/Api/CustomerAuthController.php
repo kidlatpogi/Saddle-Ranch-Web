@@ -18,21 +18,25 @@ class CustomerAuthController extends Controller
     public function __construct(private EmailOtpService $otpService) {}
 
     /**
-     * Expose OTP in API responses only for local + log mailer testing.
+     * Include OTP in the JSON when email cannot actually be delivered
+     * (log/array mailer, SMTP failure) or MAIL_SHOW_DEBUG_OTP is on.
      *
      * @param  array<string, mixed>  $payload
+     * @param  array{code: string, delivered: bool}|string|null  $otp
      * @return array<string, mixed>
      */
-    private function withDebugOtp(array $payload, ?string $code): array
+    private function withDebugOtp(array $payload, array|string|null $otp): array
     {
-        // Explicit env flag (any environment). Defaults on for local only.
-        $show = filter_var(
-            env('MAIL_SHOW_DEBUG_OTP', app()->environment('local') ? 'true' : 'false'),
-            FILTER_VALIDATE_BOOLEAN
-        );
+        $code = is_array($otp) ? ($otp['code'] ?? null) : $otp;
+        $delivered = is_array($otp) ? (bool) ($otp['delivered'] ?? false) : true;
 
-        if ($show && $code) {
+        $force = filter_var(env('MAIL_SHOW_DEBUG_OTP', false), FILTER_VALIDATE_BOOLEAN);
+        $mailer = (string) config('mail.default', 'log');
+        $nonDelivering = in_array($mailer, ['log', 'array'], true);
+
+        if ($code && ($force || $nonDelivering || ! $delivered)) {
             $payload['debug_code'] = $code;
+            $payload['email_delivered'] = $delivered && ! $nonDelivering;
         }
 
         return $payload;
@@ -205,9 +209,10 @@ class CustomerAuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'status' => 'success',
-                'message' => 'If that email exists, a new code has been sent.',
-            ]);
+                'status' => 'error',
+                'message' => 'No account found for this email. Please register again.',
+                'account_missing' => true,
+            ], 404);
         }
 
         if ($user->email_verified_at) {
