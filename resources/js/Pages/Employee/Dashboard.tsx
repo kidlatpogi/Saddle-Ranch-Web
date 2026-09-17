@@ -95,10 +95,11 @@ interface TableSessionInfo {
 interface EmployeeDashboardProps {
     initialOrders?: OrderItem[];
     userBranch?: string;
+    userRole?: string;
     products?: any[];
 }
 
-export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan', products: serverProducts }: EmployeeDashboardProps) {
+export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan', userRole = 'employee', products: serverProducts }: EmployeeDashboardProps) {
     // POS is default active tab for Cashiers!
     const [activeTab, setActiveTab] = useState<'pos' | 'queue' | 'menu' | 'sales' | 'tables'>('pos');
     const [searchQuery, setSearchQuery] = useState('');
@@ -196,7 +197,10 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
     // POS Walk-In Cart State
     // Table Session Staff Management
     const [tableSessions, setTableSessions] = useState<TableSessionInfo[]>([]);
-    const [tableBranch, setTableBranch] = useState<string>(userBranch || 'Bulihan');
+    const normalizedBranch = (userBranch && userBranch.toLowerCase() !== 'all')
+        ? (userBranch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan')
+        : 'Bulihan';
+    const [tableBranch, setTableBranch] = useState<string>(normalizedBranch);
     const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null);
     const [sessionFeedback, setSessionFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -1426,12 +1430,35 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                     <p className="text-xs text-[#a1a1aa] mt-1">
                                         Open tables when guests arrive to allow ordering. Prevents off-premise troll & spam orders.
                                     </p>
-                                    <div className="flex items-center gap-3 mt-2 text-xs font-bold font-mono">
+                                    <div className="flex items-center gap-3 mt-2 text-xs font-bold font-mono flex-wrap">
                                         <span className="text-emerald-400">{activeSessionsCount} Active</span>
                                         <span className="text-[#71717a]">&bull;</span>
                                         <span className="text-[#a1a1aa]">{tableSessions.length - activeSessionsCount} Locked / Inactive</span>
                                         <span className="text-[#71717a]">&bull;</span>
-                                        <span className="text-amber-400">Branch: {tableBranch}</span>
+                                        {userRole === 'admin' ? (
+                                            <div className="inline-flex items-center gap-1 bg-[#141416] p-0.5 rounded-lg border border-[#333338]">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTableBranch('Bulihan')}
+                                                    className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                                                        tableBranch === 'Bulihan' ? 'bg-amber-500 text-[#3f2000]' : 'text-[#a1a1aa] hover:text-white'
+                                                    }`}
+                                                >
+                                                    Bulihan
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTableBranch('Dasma')}
+                                                    className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                                                        tableBranch === 'Dasma' ? 'bg-amber-500 text-[#3f2000]' : 'text-[#a1a1aa] hover:text-white'
+                                                    }`}
+                                                >
+                                                    Dasma
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-amber-400">Branch: {tableBranch} (Cashier Station)</span>
+                                        )}
                                     </div>
                                 </div>
 

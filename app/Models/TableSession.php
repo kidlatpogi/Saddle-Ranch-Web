@@ -100,17 +100,16 @@ class TableSession extends Model
     public static function isTableActive(string $tableNumber, ?string $branch = null): bool
     {
         $norm = self::normalizeTableNumber($tableNumber);
+        $branchKey = ($branch && str_contains(strtolower($branch), 'dasma')) ? 'Dasma' : 'Bulihan';
+
         $query = self::where(function ($q) use ($norm, $tableNumber) {
             $q->where('table_number', $norm)
               ->orWhere('table_number', $tableNumber);
+        })
+        ->where(function ($q) use ($branchKey) {
+            $q->where('branch', $branchKey)
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
         });
-
-        if ($branch && strtolower($branch) !== 'all') {
-            $query->where(function ($q) use ($branch) {
-                $q->where('branch', 'LIKE', "%{$branch}%")
-                  ->orWhere('branch', 'all');
-            });
-        }
 
         $session = $query->first();
 
