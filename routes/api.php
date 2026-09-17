@@ -453,13 +453,15 @@ Route::prefix('v1')->group(function () {
         return response()->json(['status' => 'success']);
     });
 
-    // In-House Table Session Management & Real-Time Status
-    Route::get('/table-sessions', [\App\Http\Controllers\Api\TableSessionController::class, 'index']);
-    Route::get('/table-sessions/{tableNumber}', [\App\Http\Controllers\Api\TableSessionController::class, 'show']);
-    Route::post('/table-sessions/open', [\App\Http\Controllers\Api\TableSessionController::class, 'open']);
-    Route::post('/table-sessions/close', [\App\Http\Controllers\Api\TableSessionController::class, 'close']);
-    Route::post('/table-sessions/extend', [\App\Http\Controllers\Api\TableSessionController::class, 'extend']);
-    Route::post('/table-sessions/batch', [\App\Http\Controllers\Api\TableSessionController::class, 'batch']);
+    // In-House Table Session Management & Real-Time Status (Web Session & Token Auth)
+    Route::middleware(['web'])->group(function () {
+        Route::get('/table-sessions', [\App\Http\Controllers\Api\TableSessionController::class, 'index']);
+        Route::get('/table-sessions/{tableNumber}', [\App\Http\Controllers\Api\TableSessionController::class, 'show']);
+        Route::post('/table-sessions/open', [\App\Http\Controllers\Api\TableSessionController::class, 'open']);
+        Route::post('/table-sessions/close', [\App\Http\Controllers\Api\TableSessionController::class, 'close']);
+        Route::post('/table-sessions/extend', [\App\Http\Controllers\Api\TableSessionController::class, 'extend']);
+        Route::post('/table-sessions/batch', [\App\Http\Controllers\Api\TableSessionController::class, 'batch']);
+    });
 
     // Customer Web Checkout Auth & Voucher Validation (Session Based - Web Middleware Group)
     Route::middleware(['web'])->group(function () {
@@ -631,7 +633,7 @@ Route::prefix('v1')->group(function () {
 
     // Customer Order Lookup / Live Status Tracking Endpoint
     Route::get('/orders/track', function (Request $request) {
-        $query = trim($request->query('query', ''));
+        $query = trim($request->query('query', $request->query('phone', '')));
         $showAll = $request->boolean('all') || strtolower($query) === 'all';
         
         if ($showAll) {
@@ -734,6 +736,9 @@ Route::prefix('v1')->group(function () {
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
+        $branch = $validated['branch'] ?? $request->input('branch', 'Bulihan');
+        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+
         // Delivery: no cash / COD — PayMongo first
         if ($validated['order_type'] === 'delivery') {
             $payMethod = strtolower($validated['payment_method']);
@@ -741,6 +746,20 @@ Route::prefix('v1')->group(function () {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Delivery orders require payment via QRPh / e-Wallets (GCash, Maya, card). Cash on Delivery is not supported.',
+                ], 422);
+            }
+        }
+
+        if ($validated['order_type'] === 'dine_in') {
+            $tableNum = $validated['table_number'] ?? '01';
+            if (!\App\Models\TableSession::isTableActive((string)$tableNum, (string)$branchKey)) {
+                return response()->json([
+                    'message' => "Table #{$tableNum} is currently closed or its dining session has expired. Please ask your server or cashier to activate this table.",
+                    'errors' => [
+                        'table_number' => [
+                            "Table #{$tableNum} is currently closed or its dining session has expired. Please ask your server or cashier to activate this table."
+                        ]
+                    ]
                 ], 422);
             }
         }
@@ -774,7 +793,7 @@ Route::prefix('v1')->group(function () {
         $order = Order::create([
             'user_id' => $request->user()?->id,
             'order_number' => $orderNumber,
-            'branch' => $validated['branch'] ?? 'Bulihan',
+            'branch' => $branchKey,
             'order_type' => $validated['order_type'],
             'table_number' => $validated['table_number'] ?? null,
             'status' => 'pending',

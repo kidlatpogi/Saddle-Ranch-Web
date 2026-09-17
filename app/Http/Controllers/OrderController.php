@@ -75,8 +75,7 @@ class OrderController extends Controller
         })
         ->where(function ($q) use ($branchKey) {
             $q->where('branch', $branchKey)
-              ->orWhere('branch', 'LIKE', "%{$branchKey}%")
-              ->orWhere('branch', 'all');
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
         })
         ->first();
 
@@ -134,7 +133,8 @@ class OrderController extends Controller
         if ($validated['order_type'] === 'dine_in') {
             $tableNum = $validated['table_number'] ?? '01';
             $branch = $validated['branch'] ?? $request->input('branch', 'Bulihan');
-            if (!\App\Models\TableSession::isTableActive((string)$tableNum, (string)$branch)) {
+            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+            if (!\App\Models\TableSession::isTableActive((string)$tableNum, (string)$branchKey)) {
                 throw ValidationException::withMessages([
                     'table_number' => [
                         "Table #{$tableNum} is currently closed or its dining session has expired. Please ask your server or cashier to activate this table."

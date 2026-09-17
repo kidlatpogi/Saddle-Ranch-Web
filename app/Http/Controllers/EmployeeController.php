@@ -32,9 +32,14 @@ class EmployeeController extends Controller
             $query->where('branch', $user->branch);
         }
 
+        $userBranch = ($user && $user->branch && strtolower($user->branch) !== 'all')
+            ? (str_contains(strtolower($user->branch), 'dasma') ? 'Dasma' : 'Bulihan')
+            : 'Bulihan';
+
         return Inertia::render('Employee/Dashboard', [
             'initialOrders' => $query->get(),
-            'userBranch' => $user?->branch ?? 'Bulihan',
+            'userBranch' => $userBranch,
+            'userRole' => $user?->role ?? 'employee',
             'products' => Product::where('is_active', true)->get(),
         ]);
     }
@@ -45,8 +50,13 @@ class EmployeeController extends Controller
     public function kitchen(): Response
     {
         $user = auth()->user();
+        $userBranch = ($user && $user->branch && strtolower($user->branch) !== 'all')
+            ? (str_contains(strtolower($user->branch), 'dasma') ? 'Dasma' : 'Bulihan')
+            : 'Bulihan';
+
         return Inertia::render('Employee/KDS', [
-            'userBranch' => $user?->branch ?? 'Bulihan',
+            'userBranch' => $userBranch,
+            'userRole' => $user?->role ?? 'employee',
         ]);
     }
 
@@ -187,11 +197,15 @@ class EmployeeController extends Controller
             ->groupBy('products.name')
             ->get();
 
+        $userBranch = ($user && $user->branch && strtolower($user->branch) !== 'all')
+            ? (str_contains(strtolower($user->branch), 'dasma') ? 'Dasma' : 'Bulihan')
+            : 'Bulihan';
+
         return response()->json([
             'status' => 'success',
             'data' => $orders,
             'summary' => $summary,
-            'branch' => $user?->branch ?? 'All',
+            'branch' => $userBranch,
         ]);
     }
 

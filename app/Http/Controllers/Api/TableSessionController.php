@@ -20,12 +20,47 @@ class TableSessionController extends Controller
     ];
 
     /**
+     * Resolve and validate authorized branch for cashier/staff operations.
+     * Cashiers are strictly restricted to their assigned branch.
+     */
+    protected function resolveAuthorizedBranch(?string $requestedBranch): array
+    {
+        $user = auth()->user() ?? auth('sanctum')->user();
+
+        // Non-admin cashiers / employees must be restricted to their assigned branch
+        if ($user && $user->role !== 'admin') {
+            $userBranch = ($user->branch && str_contains(strtolower($user->branch), 'dasma')) ? 'Dasma' : 'Bulihan';
+
+            if ($requestedBranch && str_contains(strtolower($requestedBranch), 'dasma') !== str_contains(strtolower($user->branch), 'dasma')) {
+                $target = str_contains(strtolower($requestedBranch), 'dasma') ? 'Dasma' : 'Bulihan';
+                return [
+                    'authorized' => false,
+                    'branch' => $userBranch,
+                    'error' => "Unauthorized: You are assigned to the {$userBranch} branch and cannot manage tables for the {$target} branch.",
+                ];
+            }
+
+            return ['authorized' => true, 'branch' => $userBranch, 'error' => null];
+        }
+
+        // Admins or unauthenticated public readers (normalized strictly to Bulihan or Dasma, never 'all')
+        $target = ($requestedBranch && str_contains(strtolower($requestedBranch), 'dasma')) ? 'Dasma' : 'Bulihan';
+        return ['authorized' => true, 'branch' => $target, 'error' => null];
+    }
+
+    /**
      * List all table sessions for staff / cashier / admin view.
      */
     public function index(Request $request): JsonResponse
     {
-        $branch = $request->query('branch', 'Bulihan');
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        $authBranch = $this->resolveAuthorizedBranch($request->query('branch'));
+        if (!$authBranch['authorized']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $authBranch['error'],
+            ], 403);
+        }
+        $branchKey = $authBranch['branch'];
 
         $dbSessions = TableSession::where(function ($q) use ($branchKey) {
             $q->where('branch', $branchKey)
@@ -89,8 +124,7 @@ class TableSessionController extends Controller
         })
         ->where(function ($q) use ($branchKey) {
             $q->where('branch', $branchKey)
-              ->orWhere('branch', 'LIKE', "%{$branchKey}%")
-              ->orWhere('branch', 'all');
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
         })
         ->first();
 
@@ -129,9 +163,16 @@ class TableSessionController extends Controller
             'duration_minutes' => 'nullable|integer|min:5|max:360',
         ]);
 
+        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        if (!$authBranch['authorized']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $authBranch['error'],
+            ], 403);
+        }
+        $branchKey = $authBranch['branch'];
+
         $norm = TableSession::normalizeTableNumber($validated['table_number']);
-        $branch = $validated['branch'] ?? 'Bulihan';
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
         $duration = (int) ($validated['duration_minutes'] ?? 60);
 
         $now = now();
@@ -192,9 +233,16 @@ class TableSessionController extends Controller
             'branch' => 'nullable|string',
         ]);
 
+        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        if (!$authBranch['authorized']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $authBranch['error'],
+            ], 403);
+        }
+        $branchKey = $authBranch['branch'];
+
         $norm = TableSession::normalizeTableNumber($validated['table_number']);
-        $branch = $validated['branch'] ?? 'Bulihan';
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
 
         $session = TableSession::updateOrCreate(
             [
@@ -236,9 +284,16 @@ class TableSessionController extends Controller
             'minutes' => 'nullable|integer|min:5|max:180',
         ]);
 
+        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        if (!$authBranch['authorized']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $authBranch['error'],
+            ], 403);
+        }
+        $branchKey = $authBranch['branch'];
+
         $norm = TableSession::normalizeTableNumber($validated['table_number']);
-        $branch = $validated['branch'] ?? 'Bulihan';
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
         $minutes = (int) ($validated['minutes'] ?? 15);
 
         $session = TableSession::firstOrNew([
@@ -287,9 +342,16 @@ class TableSessionController extends Controller
             'duration_minutes' => 'nullable|integer|min:5|max:360',
         ]);
 
+        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        if (!$authBranch['authorized']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $authBranch['error'],
+            ], 403);
+        }
+        $branchKey = $authBranch['branch'];
+
         $action = $validated['action'];
-        $branch = $validated['branch'] ?? 'Bulihan';
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
         $duration = (int) ($validated['duration_minutes'] ?? 60);
 
         $now = now();

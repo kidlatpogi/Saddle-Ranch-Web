@@ -54,7 +54,7 @@ class MobileAuthController extends Controller
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid login credentials.',
+                'message' => 'Wrong Email or Password.',
             ], 401);
         }
 

@@ -46,7 +46,7 @@ class CustomerAuthController extends Controller
         if (!Auth::validate($credentials)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid email address or password.',
+                'message' => 'Wrong Email or Password.',
             ], 401);
         }
 

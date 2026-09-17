@@ -79,6 +79,16 @@ class VoucherController extends Controller
      */
     public function validateVoucher(Request $request): JsonResponse
     {
+        $totalAmount = $request->input('total_amount') ?? $request->input('subtotal');
+        if ($totalAmount === null || !is_numeric($totalAmount)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The total amount or subtotal field is required.',
+                'errors' => ['total_amount' => ['The total amount field is required.']]
+            ], 422);
+        }
+        $request->merge(['total_amount' => $totalAmount]);
+
         $request->validate([
             'code' => 'required|string',
             'total_amount' => 'required|numeric',
@@ -162,6 +172,11 @@ class VoucherController extends Controller
             'voucher' => $voucher,
             'discount_amount' => $discount,
             'final_amount' => $finalAmount,
+            'data' => [
+                'voucher' => $voucher,
+                'discount_amount' => $discount,
+                'final_amount' => $finalAmount,
+            ],
         ]);
     }
 }

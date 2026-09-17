@@ -305,4 +305,71 @@ class TableSessionProtectionTest extends TestCase
         $this->assertCount(25, $response->json('tables'));
         $this->assertGreaterThanOrEqual(1, $response->json('active_count'));
     }
+
+    public function test_cashier_can_only_manage_own_branch_tables(): void
+    {
+        $bulihanCashier = User::factory()->create([
+            'role' => 'employee',
+            'branch' => 'Bulihan',
+        ]);
+
+        // 1. Bulihan Cashier opening Bulihan table succeeds
+        $resOk = $this->actingAs($bulihanCashier)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '08',
+            'branch' => 'Bulihan',
+            'duration_minutes' => 60,
+        ]);
+        $resOk->assertOk();
+        $this->assertTrue(TableSession::isTableActive('08', 'Bulihan'));
+
+        // 2. Bulihan Cashier attempting to open Dasma table returns 403
+        $resForbidden = $this->actingAs($bulihanCashier)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '08',
+            'branch' => 'Dasma',
+            'duration_minutes' => 60,
+        ]);
+        $resForbidden->assertStatus(403);
+        $this->assertStringContainsString('Unauthorized', $resForbidden->json('message'));
+
+        // 3. Bulihan Cashier attempting to close Dasma table returns 403
+        $resCloseForbidden = $this->actingAs($bulihanCashier)->postJson('/api/v1/table-sessions/close', [
+            'table_number' => '08',
+            'branch' => 'Dasma',
+        ]);
+        $resCloseForbidden->assertStatus(403);
+
+        // 4. Bulihan Cashier attempting to batch open Dasma tables returns 403
+        $resBatchForbidden = $this->actingAs($bulihanCashier)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'open_all',
+            'branch' => 'Dasma',
+        ]);
+        $resBatchForbidden->assertStatus(403);
+
+        // 5. Bulihan Cashier attempting to query Dasma table list returns 403
+        $resIndexForbidden = $this->actingAs($bulihanCashier)->getJson('/api/v1/table-sessions?branch=Dasma');
+        $resIndexForbidden->assertStatus(403);
+    }
+
+    public function test_admin_can_manage_both_branches_individually(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        // Admin can open Bulihan table
+        $resBulihan = $this->actingAs($admin)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '09',
+            'branch' => 'Bulihan',
+            'duration_minutes' => 45,
+        ]);
+        $resBulihan->assertOk();
+        $this->assertTrue(TableSession::isTableActive('09', 'Bulihan'));
+
+        // Admin can open Dasma table
+        $resDasma = $this->actingAs($admin)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '09',
+            'branch' => 'Dasma',
+            'duration_minutes' => 45,
+        ]);
+        $resDasma->assertOk();
+        $this->assertTrue(TableSession::isTableActive('09', 'Dasma'));
+    }
 }
