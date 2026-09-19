@@ -31,11 +31,12 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Mail::extend('brevo', function () {
+            $apiKey = config('services.brevo.key') ?: env('BREVO_API_KEY');
             return (new BrevoTransportFactory)->create(
                 new Dsn(
                     'brevo+api',
                     'default',
-                    config('services.brevo.key')
+                    $apiKey
                 )
             );
         });

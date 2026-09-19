@@ -9,13 +9,12 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OtpCodeMail extends Mailable implements ShouldQueue
+/**
+ * Sent synchronously — OTP delivery must not depend on a background queue worker.
+ */
+class OtpCodeMail extends Mailable
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public int $backoff = 15;
 
     public function __construct(
         public string $code,

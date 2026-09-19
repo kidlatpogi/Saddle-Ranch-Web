@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Flame, Utensils, ShoppingBag, ArrowRight, ArrowUpRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
@@ -34,6 +34,14 @@ interface LandingProps {
     ratings?: any[];
 }
 
+const HERO_VIDEOS = [
+    { id: 'porkchop', title: 'Sizzling Porkchop', src: '/videos/porkchop.mp4' },
+    { id: 'sisig', title: 'Crispy Sisig', src: '/videos/sisig.mp4' },
+    { id: 'spicy_beef', title: 'Spicy Beef', src: '/videos/spicy_beef.mp4' },
+    { id: 'tapsilog', title: 'Signature Tapsilog', src: '/videos/tapsilog.mp4' },
+    { id: 'landing', title: 'Roadhouse Classics', src: '/videos/landing-video.mp4' },
+];
+
 export default function Landing({ banners = [], products = [], ratings = [] }: LandingProps) {
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [selectedMode, setSelectedMode] = useState<'pickup' | 'delivery'>('pickup');
@@ -49,6 +57,30 @@ export default function Landing({ banners = [], products = [], ratings = [] }: L
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
     const [isAccessibilityModalOpen, setIsAccessibilityModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+    const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+    const handleVideoEnded = (endedIndex: number) => {
+        setCurrentVideoIndex((prev) => {
+            if (endedIndex === prev) {
+                return (prev + 1) % HERO_VIDEOS.length;
+            }
+            return prev;
+        });
+    };
+
+    useEffect(() => {
+        const activeVideo = videoRefs.current[currentVideoIndex];
+        if (activeVideo) {
+            activeVideo.currentTime = 0;
+            const playPromise = activeVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // Ignore browser autoplay interruption
+                });
+            }
+        }
+    }, [currentVideoIndex]);
 
     useEffect(() => {
         if (!localStorage.getItem('saddle_ranch_branch')) {
@@ -205,18 +237,26 @@ export default function Landing({ banners = [], products = [], ratings = [] }: L
                 {/* 1. Hero Section (Strictly 100vh / h-screen with zero pt gap & Parallax Video) */}
                 <header className="relative w-full h-screen overflow-hidden flex items-center justify-center">
                     <div className="absolute inset-0 w-full h-full overflow-hidden">
-                        <video
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-75 ease-out"
-                            style={{ transform: `scale(1.1) translateY(${scrollY * 0.25}px)` }}
-                        >
-                            <source src="/landing-video.mp4" type="video/mp4" />
-                        </video>
+                        {HERO_VIDEOS.map((video, index) => (
+                            <video
+                                key={video.id}
+                                ref={(el) => { videoRefs.current[index] = el; }}
+                                autoPlay={index === 0}
+                                muted
+                                playsInline
+                                preload={index === 0 ? 'auto' : 'metadata'}
+                                onEnded={() => handleVideoEnded(index)}
+                                onError={() => handleVideoEnded(index)}
+                                className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-1000 ease-in-out ${
+                                    index === currentVideoIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                                }`}
+                                style={{ transform: `scale(1.1) translateY(${scrollY * 0.25}px)` }}
+                            >
+                                <source src={video.src} type="video/mp4" />
+                            </video>
+                        ))}
                         {/* Dark Vignette Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#121213] via-[#121213]/50 to-[#121213]/40" />
+                        <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#121213] via-[#121213]/50 to-[#121213]/40 pointer-events-none" />
                     </div>
 
                     {/* Brand Logo in Upper Left Corner (Same level as rotating badge, viewable on Mobile Viewport) */}
