@@ -34,6 +34,21 @@ class EmailOtpService
 
         $name = $user?->name ?? 'Customer';
 
+        $isTestEmail = (bool) preg_match('/@(example\.(com|org|net)|test\.com|localhost)$/i', $email);
+        $isLocalTesting = app()->environment('testing')
+            || $isTestEmail
+            || (app()->environment('local') && config('mail.default') === 'log');
+
+        if ($isLocalTesting) {
+            Log::info("Local OTP issued for [{$email}]: code={$code} (skipping live Brevo dispatch)");
+            if (config('mail.default') === 'log') {
+                try {
+                    Mail::mailer('log')->to($email)->send(new OtpCodeMail($code, $purpose, $name));
+                } catch (Throwable) {}
+            }
+            return $code;
+        }
+
         try {
             // Send immediately so OTP delivery does not depend on a background queue worker.
             Mail::to($email)->send(new OtpCodeMail($code, $purpose, $name));

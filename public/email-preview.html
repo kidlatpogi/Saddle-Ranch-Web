@@ -1,59 +1,9 @@
-<?php
-
-namespace App\Mail;
-
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
-
-/**
- * Sent synchronously — OTP delivery must not depend on a background queue worker.
- */
-class OtpCodeMail extends Mailable
-{
-    use Queueable, SerializesModels;
-
-    public function __construct(
-        public string $code,
-        public string $purpose,
-        public string $recipientName = 'Customer',
-    ) {}
-
-    public function envelope(): Envelope
-    {
-        $subject = $this->purpose === 'reset'
-            ? 'Your Saddle Ranch password reset code'
-            : 'Your Saddle Ranch verification code';
-
-        return new Envelope(subject: $subject);
-    }
-
-    public function content(): Content
-    {
-        return new Content(
-            htmlString: $this->buildHtml(),
-        );
-    }
-
-    private function buildHtml(): string
-    {
-        $action = $this->purpose === 'reset'
-            ? 'reset your password'
-            : 'verify your email account';
-
-        $name = e($this->recipientName);
-        $code = e($this->code);
-
-        return <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Saddle Ranch Verification</title>
+  <title>Saddle Ranch Verification Email Preview</title>
 </head>
 <body style="margin:0;padding:0;background-color:#140d06;font-family:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#140d06;padding:36px 16px;">
@@ -65,7 +15,7 @@ class OtpCodeMail extends Mailable
           <!-- Logo & Header Banner -->
           <tr>
             <td align="center" style="padding:32px 28px 20px 28px;text-align:center;">
-              <img src="https://saddle-ranch-web.onrender.com/images/saddle_ranch_logo.png" alt="Saddle Ranch Roadhouse" width="140" style="display:block;margin:0 auto;max-width:140px;height:auto;border:0;" />
+              <img src="/images/saddle_ranch_logo.png" alt="Saddle Ranch Roadhouse" width="140" style="display:block;margin:0 auto;max-width:140px;height:auto;border:0;" />
               <div style="display:inline-block;margin-top:14px;padding:4px 14px;background-color:#2a2015;border:1px solid #534434;border-radius:12px;color:#ffc174;font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
                 ★ Roadhouse Excellence • Est. 2008 ★
               </div>
@@ -83,10 +33,10 @@ class OtpCodeMail extends Mailable
           <tr>
             <td style="padding:24px 28px 12px 28px;">
               <p style="color:#f0e0d1;font-size:16px;font-weight:600;margin:0 0 10px 0;">
-                Hi {$name},
+                Hi Shan Pango,
               </p>
               <p style="color:#d8c3ad;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
-                Use this 6-digit verification code to {$action}:
+                Use this 6-digit verification code to verify your email account:
               </p>
 
               <!-- Highlighted Digit Box -->
@@ -95,7 +45,7 @@ class OtpCodeMail extends Mailable
                   Verification Code
                 </div>
                 <div style="font-family:'Courier New', Courier, monospace;font-size:36px;font-weight:bold;letter-spacing:10px;color:#f59e0b;padding-left:10px;text-shadow:0 0 14px rgba(245,158,11,0.25);">
-                  {$code}
+                  960386
                 </div>
                 <div style="font-size:12px;color:#8c7a6b;margin-top:8px;">
                   ⏳ This code expires in <span style="color:#d8c3ad;font-weight:600;">10 minutes</span>
@@ -129,6 +79,3 @@ class OtpCodeMail extends Mailable
   </table>
 </body>
 </html>
-HTML;
-    }
-}
