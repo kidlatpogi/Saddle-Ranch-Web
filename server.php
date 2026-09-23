@@ -18,6 +18,7 @@ if ($uri !== '/' && file_exists($publicPath.$uri)) {
         'svg'  => 'image/svg+xml',
         'ico'  => 'image/x-icon',
         'mp4'  => 'video/mp4',
+        'apk'  => 'application/vnd.android.package-archive',
     ];
 
     if (isset($mimeTypes[$ext])) {
@@ -26,6 +27,9 @@ if ($uri !== '/' && file_exists($publicPath.$uri)) {
         header('Access-Control-Allow-Headers: *');
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             exit(0);
+        }
+        if ($ext === 'apk') {
+            header('Content-Disposition: attachment; filename="'.basename($uri).'"');
         }
         header('Content-Type: '.$mimeTypes[$ext]);
         header('Content-Length: '.filesize($publicPath.$uri));
