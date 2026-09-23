@@ -22,6 +22,17 @@ Route::get('/order', [OrderController::class, 'order'])->name('order');
 Route::get('/dine-in', [OrderController::class, 'dineIn'])->name('dine-in');
 Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 
+// Android Mobile App APK Download Route
+Route::get('/downloads/saddle-ranch.apk', function () {
+    $apkPath = public_path('downloads/saddle-ranch.apk');
+    if (!file_exists($apkPath)) {
+        abort(404, 'Saddle Ranch Android APK build is being generated. Please check back shortly.');
+    }
+    return response()->download($apkPath, 'saddle-ranch.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('download.apk');
+
 // Storage & Images Dynamic Asset Serving Fallback (Works seamlessly across local and production on Render)
 Route::get('/storage/{path}', function (string $path) {
     $storageFile = storage_path('app/public/' . $path);
