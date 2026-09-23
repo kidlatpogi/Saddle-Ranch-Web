@@ -37,5 +37,7 @@ SADDLE_RANCH_SYSTEM_SPEC.md
 /public/images/banners/*.webp
 !/public/images/products/.gitkeep
 !/public/images/banners/.gitkeep
+/public/downloads/*.apk
+*.apk
 
 

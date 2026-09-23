@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Flame, Utensils, ShoppingBag, ArrowRight, ArrowUpRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Flame, Utensils, ShoppingBag, ArrowRight, ArrowUpRight, X, ShoppingCart, MapPin, Clock, Phone, CheckCircle2, RotateCcw, Smartphone } from 'lucide-react';
 import { useCart, CartProduct } from '@/Hooks/useCart';
 import CardNav, { CardNavItem } from '@/Components/CardNav';
 import AIChatbot from '@/Components/AIChatbot';
@@ -308,13 +308,22 @@ export default function Landing({ banners = [], products = [], ratings = [] }: L
                             Authentic Filipino Sizzlers meet Roadhouse Spirit. Hear the sizzle.
                         </p>
 
-                        <div className="pt-4 flex items-center justify-center gap-4">
+                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
                             <button
                                 onClick={() => setIsOrderModalOpen(true)}
-                                className="bg-[#f59e0b] text-[#472a00] font-bold px-10 py-4 rounded-lg btn-bevel hover-heat transition-all duration-300 text-lg uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/30 active:scale-95"
+                                className="w-full sm:w-auto bg-[#f59e0b] hover:bg-[#d97706] text-[#472a00] font-bold px-8 sm:px-10 py-3.5 sm:py-4 rounded-lg btn-bevel hover-heat transition-all duration-300 text-base sm:text-lg uppercase tracking-wider shadow-2xl shadow-[#f59e0b]/30 active:scale-95"
                             >
                                 Order Online Now
                             </button>
+                            <a
+                                href="/downloads/saddle-ranch.apk"
+                                download="saddle-ranch.apk"
+                                className="w-full sm:w-auto bg-[#1c150e]/90 hover:bg-[#2c1d10] text-[#ffc174] hover:text-[#f59e0b] border-2 border-[#f59e0b]/75 hover:border-[#f59e0b] font-bold px-7 sm:px-8 py-3.5 sm:py-4 rounded-lg transition-all duration-300 text-base sm:text-lg uppercase tracking-wider shadow-2xl shadow-black/80 hover:shadow-[#f59e0b]/25 flex items-center justify-center gap-2.5 active:scale-95 group"
+                                title="Download Saddle Ranch Android APK"
+                            >
+                                <Smartphone className="w-5 h-5 text-[#f59e0b] group-hover:scale-110 transition-transform duration-200" />
+                                <span>Download for Android</span>
+                            </a>
                         </div>
                     </div>
                 </header>
