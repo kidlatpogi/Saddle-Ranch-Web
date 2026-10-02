@@ -267,7 +267,6 @@ class TableSessionController extends Controller
         \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $filteredReqs, 1800);
 
         foreach ($variants as $v) {
-            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$v}", ['status' => 'unlocked', 'updated_at' => time()], 300);
             \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", ['status' => 'unlocked', 'updated_at' => time()], 300);
         }
 
@@ -319,6 +318,14 @@ class TableSessionController extends Controller
                 'status' => 'closed',
                 'expires_at' => now(),
             ]);
+
+        // Synchronize branch-specific unlock status cache to dismissed
+        foreach ($variants as $v) {
+            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", [
+                'status' => 'dismissed',
+                'updated_at' => time()
+            ], 300);
+        }
 
         $staffName = auth()->user()?->name ?? 'Staff';
         AuditLog::create([
@@ -454,10 +461,25 @@ class TableSessionController extends Controller
                 $table->expires_at = $now;
             }
             $table->save();
+
+            // Synchronize status cache for this specific table and branch
+            $variants = TableSession::lookupVariants($table->table_number, $branchKey);
+            foreach ($variants as $v) {
+                if ($action === 'open_all') {
+                    \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", ['status' => 'unlocked', 'updated_at' => time()], 300);
+                } else {
+                    \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", ['status' => 'dismissed', 'updated_at' => time()], 300);
+                }
+            }
         }
 
-        // If batch open or close, clear active unlock requests
-        \Illuminate\Support\Facades\Cache::forget('active_table_unlock_requests');
+        // Only clear active unlock requests for THIS SPECIFIC branch! NEVER touch other branches!
+        $unlockReqs = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
+        $remainingReqs = array_values(array_filter($unlockReqs, function ($r) use ($branchKey) {
+            $rBranch = str_contains(strtolower($r['branch'] ?? 'Bulihan'), 'dasma') ? 'Dasma' : 'Bulihan';
+            return $rBranch !== $branchKey;
+        }));
+        \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $remainingReqs, 1800);
 
         $staffName = auth()->user()?->name ?? 'Staff';
         $actionDesc = ($action === 'open_all')

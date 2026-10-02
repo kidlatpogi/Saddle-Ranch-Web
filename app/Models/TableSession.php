@@ -124,8 +124,16 @@ class TableSession extends Model
      */
     public static function isTableActive(string $tableNumber, ?string $branch = null): bool
     {
-        $variants = self::lookupVariants($tableNumber, $branch);
-        $branchKey = ($branch && str_contains(strtolower($branch), 'dasma')) ? 'Dasma' : 'Bulihan';
+        $raw = strtoupper(trim($tableNumber));
+        if (!empty($branch)) {
+            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        } elseif (str_starts_with($raw, 'D-')) {
+            $branchKey = 'Dasma';
+        } else {
+            $branchKey = 'Bulihan';
+        }
+
+        $variants = self::lookupVariants($tableNumber, $branchKey);
 
         $sessions = self::whereIn('table_number', $variants)
             ->where(function ($q) use ($branchKey) {
