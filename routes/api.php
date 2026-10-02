@@ -387,29 +387,46 @@ Route::prefix('v1')->group(function () {
     Route::post('/table-unlock-request', function (Request $request) {
         $tableNumber = $request->input('table_number', '01');
         $branch = $request->input('branch', 'Bulihan');
+        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        $norm = \App\Models\TableSession::normalizeTableNumber($tableNumber);
+        $variants = \App\Models\TableSession::lookupVariants($tableNumber, $branchKey);
 
         $requests = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
         $newReq = [
             'id' => time() . '_' . rand(100, 999),
-            'table_number' => $tableNumber,
-            'branch' => $branch,
+            'table_number' => $norm,
+            'raw_table_number' => $tableNumber,
+            'branch' => $branchKey,
             'time' => now()->format('h:i A'),
             'timestamp' => time(),
         ];
 
-        $filtered = array_filter($requests, function ($r) use ($tableNumber) {
-            return ($r['table_number'] ?? '') !== $tableNumber && (time() - ($r['timestamp'] ?? 0) < 1800);
+        $filtered = array_filter($requests, function ($r) use ($variants, $branchKey) {
+            $rNum = $r['table_number'] ?? '';
+            $rBranch = $r['branch'] ?? '';
+            $sameBranch = empty($rBranch) || str_contains(strtolower($rBranch), strtolower($branchKey));
+            return !($sameBranch && in_array($rNum, $variants, true)) && (time() - ($r['timestamp'] ?? 0) < 1800);
         });
 
         $filtered[] = $newReq;
         \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', array_values($filtered), 1800);
-        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$tableNumber}", [
-            'status' => 'pending',
-            'updated_at' => time()
-        ], 600);
+
+        foreach ($variants as $v) {
+            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$v}", [
+                'status' => 'pending',
+                'updated_at' => time()
+            ], 600);
+            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", [
+                'status' => 'pending',
+                'updated_at' => time()
+            ], 600);
+        }
 
         \App\Models\AuditLog::create([
-            'action' => "TABLE UNLOCK REQUEST: Table #{$tableNumber} requested session unlock at {$branch} Branch",            'ip_address' => $request->ip(),            'payload' => $newReq,        ]);
+            'action' => "TABLE UNLOCK REQUEST: Table #{$tableNumber} requested session unlock at {$branchKey} Branch",
+            'ip_address' => $request->ip(),
+            'payload' => $newReq,
+        ]);
 
         return response()->json([
             'status' => 'success',
@@ -431,24 +448,94 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/table-unlock-request/status', function (Request $request) {
         $tableNumber = $request->query('table_number', '01');
-        $data = \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$tableNumber}", ['status' => 'idle', 'updated_at' => 0]);
+        $rawBranch = $request->query('branch');
+
+        if (!empty($rawBranch)) {
+            $primaryBranch = str_contains(strtolower($rawBranch), 'dasma') ? 'Dasma' : 'Bulihan';
+        } else {
+            $upper = strtoupper(trim((string) $tableNumber));
+            $primaryBranch = (str_starts_with($upper, 'D-') || str_starts_with($upper, 'D')) ? 'Dasma' : 'Bulihan';
+        }
+        $otherBranch = $primaryBranch === 'Dasma' ? 'Bulihan' : 'Dasma';
+        $branchesToCheck = [$primaryBranch, $otherBranch];
+
+        // 1. Immediate real-time DB check across branches: If active in DB, return 'unlocked' immediately!
+        foreach ($branchesToCheck as $bKey) {
+            if (\App\Models\TableSession::isTableActive($tableNumber, $bKey)) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => [
+                        'status' => 'unlocked',
+                        'branch' => $bKey,
+                        'updated_at' => time(),
+                    ],
+                ]);
+            }
+        }
+
+        // 2. Check cache across all variants & branches (prioritize 'unlocked')
+        foreach ($branchesToCheck as $bKey) {
+            $variants = \App\Models\TableSession::lookupVariants($tableNumber, $bKey);
+            foreach ($variants as $v) {
+                $data = \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$bKey}_{$v}")
+                    ?? \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$v}");
+                if ($data && ($data['status'] ?? '') === 'unlocked') {
+                    return response()->json([
+                        'status' => 'success',
+                        'data' => $data,
+                    ]);
+                }
+            }
+        }
+
+        // 3. Fallback cache check for pending or dismissed
+        foreach ($branchesToCheck as $bKey) {
+            $variants = \App\Models\TableSession::lookupVariants($tableNumber, $bKey);
+            foreach ($variants as $v) {
+                $data = \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$bKey}_{$v}")
+                    ?? \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$v}");
+                if ($data && in_array($data['status'] ?? '', ['pending', 'dismissed'], true)) {
+                    return response()->json([
+                        'status' => 'success',
+                        'data' => $data,
+                    ]);
+                }
+            }
+        }
+
         return response()->json([
             'status' => 'success',
-            'data' => $data,
+            'data' => ['status' => 'idle', 'updated_at' => 0],
         ]);
     });
 
     Route::post('/table-unlock-requests/dismiss', function (Request $request) {
         $tableNumber = $request->input('table_number');
+        $rawBranch = $request->input('branch');
+
+        if (!empty($rawBranch)) {
+            $branchKey = str_contains(strtolower($rawBranch), 'dasma') ? 'Dasma' : 'Bulihan';
+        } else {
+            $upper = strtoupper(trim((string) $tableNumber));
+            $branchKey = (str_starts_with($upper, 'D-') || str_starts_with($upper, 'D')) ? 'Dasma' : 'Bulihan';
+        }
+        $variants = \App\Models\TableSession::lookupVariants((string) $tableNumber, $branchKey);
+
         $requests = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
-        $updated = array_values(array_filter($requests, function ($r) use ($tableNumber) {
-            return ($r['table_number'] ?? '') !== $tableNumber;
+        $updated = array_values(array_filter($requests, function ($r) use ($variants, $branchKey) {
+            $rNum = $r['table_number'] ?? '';
+            $rBranch = $r['branch'] ?? 'Bulihan';
+            $matchBranch = str_contains(strtolower($rBranch), 'dasma') ? 'Dasma' : 'Bulihan';
+            return !(in_array($rNum, $variants, true) && $matchBranch === $branchKey);
         }));
         \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $updated, 1800);
-        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$tableNumber}", [
-            'status' => 'dismissed',
-            'updated_at' => time()
-        ], 300);
+
+        foreach ($variants as $v) {
+            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", [
+                'status' => 'dismissed',
+                'updated_at' => time()
+            ], 300);
+        }
 
         return response()->json(['status' => 'success']);
     });
@@ -456,6 +543,8 @@ Route::prefix('v1')->group(function () {
     // In-House Table Session Management & Real-Time Status (Web Session & Token Auth)
     Route::middleware(['web'])->group(function () {
         Route::get('/table-sessions', [\App\Http\Controllers\Api\TableSessionController::class, 'index']);
+        Route::post('/table-sessions/add', [\App\Http\Controllers\Api\TableSessionController::class, 'store']);
+        Route::delete('/table-sessions/{tableNumber}', [\App\Http\Controllers\Api\TableSessionController::class, 'destroy']);
         Route::get('/table-sessions/{tableNumber}', [\App\Http\Controllers\Api\TableSessionController::class, 'show']);
         Route::post('/table-sessions/open', [\App\Http\Controllers\Api\TableSessionController::class, 'open']);
         Route::post('/table-sessions/close', [\App\Http\Controllers\Api\TableSessionController::class, 'close']);
