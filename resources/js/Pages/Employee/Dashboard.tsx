@@ -81,6 +81,7 @@ interface PosCartItem {
 interface TableSessionInfo {
     id?: number | null;
     table_number: string;
+    display_code?: string;
     branch: string;
     status: 'active' | 'closed' | 'expired';
     opened_at?: string | null;
@@ -163,7 +164,8 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         } catch (e) {}
     };
 
-    const handleDismissUnlockRequest = async (tableNumber: string) => {
+    const handleDismissUnlockRequest = async (tableNumber: string, reqBranch?: string) => {
+        const targetBranch = reqBranch || tableBranch;
         try {
             await fetch('/api/v1/table-unlock-requests/dismiss', {
                 method: 'POST',
@@ -171,15 +173,17 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
                 },
-                body: JSON.stringify({ table_number: tableNumber }),
+                body: JSON.stringify({ table_number: tableNumber, branch: targetBranch }),
             });
-            setActiveUnlockRequests((prev) => prev.filter((r) => r.table_number !== tableNumber));
+            setActiveUnlockRequests((prev) => prev.filter((r) => String(r.table_number) !== String(tableNumber)));
         } catch (e) {}
     };
 
-    const handleApproveUnlockRequest = async (tableNumber: string, durationMinutes = 60) => {
-        await handleOpenSession(tableNumber, durationMinutes);
-        await handleDismissUnlockRequest(tableNumber);
+    const handleApproveUnlockRequest = async (tableNumber: string, reqBranch?: string, durationMinutes = 60) => {
+        const targetBranch = reqBranch || tableBranch;
+        await handleOpenSession(tableNumber, durationMinutes, targetBranch);
+        // Do NOT call handleDismissUnlockRequest! Backend open() already marks status as 'unlocked'.
+        setActiveUnlockRequests((prev) => prev.filter((r) => String(r.table_number) !== String(tableNumber)));
     };
 
     useEffect(() => {
@@ -225,7 +229,8 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         return () => clearInterval(tInterval);
     }, [tableBranch]);
 
-    const handleOpenSession = async (tableNum: string, durationMinutes = 60) => {
+    const handleOpenSession = async (tableNum: string, durationMinutes = 60, branchOverride?: string) => {
+        const targetBranch = branchOverride || tableBranch;
         setSessionActionLoading(`open-${tableNum}`);
         try {
             const res = await fetch('/api/v1/table-sessions/open', {
@@ -236,13 +241,13 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                 },
                 body: JSON.stringify({
                     table_number: tableNum,
-                    branch: tableBranch,
+                    branch: targetBranch,
                     duration_minutes: durationMinutes,
                 }),
             });
             const json = await res.json();
             if (res.ok && json.status === 'success') {
-                setSessionFeedback({ text: `Table #${tableNum} is now ACTIVE for ${durationMinutes} mins!`, type: 'success' });
+                setSessionFeedback({ text: `Table #${tableNum} is now ACTIVE for ${durationMinutes} mins at ${targetBranch}!`, type: 'success' });
                 fetchTableSessions();
             } else {
                 setSessionFeedback({ text: json.message || 'Failed to open table session', type: 'error' });
@@ -836,24 +841,24 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                 <div>
                                     <div className="font-black text-sm uppercase tracking-wider text-sky-300">TABLE UNLOCK REQUESTED!</div>
                                     <div className="text-xs text-[#d8c3ad] font-bold">
-                                        {activeUnlockRequests.map((r) => `Table #${r.table_number} (${r.branch || 'Bulihan'} Branch)`).join(' ? ')}
+                                        {activeUnlockRequests.map((r) => `Table #${r.table_number} (${r.branch || 'Bulihan'} Branch)`).join(' • ')}
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0 flex-wrap">
                                 {activeUnlockRequests.map((r) => (
-                                    <div key={r.id || r.table_number} className="flex items-center gap-2">
+                                    <div key={r.id || `${r.table_number}-${r.branch}`} className="flex items-center gap-2">
                                         <button
-                                            onClick={() => handleApproveUnlockRequest(String(r.table_number), 60)}
+                                            onClick={() => handleApproveUnlockRequest(String(r.table_number), r.branch || tableBranch, 60)}
                                             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-emerald-400 active:scale-95 flex items-center gap-1.5"
-                                            title="Unlock Table Session for 60 minutes"
+                                            title={`Unlock Table Session for 60 minutes (${r.branch || tableBranch})`}
                                         >
                                             <Lock className="w-3.5 h-3.5 text-amber-300" />
-                                            <span>Unlock Table #{r.table_number} (60m)</span>
+                                            <span>Unlock Table #{r.table_number} {r.branch ? `(${r.branch})` : ''} (60m)</span>
                                         </button>
                                         <button
-                                            onClick={() => handleDismissUnlockRequest(r.table_number)}
+                                            onClick={() => handleDismissUnlockRequest(String(r.table_number), r.branch || tableBranch)}
                                             className="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-black text-[#a1a1aa] hover:text-white font-bold text-xs transition-all border border-[#3f3f46] cursor-pointer"
                                             title="Dismiss unlock notification"
                                         >
@@ -1515,7 +1520,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                                         >
                                             <div className="flex items-center justify-between">
                                                 <span className="font-domine font-black text-base text-white">
-                                                    Table #{tableNum}
+                                                    Table #{session.display_code || `${tableBranch === 'Dasma' ? 'D-' : 'B-'}${session.table_number.replace(/^[BD]-/i, '').padStart(2, '0')}`}
                                                 </span>
                                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
                                                     isActive
