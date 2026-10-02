@@ -49,6 +49,33 @@ class TableSessionController extends Controller
     }
 
     /**
+     * Ensure branch has at least the baseline standard tables initialized in DB.
+     */
+    protected function ensureBranchTablesSeeded(string $branchKey): void
+    {
+        $count = TableSession::where(function ($q) use ($branchKey) {
+            $q->where('branch', $branchKey)
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
+        })->count();
+
+        if ($count === 0) {
+            for ($i = 1; $i <= 25; $i++) {
+                $num = str_pad($i, 2, '0', STR_PAD_LEFT);
+                TableSession::firstOrCreate(
+                    [
+                        'table_number' => $num,
+                        'branch' => $branchKey,
+                    ],
+                    [
+                        'status' => 'closed',
+                        'duration_minutes' => 60,
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
      * List all table sessions for staff / cashier / admin view.
      */
     public function index(Request $request): JsonResponse
@@ -62,33 +89,42 @@ class TableSessionController extends Controller
         }
         $branchKey = $authBranch['branch'];
 
+        $this->ensureBranchTablesSeeded($branchKey);
+
         $dbSessions = TableSession::where(function ($q) use ($branchKey) {
             $q->where('branch', $branchKey)
               ->orWhere('branch', 'LIKE', "%{$branchKey}%");
-        })->get()->keyBy('table_number');
+        })->get();
+
+        // Consolidate any duplicate records (e.g. legacy 'B-01' vs '01') by normalized table number
+        $grouped = [];
+        foreach ($dbSessions as $session) {
+            $norm = TableSession::normalizeTableNumber($session->table_number);
+            if (!isset($grouped[$norm])) {
+                $grouped[$norm] = $session;
+            } else {
+                // If one row is active and the other closed, prioritize the active session!
+                if ($session->isActive() && !$grouped[$norm]->isActive()) {
+                    $grouped[$norm] = $session;
+                }
+            }
+        }
+
+        // Sort naturally by table number (01, 02, ... 25, 26, ...)
+        uksort($grouped, function ($a, $b) {
+            if (is_numeric($a) && is_numeric($b)) {
+                return (int)$a <=> (int)$b;
+            }
+            return strnatcasecmp($a, $b);
+        });
 
         $result = [];
         $activeCount = 0;
         $closedCount = 0;
 
-        foreach ($this->defaultTables as $num) {
-            $session = $dbSessions->get($num);
-            if ($session) {
-                $sessionData = $session->toSessionArray();
-            } else {
-                $sessionData = [
-                    'id' => null,
-                    'table_number' => $num,
-                    'branch' => $branchKey,
-                    'status' => 'closed',
-                    'opened_at' => null,
-                    'expires_at' => null,
-                    'duration_minutes' => 60,
-                    'remaining_seconds' => 0,
-                    'formatted_remaining' => 'Closed',
-                    'opened_by' => null,
-                ];
-            }
+        foreach ($grouped as $norm => $session) {
+            $sessionData = $session->toSessionArray();
+            $sessionData['table_number'] = $norm;
 
             if ($sessionData['status'] === 'active') {
                 $activeCount++;
@@ -114,25 +150,59 @@ class TableSessionController extends Controller
      */
     public function show(Request $request, string $tableNumber): JsonResponse
     {
-        $norm = TableSession::normalizeTableNumber($tableNumber);
-        $branch = $request->query('branch', 'Bulihan');
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        $upper = strtoupper(trim($tableNumber));
+        if (str_starts_with($upper, 'D-')) {
+            $branchKey = 'Dasma';
+        } elseif (str_starts_with($upper, 'B-')) {
+            $branchKey = 'Bulihan';
+        } else {
+            $branch = $request->query('branch', 'Bulihan');
+            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        }
 
-        $session = TableSession::where(function ($q) use ($norm, $tableNumber) {
-            $q->where('table_number', $norm)
-              ->orWhere('table_number', $tableNumber);
-        })
-        ->where(function ($q) use ($branchKey) {
-            $q->where('branch', $branchKey)
-              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
-        })
-        ->first();
+        $variants = TableSession::lookupVariants($tableNumber, $branchKey);
+        $norm = TableSession::normalizeTableNumber($tableNumber);
+
+        $session = TableSession::whereIn('table_number', $variants)
+            ->where(function ($q) use ($branchKey) {
+                $q->where('branch', $branchKey)
+                  ->orWhere('branch', 'LIKE', "%{$branchKey}%");
+            })
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->first();
+
+        // If numeric without prefix and the session in requested branch is not active,
+        // check if this table is currently active in the other branch!
+        if ((!$session || !$session->isActive()) && !str_starts_with($upper, 'D-') && !str_starts_with($upper, 'B-')) {
+            $otherBranch = $branchKey === 'Dasma' ? 'Bulihan' : 'Dasma';
+            $otherVariants = TableSession::lookupVariants($tableNumber, $otherBranch);
+            $otherSession = TableSession::whereIn('table_number', $otherVariants)
+                ->where(function ($q) use ($otherBranch) {
+                    $q->where('branch', $otherBranch)
+                      ->orWhere('branch', 'LIKE', "%{$otherBranch}%");
+                })
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+                })
+                ->first();
+
+            if ($otherSession) {
+                $session = $otherSession;
+                $branchKey = $otherBranch;
+            }
+        }
 
         if (!$session) {
+            $prefix = $branchKey === 'Dasma' ? 'D-' : 'B-';
+            $displayCode = is_numeric($norm) ? ($prefix . $norm) : $tableNumber;
+
             return response()->json([
                 'status' => 'success',
                 'data' => [
                     'table_number' => $norm,
+                    'display_code' => $displayCode,
                     'branch' => $branchKey,
                     'status' => 'closed',
                     'remaining_seconds' => 0,
@@ -144,8 +214,6 @@ class TableSessionController extends Controller
         }
 
         $sessionArray = $session->toSessionArray();
-        $sessionArray['is_active'] = ($sessionArray['status'] === 'active');
-
         return response()->json([
             'status' => 'success',
             'data' => $sessionArray,
@@ -163,7 +231,17 @@ class TableSessionController extends Controller
             'duration_minutes' => 'nullable|integer|min:5|max:360',
         ]);
 
-        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $targetBranch = $validated['branch'] ?? null;
+        if (!$targetBranch) {
+            $rawT = strtoupper(trim($validated['table_number']));
+            if (str_starts_with($rawT, 'D-')) {
+                $targetBranch = 'Dasma';
+            } elseif (str_starts_with($rawT, 'B-')) {
+                $targetBranch = 'Bulihan';
+            }
+        }
+
+        $authBranch = $this->resolveAuthorizedBranch($targetBranch);
         if (!$authBranch['authorized']) {
             return response()->json([
                 'status' => 'error',
@@ -173,11 +251,13 @@ class TableSessionController extends Controller
         $branchKey = $authBranch['branch'];
 
         $norm = TableSession::normalizeTableNumber($validated['table_number']);
+        $variants = TableSession::lookupVariants($validated['table_number'], $branchKey);
         $duration = (int) ($validated['duration_minutes'] ?? 60);
 
         $now = now();
         $expiresAt = (clone $now)->addMinutes($duration);
 
+        // Update or create normalized table session
         $session = TableSession::updateOrCreate(
             [
                 'table_number' => $norm,
@@ -192,6 +272,18 @@ class TableSessionController extends Controller
             ]
         );
 
+        // Synchronize any legacy variant rows in the DB so they are in sync
+        TableSession::where('branch', $branchKey)
+            ->whereIn('table_number', $variants)
+            ->where('id', '!=', $session->id)
+            ->update([
+                'status' => 'active',
+                'opened_at' => $now,
+                'expires_at' => $expiresAt,
+                'duration_minutes' => $duration,
+                'opened_by_user_id' => auth()->id(),
+            ]);
+
         $staffName = auth()->user()?->name ?? 'Staff';
         AuditLog::create([
             'user_id' => auth()->id(),
@@ -205,16 +297,19 @@ class TableSessionController extends Controller
             ],
         ]);
 
-        // Automatically resolve any pending table unlock requests for this table
+        // Automatically resolve any pending table unlock requests for this table & branch
         $unlockReqs = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
-        $rawNum = $validated['table_number'];
-        $filteredReqs = array_values(array_filter($unlockReqs, function ($r) use ($norm, $rawNum) {
+        $filteredReqs = array_values(array_filter($unlockReqs, function ($r) use ($variants, $branchKey) {
             $rNum = $r['table_number'] ?? '';
-            return $rNum !== $norm && $rNum !== $rawNum;
+            $rBranch = $r['branch'] ?? 'Bulihan';
+            $matchBranch = str_contains(strtolower($rBranch), 'dasma') ? 'Dasma' : 'Bulihan';
+            return !(in_array($rNum, $variants, true) && $matchBranch === $branchKey);
         }));
         \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $filteredReqs, 1800);
-        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$norm}", ['status' => 'unlocked', 'updated_at' => time()], 300);
-        \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$rawNum}", ['status' => 'unlocked', 'updated_at' => time()], 300);
+
+        foreach ($variants as $v) {
+            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", ['status' => 'unlocked', 'updated_at' => time()], 300);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -233,7 +328,17 @@ class TableSessionController extends Controller
             'branch' => 'nullable|string',
         ]);
 
-        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $targetBranch = $validated['branch'] ?? null;
+        if (!$targetBranch) {
+            $rawT = strtoupper(trim($validated['table_number']));
+            if (str_starts_with($rawT, 'D-')) {
+                $targetBranch = 'Dasma';
+            } elseif (str_starts_with($rawT, 'B-')) {
+                $targetBranch = 'Bulihan';
+            }
+        }
+
+        $authBranch = $this->resolveAuthorizedBranch($targetBranch);
         if (!$authBranch['authorized']) {
             return response()->json([
                 'status' => 'error',
@@ -243,6 +348,7 @@ class TableSessionController extends Controller
         $branchKey = $authBranch['branch'];
 
         $norm = TableSession::normalizeTableNumber($validated['table_number']);
+        $variants = TableSession::lookupVariants($validated['table_number'], $branchKey);
 
         $session = TableSession::updateOrCreate(
             [
@@ -254,6 +360,23 @@ class TableSessionController extends Controller
                 'expires_at' => now(),
             ]
         );
+
+        // Close ALL matching variants in the DB (fixes "B-01 is not closing" bug)
+        TableSession::where('branch', $branchKey)
+            ->whereIn('table_number', $variants)
+            ->where('id', '!=', $session->id)
+            ->update([
+                'status' => 'closed',
+                'expires_at' => now(),
+            ]);
+
+        // Synchronize branch-specific unlock status cache to dismissed
+        foreach ($variants as $v) {
+            \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", [
+                'status' => 'dismissed',
+                'updated_at' => time()
+            ], 300);
+        }
 
         $staffName = auth()->user()?->name ?? 'Staff';
         AuditLog::create([
@@ -284,7 +407,17 @@ class TableSessionController extends Controller
             'minutes' => 'nullable|integer|min:5|max:180',
         ]);
 
-        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $targetBranch = $validated['branch'] ?? null;
+        if (!$targetBranch) {
+            $rawT = strtoupper(trim($validated['table_number']));
+            if (str_starts_with($rawT, 'D-')) {
+                $targetBranch = 'Dasma';
+            } elseif (str_starts_with($rawT, 'B-')) {
+                $targetBranch = 'Bulihan';
+            }
+        }
+
+        $authBranch = $this->resolveAuthorizedBranch($targetBranch);
         if (!$authBranch['authorized']) {
             return response()->json([
                 'status' => 'error',
@@ -294,6 +427,7 @@ class TableSessionController extends Controller
         $branchKey = $authBranch['branch'];
 
         $norm = TableSession::normalizeTableNumber($validated['table_number']);
+        $variants = TableSession::lookupVariants($validated['table_number'], $branchKey);
         $minutes = (int) ($validated['minutes'] ?? 15);
 
         $session = TableSession::firstOrNew([
@@ -310,6 +444,17 @@ class TableSessionController extends Controller
         $session->expires_at = (clone $baseTime)->addMinutes($minutes);
         $session->duration_minutes = (int) $session->duration_minutes + $minutes;
         $session->save();
+
+        // Also synchronize any legacy variant rows
+        TableSession::where('branch', $branchKey)
+            ->whereIn('table_number', $variants)
+            ->where('id', '!=', $session->id)
+            ->update([
+                'status' => 'active',
+                'opened_at' => $session->opened_at,
+                'expires_at' => $session->expires_at,
+                'duration_minutes' => $session->duration_minutes,
+            ]);
 
         $staffName = auth()->user()?->name ?? 'Staff';
         AuditLog::create([
@@ -332,7 +477,7 @@ class TableSessionController extends Controller
     }
 
     /**
-     * Batch open/close all tables (great for demonstration & mass seating).
+     * Batch open/close all tables for the branch.
      */
     public function batch(Request $request): JsonResponse
     {
@@ -351,30 +496,51 @@ class TableSessionController extends Controller
         }
         $branchKey = $authBranch['branch'];
 
+        $this->ensureBranchTablesSeeded($branchKey);
+
         $action = $validated['action'];
         $duration = (int) ($validated['duration_minutes'] ?? 60);
 
         $now = now();
         $expiresAt = (clone $now)->addMinutes($duration);
 
-        foreach ($this->defaultTables as $num) {
-            TableSession::updateOrCreate(
-                [
-                    'table_number' => $num,
-                    'branch' => $branchKey,
-                ],
-                $action === 'open_all' ? [
-                    'status' => 'active',
-                    'opened_at' => $now,
-                    'expires_at' => $expiresAt,
-                    'duration_minutes' => $duration,
-                    'opened_by_user_id' => auth()->id(),
-                ] : [
-                    'status' => 'closed',
-                    'expires_at' => $now,
-                ]
-            );
+        // Fetch ALL tables for this branch from DB
+        $tables = TableSession::where(function ($q) use ($branchKey) {
+            $q->where('branch', $branchKey)
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
+        })->get();
+
+        foreach ($tables as $table) {
+            if ($action === 'open_all') {
+                $table->status = 'active';
+                $table->opened_at = $now;
+                $table->expires_at = $expiresAt;
+                $table->duration_minutes = $duration;
+                $table->opened_by_user_id = auth()->id();
+            } else {
+                $table->status = 'closed';
+                $table->expires_at = $now;
+            }
+            $table->save();
+
+            // Synchronize status cache for this specific table and branch
+            $variants = TableSession::lookupVariants($table->table_number, $branchKey);
+            foreach ($variants as $v) {
+                if ($action === 'open_all') {
+                    \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", ['status' => 'unlocked', 'updated_at' => time()], 300);
+                } else {
+                    \Illuminate\Support\Facades\Cache::put("table_unlock_status_{$branchKey}_{$v}", ['status' => 'dismissed', 'updated_at' => time()], 300);
+                }
+            }
         }
+
+        // Only clear active unlock requests for THIS SPECIFIC branch! NEVER touch other branches!
+        $unlockReqs = \Illuminate\Support\Facades\Cache::get('active_table_unlock_requests', []);
+        $remainingReqs = array_values(array_filter($unlockReqs, function ($r) use ($branchKey) {
+            $rBranch = str_contains(strtolower($r['branch'] ?? 'Bulihan'), 'dasma') ? 'Dasma' : 'Bulihan';
+            return $rBranch !== $branchKey;
+        }));
+        \Illuminate\Support\Facades\Cache::put('active_table_unlock_requests', $remainingReqs, 1800);
 
         $staffName = auth()->user()?->name ?? 'Staff';
         $actionDesc = ($action === 'open_all')
@@ -385,12 +551,114 @@ class TableSessionController extends Controller
             'user_id' => auth()->id(),
             'action' => "BATCH TABLE ACTION: {$actionDesc}",
             'ip_address' => $request->ip(),
-            'payload' => ['action' => $action, 'branch' => $branchKey],
+            'payload' => ['action' => $action, 'branch' => $branchKey, 'tables_affected' => $tables->count()],
         ]);
 
         return response()->json([
             'status' => 'success',
             'message' => ($action === 'open_all') ? "All tables successfully opened for {$duration} minutes." : "All tables have been closed.",
+        ]);
+    }
+
+    /**
+     * Add a new table QR / session to a branch (Admin only).
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $user = auth()->user() ?? auth('sanctum')->user();
+        if ($user && $user->role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized: Only administrators can add tables.'], 403);
+        }
+
+        $validated = $request->validate([
+            'branch' => 'nullable|string',
+            'table_number' => 'nullable|string',
+        ]);
+
+        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $branchKey = $authBranch['branch'];
+
+        $this->ensureBranchTablesSeeded($branchKey);
+
+        if (!empty($validated['table_number'])) {
+            $norm = TableSession::normalizeTableNumber($validated['table_number']);
+        } else {
+            // Auto-detect next table number
+            $existingNums = TableSession::where(function ($q) use ($branchKey) {
+                $q->where('branch', $branchKey)
+                  ->orWhere('branch', 'LIKE', "%{$branchKey}%");
+            })
+            ->pluck('table_number')
+            ->map(fn($n) => (int) TableSession::normalizeTableNumber($n))
+            ->filter(fn($n) => $n > 0)
+            ->all();
+
+            $maxNum = !empty($existingNums) ? max($existingNums) : 25;
+            $next = $maxNum + 1;
+            $norm = str_pad($next, 2, '0', STR_PAD_LEFT);
+        }
+
+        $session = TableSession::firstOrCreate(
+            [
+                'table_number' => $norm,
+                'branch' => $branchKey,
+            ],
+            [
+                'status' => 'closed',
+                'duration_minutes' => 60,
+            ]
+        );
+
+        $adminName = $user?->name ?? 'Admin';
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => "NEW TABLE ADDED: Table #{$norm} generated for {$branchKey} Branch by {$adminName}",
+            'ip_address' => $request->ip(),
+            'payload' => ['table_number' => $norm, 'branch' => $branchKey],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Table #{$norm} successfully added to {$branchKey} Branch.",
+            'data' => $session->toSessionArray(),
+        ]);
+    }
+
+    /**
+     * Delete a table QR / session from a branch (Admin only).
+     */
+    public function destroy(Request $request, string $tableNumber): JsonResponse
+    {
+        $user = auth()->user() ?? auth('sanctum')->user();
+        if ($user && $user->role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized: Only administrators can delete tables.'], 403);
+        }
+
+        $branch = $request->query('branch') ?? $request->input('branch');
+        $authBranch = $this->resolveAuthorizedBranch($branch);
+        $branchKey = $authBranch['branch'];
+
+        $norm = TableSession::normalizeTableNumber($tableNumber);
+        $variants = TableSession::lookupVariants($tableNumber, $branchKey);
+
+        TableSession::where(function ($q) use ($branchKey) {
+            $q->where('branch', $branchKey)
+              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
+        })
+        ->whereIn('table_number', $variants)
+        ->delete();
+
+        $adminName = $user?->name ?? 'Admin';
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => "TABLE DELETED: Table #{$norm} removed from {$branchKey} Branch by {$adminName}",
+            'ip_address' => $request->ip(),
+            'payload' => ['table_number' => $norm, 'branch' => $branchKey],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Table #{$norm} successfully removed from {$branchKey} Branch.",
         ]);
     }
 }

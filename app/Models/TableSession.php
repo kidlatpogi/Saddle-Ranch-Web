@@ -79,14 +79,15 @@ class TableSession extends Model
     }
 
     /**
-     * Normalize table number (e.g., "05", "B-05", "5" -> normalized string)
+     * Normalize table number (e.g., "05", "B-05", "D-05", "5" -> "05")
+     * Strips branch prefixes and zero-pads digits to 2 places.
+     * Preserves custom alphanumeric table names (e.g., "EXPRESS", "VIP1").
      */
     public static function normalizeTableNumber(string $tableNumber): string
     {
         $cleaned = trim($tableNumber);
-        // If it starts with B- or D-, keep as is, or extract digits
-        if (preg_match('/^[BD]-(\d+)$/i', $cleaned, $matches)) {
-            return strtoupper(substr($cleaned, 0, 2)) . str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+        if (preg_match('/^[BD]-?(\d+)$/i', $cleaned, $matches)) {
+            return str_pad($matches[1], 2, '0', STR_PAD_LEFT);
         }
         if (is_numeric($cleaned)) {
             return str_pad($cleaned, 2, '0', STR_PAD_LEFT);
@@ -95,29 +96,78 @@ class TableSession extends Model
     }
 
     /**
+     * Get all possible string representations of a table number for a branch.
+     * e.g., for "05" at Bulihan: ["05", "5", "B-05", "B-5", "B05"]
+     */
+    public static function lookupVariants(string $tableNumber, ?string $branch = null): array
+    {
+        $norm = self::normalizeTableNumber($tableNumber);
+        $raw = trim($tableNumber);
+        $variants = [$norm, $raw, strtoupper($raw)];
+
+        if (is_numeric($norm)) {
+            $unpadded = (string) (int) $norm;
+            $variants[] = $unpadded;
+            $variants[] = "B-{$norm}";
+            $variants[] = "B-{$unpadded}";
+            $variants[] = "B{$norm}";
+            $variants[] = "D-{$norm}";
+            $variants[] = "D-{$unpadded}";
+            $variants[] = "D{$norm}";
+        }
+
+        return array_values(array_unique($variants));
+    }
+
+    /**
      * Check if a specific table number is currently active for ordering.
      */
     public static function isTableActive(string $tableNumber, ?string $branch = null): bool
     {
-        $norm = self::normalizeTableNumber($tableNumber);
-        $branchKey = ($branch && str_contains(strtolower($branch), 'dasma')) ? 'Dasma' : 'Bulihan';
-
-        $query = self::where(function ($q) use ($norm, $tableNumber) {
-            $q->where('table_number', $norm)
-              ->orWhere('table_number', $tableNumber);
-        })
-        ->where(function ($q) use ($branchKey) {
-            $q->where('branch', $branchKey)
-              ->orWhere('branch', 'LIKE', "%{$branchKey}%");
-        });
-
-        $session = $query->first();
-
-        if (!$session) {
-            return false;
+        $raw = strtoupper(trim($tableNumber));
+        if (str_starts_with($raw, 'D-')) {
+            $branchKey = 'Dasma';
+        } elseif (str_starts_with($raw, 'B-')) {
+            $branchKey = 'Bulihan';
+        } elseif (!empty($branch)) {
+            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        } else {
+            $branchKey = 'Bulihan';
         }
 
-        return $session->isActive();
+        $variants = self::lookupVariants($tableNumber, $branchKey);
+
+        $sessions = self::whereIn('table_number', $variants)
+            ->where(function ($q) use ($branchKey) {
+                $q->where('branch', $branchKey)
+                  ->orWhere('branch', 'LIKE', "%{$branchKey}%");
+            })
+            ->get();
+
+        foreach ($sessions as $session) {
+            if ($session->isActive()) {
+                return true;
+            }
+        }
+
+        // If numeric without prefix and NO explicit branch was provided, check if active in the other branch
+        if (empty($branch) && !str_starts_with($raw, 'D-') && !str_starts_with($raw, 'B-')) {
+            $otherBranch = $branchKey === 'Dasma' ? 'Bulihan' : 'Dasma';
+            $otherVariants = self::lookupVariants($tableNumber, $otherBranch);
+            $otherSessions = self::whereIn('table_number', $otherVariants)
+                ->where(function ($q) use ($otherBranch) {
+                    $q->where('branch', $otherBranch)
+                      ->orWhere('branch', 'LIKE', "%{$otherBranch}%");
+                })
+                ->get();
+            foreach ($otherSessions as $session) {
+                if ($session->isActive()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -126,12 +176,17 @@ class TableSession extends Model
     public function toSessionArray(): array
     {
         $effStatus = $this->effective_status;
+        $norm = self::normalizeTableNumber($this->table_number);
+        $prefix = (str_contains(strtolower($this->branch ?? ''), 'dasma')) ? 'D-' : 'B-';
+        $displayCode = is_numeric($norm) ? ($prefix . $norm) : $this->table_number;
 
         return [
             'id' => $this->id,
-            'table_number' => $this->table_number,
+            'table_number' => $norm,
+            'display_code' => $displayCode,
             'branch' => $this->branch,
             'status' => $effStatus,
+            'is_active' => ($effStatus === 'active'),
             'opened_at' => $this->opened_at ? $this->opened_at->toIso8601String() : null,
             'expires_at' => $this->expires_at ? $this->expires_at->toIso8601String() : null,
             'duration_minutes' => $this->duration_minutes,

@@ -372,4 +372,211 @@ class TableSessionProtectionTest extends TestCase
         $resDasma->assertOk();
         $this->assertTrue(TableSession::isTableActive('09', 'Dasma'));
     }
+
+    public function test_prefixed_table_codes_sync_and_close_properly(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        // 1. Open table using 'B-01'
+        $openRes = $this->actingAs($admin)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => 'B-01',
+            'branch' => 'Bulihan',
+            'duration_minutes' => 60,
+        ]);
+        $openRes->assertOk();
+
+        // Must be active under both 'B-01', '01', and '1'
+        $this->assertTrue(TableSession::isTableActive('B-01', 'Bulihan'));
+        $this->assertTrue(TableSession::isTableActive('01', 'Bulihan'));
+        $this->assertTrue(TableSession::isTableActive('1', 'Bulihan'));
+
+        // Customer polling 'B-01' sees it active
+        $pollRes = $this->getJson('/api/v1/table-sessions/B-01?branch=Bulihan');
+        $pollRes->assertOk();
+        $this->assertTrue($pollRes->json('data.is_active'));
+        $this->assertEquals('active', $pollRes->json('data.status'));
+
+        // 2. Staff closing '01' closes 'B-01' as well
+        $closeRes = $this->actingAs($admin)->postJson('/api/v1/table-sessions/close', [
+            'table_number' => '01',
+            'branch' => 'Bulihan',
+        ]);
+        $closeRes->assertOk();
+
+        $this->assertFalse(TableSession::isTableActive('B-01', 'Bulihan'));
+        $this->assertFalse(TableSession::isTableActive('01', 'Bulihan'));
+
+        // 3. Opening '01' and closing 'B-01' works vice versa
+        $this->actingAs($admin)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '01',
+            'branch' => 'Bulihan',
+        ]);
+        $this->assertTrue(TableSession::isTableActive('B-01', 'Bulihan'));
+
+        $this->actingAs($admin)->postJson('/api/v1/table-sessions/close', [
+            'table_number' => 'B-01',
+            'branch' => 'Bulihan',
+        ]);
+        $this->assertFalse(TableSession::isTableActive('B-01', 'Bulihan'));
+        $this->assertFalse(TableSession::isTableActive('01', 'Bulihan'));
+    }
+
+    public function test_admin_can_dynamically_add_and_delete_tables(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        // 1. Add new table 26
+        $addRes = $this->actingAs($admin)->postJson('/api/v1/table-sessions/add', [
+            'branch' => 'Bulihan',
+        ]);
+        $addRes->assertOk();
+        $this->assertEquals('26', $addRes->json('data.table_number'));
+
+        // 2. Index includes table 26
+        $indexRes = $this->getJson('/api/v1/table-sessions?branch=Bulihan');
+        $indexRes->assertOk();
+        $this->assertGreaterThanOrEqual(26, count($indexRes->json('data')));
+
+        // 3. Batch open opens table 26 as well
+        $batchRes = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'open_all',
+            'branch' => 'Bulihan',
+        ]);
+        $batchRes->assertOk();
+        $this->assertTrue(TableSession::isTableActive('26', 'Bulihan'));
+        $this->assertTrue(TableSession::isTableActive('B-26', 'Bulihan'));
+
+        // 4. Delete table 26
+        $delRes = $this->actingAs($admin)->deleteJson('/api/v1/table-sessions/26?branch=Bulihan');
+        $delRes->assertOk();
+
+        // 5. Index no longer includes table 26
+        $indexRes2 = $this->getJson('/api/v1/table-sessions?branch=Bulihan');
+        $tableNums = collect($indexRes2->json('data'))->pluck('table_number');
+        $this->assertFalse($tableNums->contains('26'));
+    }
+
+    public function test_dasma_table_d10_unlock_flow_syncs_properly(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        // 1. Mobile customer requests unlock for Table D-10 at Dasma
+        $reqRes = $this->postJson('/api/v1/table-unlock-request', [
+            'table_number' => '10',
+            'branch' => 'Dasma',
+        ]);
+        $reqRes->assertOk();
+
+        // 2. Mobile status polling without branch query param recognizes D-10 and returns pending
+        $statusRes1 = $this->getJson('/api/v1/table-unlock-request/status?table_number=D-10');
+        $statusRes1->assertOk();
+        $this->assertEquals('pending', $statusRes1->json('data.status'));
+
+        // 3. Cashier station opens session for Table 10 at Dasma branch
+        $openRes = $this->actingAs($admin)->postJson('/api/v1/table-sessions/open', [
+            'table_number' => '10',
+            'branch' => 'Dasma',
+            'duration_minutes' => 60,
+        ]);
+        $openRes->assertOk();
+
+        // 4. Real-time status polling for D-10 (and variants) returns unlocked immediately
+        $statusRes2 = $this->getJson('/api/v1/table-unlock-request/status?table_number=D-10');
+        $statusRes2->assertOk();
+        $this->assertEquals('unlocked', $statusRes2->json('data.status'));
+
+        $statusRes3 = $this->getJson('/api/v1/table-unlock-request/status?table_number=10&branch=Dasma');
+        $statusRes3->assertOk();
+        $this->assertEquals('unlocked', $statusRes3->json('data.status'));
+
+        // 5. TableSession polling for mobile customer shows active
+        $sessionRes = $this->getJson('/api/v1/table-sessions/D-10?branch=Dasma');
+        $sessionRes->assertOk();
+        $this->assertTrue($sessionRes->json('data.is_active'));
+        $this->assertEquals('active', $sessionRes->json('data.status'));
+    }
+
+    public function test_branch_isolation_notifications_and_batch_operations(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        // Ensure both branches are seeded and clean
+        $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', ['branch' => 'Bulihan', 'action' => 'close_all'])->assertOk();
+        $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', ['branch' => 'Dasma', 'action' => 'close_all'])->assertOk();
+
+        // 1. Customer requests access to Dasma Table 3
+        $reqRes = $this->postJson('/api/v1/table-unlock-request', [
+            'table_number' => '03',
+            'branch' => 'Dasma',
+        ]);
+        $reqRes->assertOk();
+
+        // 2. Bulihan cashier must NOT receive this notification
+        $bulihanNotifs = $this->getJson('/api/v1/table-unlock-requests?branch=Bulihan')->json('data');
+        $this->assertFalse(collect($bulihanNotifs)->contains('table_number', '03'));
+        $this->assertCount(0, $bulihanNotifs);
+
+        // 3. Dasma cashier MUST receive this notification
+        $dasmaNotifs = $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data');
+        $this->assertTrue(collect($dasmaNotifs)->contains('table_number', '03'));
+        $this->assertCount(1, $dasmaNotifs);
+
+        // 4. Bulihan cashier performs "Open All"
+        $openBulihan = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'open_all',
+            'branch' => 'Bulihan',
+            'duration_minutes' => 60,
+        ]);
+        $openBulihan->assertOk();
+
+        // Bulihan Table 03 is now active
+        $this->assertTrue(TableSession::isTableActive('03', 'Bulihan'));
+
+        // Dasma Table 03 MUST STILL BE CLOSED!
+        $this->assertFalse(TableSession::isTableActive('03', 'Dasma'));
+
+        // Dasma Table 03 status polling MUST STILL BE PENDING (not affected by Bulihan Open All)
+        $dasmaStatus = $this->getJson('/api/v1/table-unlock-request/status?table_number=03&branch=Dasma')->json('data.status');
+        $this->assertEquals('pending', $dasmaStatus);
+
+        // Dasma active unlock requests MUST STILL EXIST (not wiped by Bulihan Open All)
+        $dasmaNotifsStillThere = $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data');
+        $this->assertCount(1, $dasmaNotifsStillThere);
+
+        // 5. Bulihan cashier performs "Close All"
+        $closeBulihan = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'close_all',
+            'branch' => 'Bulihan',
+        ]);
+        $closeBulihan->assertOk();
+
+        // Bulihan Table 03 is now closed
+        $this->assertFalse(TableSession::isTableActive('03', 'Bulihan'));
+
+        // Dasma Table 03 is still closed and notification still intact
+        $this->assertFalse(TableSession::isTableActive('03', 'Dasma'));
+        $this->assertCount(1, $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data'));
+
+        // 6. Dasma cashier performs "Open All"
+        $openDasma = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'open_all',
+            'branch' => 'Dasma',
+            'duration_minutes' => 60,
+        ]);
+        $openDasma->assertOk();
+
+        // Dasma Table 03 is now active!
+        $this->assertTrue(TableSession::isTableActive('03', 'Dasma'));
+
+        // Bulihan Table 03 is STILL closed!
+        $this->assertFalse(TableSession::isTableActive('03', 'Bulihan'));
+
+        // Dasma status polling is now unlocked
+        $dasmaStatusUnlocked = $this->getJson('/api/v1/table-unlock-request/status?table_number=03&branch=Dasma')->json('data.status');
+        $this->assertEquals('unlocked', $dasmaStatusUnlocked);
+
+        // Dasma unlock requests are cleared after opening
+        $dasmaNotifsCleared = $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data');
+        $this->assertCount(0, $dasmaNotifsCleared);
+    }
 }

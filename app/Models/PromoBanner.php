@@ -11,6 +11,8 @@ class PromoBanner extends Model
 
     protected $fillable = [
         'title',
+        'badge',
+        'subtitle',
         'image_path',
         'branch',
         'is_active',

@@ -34,7 +34,7 @@ class SaddleRanchSystemTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'cashier@saddleranch.ph', 'role' => 'employee']);
         $this->assertDatabaseHas('products', ['name' => 'Sizzling Sisig (w/ Egg)']);
         $this->assertDatabaseHas('vouchers', ['code' => 'SADDLE10']);
-        $this->assertDatabaseHas('promo_banners', ['title' => 'Weekend Sizzling Specials']);
+        $this->assertDatabaseHas('promo_banners', ['title' => 'Sisig Saturdays Deal']);
 
         $sisig = Product::where('name', 'Sizzling Sisig (w/ Egg)')->first();
         $this->assertEquals(100.00, $sisig->price_bulihan);

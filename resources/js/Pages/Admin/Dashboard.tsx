@@ -626,13 +626,33 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
             const res = await fetch(`/api/v1/table-sessions?branch=${encodeURIComponent(productBranchFilter)}`);
             if (res.ok) {
                 const json = await res.json();
-                if (json.status === 'success' && json.data && json.data.tables) {
+                if (json.status === 'success') {
+                    const list: AdminTableSession[] = Array.isArray(json.data)
+                        ? json.data
+                        : (json.tables || json.data?.tables || []);
+
                     const map: Record<string, AdminTableSession> = {};
-                    json.data.tables.forEach((t: AdminTableSession) => {
-                        const num = t.table_number.padStart(2, '0');
-                        map[num] = t;
+                    const fetchedNums: string[] = [];
+
+                    list.forEach((t: AdminTableSession) => {
+                        const raw = t.table_number ? t.table_number.toString() : '';
+                        const clean = raw.replace(/^[BD]-/i, '').padStart(2, '0');
+                        map[clean] = t;
+                        map[raw] = t;
+                        map[parseInt(clean, 10).toString()] = t;
+                        map[`B-${clean}`] = t;
+                        map[`D-${clean}`] = t;
+                        if (!fetchedNums.includes(clean)) {
+                            fetchedNums.push(clean);
+                        }
                     });
+
                     setAdminTableSessions(map);
+
+                    if (fetchedNums.length > 0) {
+                        fetchedNums.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+                        setTables(fetchedNums);
+                    }
                 }
             }
         } catch (e) {}
@@ -1119,13 +1139,59 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
         });
     };
 
-    const handleGenerateNewTableQR = () => {
-        const nextNum = (tables.length + 1).toString().padStart(2, '0');
-        setTables([...tables, nextNum]);
+    const handleGenerateNewTableQR = async () => {
+        try {
+            setTableActionLoading('add-table');
+            const res = await fetch('/api/v1/table-sessions/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+                body: JSON.stringify({
+                    branch: productBranchFilter,
+                }),
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setTableActionToast({ text: json.message || 'New table successfully generated!', type: 'success' });
+                await fetchAdminTableSessions();
+            } else {
+                setTableActionToast({ text: json.message || 'Failed to add table', type: 'error' });
+            }
+        } catch (e) {
+            setTableActionToast({ text: 'Network error adding new table', type: 'error' });
+        } finally {
+            setTableActionLoading(null);
+            setTimeout(() => setTableActionToast(null), 4000);
+        }
     };
 
-    const handleDeleteTableQR = (tableNum: string) => {
-        setTables(tables.filter(t => t !== tableNum));
+    const handleDeleteTableQR = async (tableNum: string) => {
+        const branchCode = productBranchFilter === 'Bulihan' ? 'B' : 'D';
+        if (!confirm(`Are you sure you want to permanently delete Table #${branchCode}-${tableNum}? This will remove its QR code and active session.`)) return;
+
+        try {
+            setTableActionLoading(`delete-${tableNum}`);
+            const res = await fetch(`/api/v1/table-sessions/${encodeURIComponent(tableNum)}?branch=${encodeURIComponent(productBranchFilter)}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+            });
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                setTableActionToast({ text: json.message || `Table #${tableNum} deleted!`, type: 'success' });
+                await fetchAdminTableSessions();
+            } else {
+                setTableActionToast({ text: json.message || 'Failed to delete table', type: 'error' });
+            }
+        } catch (e) {
+            setTableActionToast({ text: 'Network error deleting table', type: 'error' });
+        } finally {
+            setTableActionLoading(null);
+            setTimeout(() => setTableActionToast(null), 4000);
+        }
     };
 
     const openSlotBannerModal = (slotNum: number) => {
@@ -1338,7 +1404,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const copyTableLink = (tableNum: string) => {
-        const url = `${window.location.origin}/dine-in?table=${tableNum}`;
+        const branchParam = productBranchFilter === 'Dasma' ? 'Dasma' : 'Bulihan';
+        const url = `${window.location.origin}/dine-in?table=${tableNum}&branch=${branchParam}`;
         navigator.clipboard.writeText(url);
         setCopiedTable(tableNum);
         setTimeout(() => setCopiedTable(null), 2000);
@@ -1346,7 +1413,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
     const getRealQrCodeUrl = (tableNum: string) => {
         const domain = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000';
-        const targetUrl = `${domain}/dine-in?table=${tableNum}`;
+        const branchParam = productBranchFilter === 'Dasma' ? 'Dasma' : 'Bulihan';
+        const targetUrl = `${domain}/dine-in?table=${tableNum}&branch=${branchParam}`;
         return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
     };
 
@@ -2265,7 +2333,7 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
                                         const branchPrefix = productBranchFilter === 'Bulihan' ? 'B' : 'D';
                                         const tableCode = `${branchPrefix}-${tableNum}`;
                                         const realQrUrl = getRealQrCodeUrl(tableCode);
-                                        const session = adminTableSessions[tableNum] || adminTableSessions[parseInt(tableNum, 10).toString()];
+                                        const session = adminTableSessions[tableNum] || adminTableSessions[tableCode] || adminTableSessions[parseInt(tableNum, 10).toString()];
                                         const isActive = session?.status === 'active';
                                         const isExpired = session?.status === 'expired';
                                         const isLoading = tableActionLoading?.includes(tableNum);
