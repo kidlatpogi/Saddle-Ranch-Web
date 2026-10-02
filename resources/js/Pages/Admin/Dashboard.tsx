@@ -1404,7 +1404,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
     };
 
     const copyTableLink = (tableNum: string) => {
-        const url = `${window.location.origin}/dine-in?table=${tableNum}`;
+        const branchParam = productBranchFilter === 'Dasma' ? 'Dasma' : 'Bulihan';
+        const url = `${window.location.origin}/dine-in?table=${tableNum}&branch=${branchParam}`;
         navigator.clipboard.writeText(url);
         setCopiedTable(tableNum);
         setTimeout(() => setCopiedTable(null), 2000);
@@ -1412,7 +1413,8 @@ export default function AdminDashboard({ initialOrders, initialProducts, initial
 
     const getRealQrCodeUrl = (tableNum: string) => {
         const domain = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000';
-        const targetUrl = `${domain}/dine-in?table=${tableNum}`;
+        const branchParam = productBranchFilter === 'Dasma' ? 'Dasma' : 'Bulihan';
+        const targetUrl = `${domain}/dine-in?table=${tableNum}&branch=${branchParam}`;
         return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
     };
 

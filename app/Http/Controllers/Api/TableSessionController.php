@@ -150,8 +150,16 @@ class TableSessionController extends Controller
      */
     public function show(Request $request, string $tableNumber): JsonResponse
     {
-        $branch = $request->query('branch', 'Bulihan');
-        $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        $upper = strtoupper(trim($tableNumber));
+        if (str_starts_with($upper, 'D-')) {
+            $branchKey = 'Dasma';
+        } elseif (str_starts_with($upper, 'B-')) {
+            $branchKey = 'Bulihan';
+        } else {
+            $branch = $request->query('branch', 'Bulihan');
+            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
+        }
+
         $variants = TableSession::lookupVariants($tableNumber, $branchKey);
         $norm = TableSession::normalizeTableNumber($tableNumber);
 
@@ -162,6 +170,29 @@ class TableSessionController extends Controller
             })
             ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
             ->first();
+
+        // If numeric without prefix and the session in requested branch is not active,
+        // check if this table is currently active in the other branch!
+        if ((!$session || !$session->isActive()) && !str_starts_with($upper, 'D-') && !str_starts_with($upper, 'B-')) {
+            $otherBranch = $branchKey === 'Dasma' ? 'Bulihan' : 'Dasma';
+            $otherVariants = TableSession::lookupVariants($tableNumber, $otherBranch);
+            $otherSession = TableSession::whereIn('table_number', $otherVariants)
+                ->where(function ($q) use ($otherBranch) {
+                    $q->where('branch', $otherBranch)
+                      ->orWhere('branch', 'LIKE', "%{$otherBranch}%");
+                })
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+                })
+                ->first();
+
+            if ($otherSession) {
+                $session = $otherSession;
+                $branchKey = $otherBranch;
+            }
+        }
 
         if (!$session) {
             $prefix = $branchKey === 'Dasma' ? 'D-' : 'B-';
@@ -200,7 +231,17 @@ class TableSessionController extends Controller
             'duration_minutes' => 'nullable|integer|min:5|max:360',
         ]);
 
-        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $targetBranch = $validated['branch'] ?? null;
+        if (!$targetBranch) {
+            $rawT = strtoupper(trim($validated['table_number']));
+            if (str_starts_with($rawT, 'D-')) {
+                $targetBranch = 'Dasma';
+            } elseif (str_starts_with($rawT, 'B-')) {
+                $targetBranch = 'Bulihan';
+            }
+        }
+
+        $authBranch = $this->resolveAuthorizedBranch($targetBranch);
         if (!$authBranch['authorized']) {
             return response()->json([
                 'status' => 'error',
@@ -287,7 +328,17 @@ class TableSessionController extends Controller
             'branch' => 'nullable|string',
         ]);
 
-        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $targetBranch = $validated['branch'] ?? null;
+        if (!$targetBranch) {
+            $rawT = strtoupper(trim($validated['table_number']));
+            if (str_starts_with($rawT, 'D-')) {
+                $targetBranch = 'Dasma';
+            } elseif (str_starts_with($rawT, 'B-')) {
+                $targetBranch = 'Bulihan';
+            }
+        }
+
+        $authBranch = $this->resolveAuthorizedBranch($targetBranch);
         if (!$authBranch['authorized']) {
             return response()->json([
                 'status' => 'error',
@@ -356,7 +407,17 @@ class TableSessionController extends Controller
             'minutes' => 'nullable|integer|min:5|max:180',
         ]);
 
-        $authBranch = $this->resolveAuthorizedBranch($validated['branch'] ?? null);
+        $targetBranch = $validated['branch'] ?? null;
+        if (!$targetBranch) {
+            $rawT = strtoupper(trim($validated['table_number']));
+            if (str_starts_with($rawT, 'D-')) {
+                $targetBranch = 'Dasma';
+            } elseif (str_starts_with($rawT, 'B-')) {
+                $targetBranch = 'Bulihan';
+            }
+        }
+
+        $authBranch = $this->resolveAuthorizedBranch($targetBranch);
         if (!$authBranch['authorized']) {
             return response()->json([
                 'status' => 'error',

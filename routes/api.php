@@ -544,7 +544,7 @@ Route::prefix('v1')->group(function () {
             $branchKey = 'Bulihan';
         }
 
-        // 1. Strict real-time DB check: Only check if THIS table is active at THIS branch!
+        // 1. Strict real-time DB check: Check if THIS table is active at THIS branch!
         if (\App\Models\TableSession::isTableActive($tableNumber, $branchKey)) {
             return response()->json([
                 'status' => 'success',
@@ -565,6 +565,31 @@ Route::prefix('v1')->group(function () {
                     'status' => 'success',
                     'data' => $data,
                 ]);
+            }
+        }
+
+        // Fallback: If numeric without prefix and NO explicit branch was provided, check if other branch is active or unlocked
+        if (empty($rawBranch) && !str_starts_with($upper, 'D-') && !str_starts_with($upper, 'B-')) {
+            $altBranch = $branchKey === 'Dasma' ? 'Bulihan' : 'Dasma';
+            if (\App\Models\TableSession::isTableActive($tableNumber, $altBranch)) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => [
+                        'status' => 'unlocked',
+                        'branch' => $altBranch,
+                        'updated_at' => time(),
+                    ],
+                ]);
+            }
+            $altVariants = \App\Models\TableSession::lookupVariants($tableNumber, $altBranch);
+            foreach ($altVariants as $v) {
+                $altData = \Illuminate\Support\Facades\Cache::get("table_unlock_status_{$altBranch}_{$v}");
+                if ($altData && ($altData['status'] ?? '') === 'unlocked') {
+                    return response()->json([
+                        'status' => 'success',
+                        'data' => $altData,
+                    ]);
+                }
             }
         }
 

@@ -125,10 +125,12 @@ class TableSession extends Model
     public static function isTableActive(string $tableNumber, ?string $branch = null): bool
     {
         $raw = strtoupper(trim($tableNumber));
-        if (!empty($branch)) {
-            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
-        } elseif (str_starts_with($raw, 'D-')) {
+        if (str_starts_with($raw, 'D-')) {
             $branchKey = 'Dasma';
+        } elseif (str_starts_with($raw, 'B-')) {
+            $branchKey = 'Bulihan';
+        } elseif (!empty($branch)) {
+            $branchKey = str_contains(strtolower($branch), 'dasma') ? 'Dasma' : 'Bulihan';
         } else {
             $branchKey = 'Bulihan';
         }
@@ -145,6 +147,23 @@ class TableSession extends Model
         foreach ($sessions as $session) {
             if ($session->isActive()) {
                 return true;
+            }
+        }
+
+        // If numeric without prefix and NO explicit branch was provided, check if active in the other branch
+        if (empty($branch) && !str_starts_with($raw, 'D-') && !str_starts_with($raw, 'B-')) {
+            $otherBranch = $branchKey === 'Dasma' ? 'Bulihan' : 'Dasma';
+            $otherVariants = self::lookupVariants($tableNumber, $otherBranch);
+            $otherSessions = self::whereIn('table_number', $otherVariants)
+                ->where(function ($q) use ($otherBranch) {
+                    $q->where('branch', $otherBranch)
+                      ->orWhere('branch', 'LIKE', "%{$otherBranch}%");
+                })
+                ->get();
+            foreach ($otherSessions as $session) {
+                if ($session->isActive()) {
+                    return true;
+                }
             }
         }
 

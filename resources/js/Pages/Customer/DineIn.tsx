@@ -87,10 +87,20 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
 
     const queryParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const urlTable = queryParams.get('table');
+    const urlBranch = queryParams.get('branch');
     const tableNumber = urlTable || initialTableNumber || '05';
 
+    const initialBranch: 'Bulihan' | 'Dasma' = (() => {
+        if (urlBranch && urlBranch.toLowerCase().includes('dasma')) return 'Dasma';
+        if (urlBranch && urlBranch.toLowerCase().includes('bulihan')) return 'Bulihan';
+        const cleaned = tableNumber.toUpperCase().trim();
+        if (cleaned.startsWith('D-') || (cleaned.startsWith('D') && !cleaned.startsWith('DELIVERY'))) return 'Dasma';
+        if (cleaned.startsWith('B-') || (cleaned.startsWith('B') && !cleaned.startsWith('BARKADA'))) return 'Bulihan';
+        return 'Bulihan';
+    })();
+
     // State
-    const [selectedBranch, setSelectedBranch] = useState<'Bulihan' | 'Dasma'>('Bulihan');
+    const [selectedBranch, setSelectedBranch] = useState<'Bulihan' | 'Dasma'>(initialBranch);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [fulfillmentMode, setFulfillmentMode] = useState<'dine_in' | 'express_takeout'>('dine_in');
 
@@ -128,12 +138,32 @@ export default function DineInOrder({ products = [], tableNumber: initialTableNu
                         const sData = json.data;
                         setTableSession(sData);
                         setSessionSeconds(sData.remaining_seconds || 0);
+                        if (sData.status === 'active') {
+                            setIsLockModalOpen(false);
+                            setUnlockRequestStatus('unlocked');
+                            if (sData.branch && (sData.branch === 'Dasma' || sData.branch === 'Bulihan')) {
+                                setSelectedBranch(sData.branch);
+                            }
+                        }
                         if (prevStatusRef.current !== 'active' && sData.status === 'active') {
                             setShowUnlockedToast(true);
                             setIsLockModalOpen(false);
                             setTimeout(() => setShowUnlockedToast(false), 3000);
                         }
                         prevStatusRef.current = sData.status;
+                    }
+                }
+
+                // Also check table unlock request status
+                const uRes = await fetch(`/api/v1/table-unlock-request/status?table_number=${encodeURIComponent(tableNumber)}&branch=${encodeURIComponent(selectedBranch)}`);
+                if (uRes.ok && isMounted) {
+                    const uJson = await uRes.json();
+                    const uStatus = uJson.data?.status;
+                    if (uStatus === 'unlocked') {
+                        setIsLockModalOpen(false);
+                        setUnlockRequestStatus('unlocked');
+                    } else if (uStatus === 'pending') {
+                        setUnlockRequestStatus('pending');
                     }
                 }
             } catch (e) {}
