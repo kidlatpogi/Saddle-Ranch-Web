@@ -125,11 +125,19 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         }
     };
 
+    // Table Session Staff Management & Branch Scope
+    const normalizedBranch = (userBranch && userBranch.toLowerCase() !== 'all')
+        ? (userBranch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan')
+        : 'Bulihan';
+    const [tableBranch, setTableBranch] = useState<string>(normalizedBranch);
+    const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null);
+    const [sessionFeedback, setSessionFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
     const [activeWaiterCalls, setActiveWaiterCalls] = useState<any[]>([]);
 
     const fetchWaiterCalls = async () => {
         try {
-            const res = await fetch('/api/v1/waiter-calls');
+            const res = await fetch(`/api/v1/waiter-calls?branch=${encodeURIComponent(tableBranch)}`);
             if (res.ok) {
                 const json = await res.json();
                 setActiveWaiterCalls(json.data || []);
@@ -137,7 +145,8 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
         } catch (e) {}
     };
 
-    const handleDismissWaiterCall = async (tableNumber: string) => {
+    const handleDismissWaiterCall = async (tableNumber: string, reqBranch?: string) => {
+        const targetBranch = reqBranch || tableBranch;
         try {
             await fetch('/api/v1/waiter-calls/dismiss', {
                 method: 'POST',
@@ -145,9 +154,9 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
                 },
-                body: JSON.stringify({ table_number: tableNumber }),
+                body: JSON.stringify({ table_number: tableNumber, branch: targetBranch }),
             });
-            setActiveWaiterCalls((prev) => prev.filter((c) => c.table_number !== tableNumber));
+            setActiveWaiterCalls((prev) => prev.filter((c) => String(c.table_number) !== String(tableNumber)));
         } catch (e) {}
     };
 
@@ -156,7 +165,7 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
 
     const fetchUnlockRequests = async () => {
         try {
-            const res = await fetch('/api/v1/table-unlock-requests');
+            const res = await fetch(`/api/v1/table-unlock-requests?branch=${encodeURIComponent(tableBranch)}`);
             if (res.ok) {
                 const json = await res.json();
                 setActiveUnlockRequests(json.data || []);
@@ -196,17 +205,10 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
             fetchUnlockRequests();
         }, 2000);
         return () => clearInterval(interval);
-    }, []);
+    }, [tableBranch]);
 
     // POS Walk-In Cart State
-    // Table Session Staff Management
     const [tableSessions, setTableSessions] = useState<TableSessionInfo[]>([]);
-    const normalizedBranch = (userBranch && userBranch.toLowerCase() !== 'all')
-        ? (userBranch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan')
-        : 'Bulihan';
-    const [tableBranch, setTableBranch] = useState<string>(normalizedBranch);
-    const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null);
-    const [sessionFeedback, setSessionFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
     const fetchTableSessions = async () => {
         try {
@@ -800,75 +802,95 @@ export default function EmployeeDashboard({ initialOrders, userBranch = 'Bulihan
                         </div>
                     </div>
 
-                    {/* Active Waiter Call Notification Banner */}
-                    {activeWaiterCalls.length > 0 && (
-                        <div className="mb-6 p-4 rounded-2xl bg-amber-500 text-[#3f2000] border-2 border-[#ffc174] shadow-2xl flex flex-wrap items-center justify-between gap-3 animate-pulse">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center shrink-0">
-                                    <Bell className="w-6 h-6 text-[#3f2000] animate-bounce" />
-                                </div>
-                                <div>
-                                    <div className="font-black text-sm uppercase tracking-wider">WAITER ASSISTANCE REQUESTED!</div>
-                                    <div className="text-xs font-bold">
-                                        {activeWaiterCalls.map((c) => `Table #${c.table_number} (${c.branch || 'Bulihan'} Branch)`).join(' • ')}
+                    {/* Active Waiter Call Notification Banner (Strictly Filtered to Current Station Branch) */}
+                    {(() => {
+                        const visibleWaiterCalls = activeWaiterCalls.filter((c) => {
+                            const cBranch = (c.branch || 'Bulihan').toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan';
+                            const currentBranch = tableBranch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan';
+                            return cBranch === currentBranch;
+                        });
+
+                        if (visibleWaiterCalls.length === 0) return null;
+
+                        return (
+                            <div className="mb-6 p-4 rounded-2xl bg-amber-500 text-[#3f2000] border-2 border-[#ffc174] shadow-2xl flex flex-wrap items-center justify-between gap-3 animate-pulse">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center shrink-0">
+                                        <Bell className="w-6 h-6 text-[#3f2000] animate-bounce" />
+                                    </div>
+                                    <div>
+                                        <div className="font-black text-sm uppercase tracking-wider">WAITER ASSISTANCE REQUESTED!</div>
+                                        <div className="text-xs font-bold">
+                                            {visibleWaiterCalls.map((c) => `Table #${c.table_number} (${c.branch || tableBranch} Branch)`).join(' • ')}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                                {activeWaiterCalls.map((c) => (
-                                    <button
-                                        key={c.id || c.table_number}
-                                        onClick={() => handleDismissWaiterCall(c.table_number)}
-                                        className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#121213] font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-amber-300 active:scale-95 flex items-center gap-1.5"
-                                        title="Acknowledge waiter call and notify diner server is on the way"
-                                    >
-                                        <Bell className="w-3.5 h-3.5" />
-                                        <span>Acknowledge Call (Table #{c.table_number})</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* DEDICATED TABLE UNLOCK REQUEST BANNER (Strictly QR Table Session Unlock) */}
-                    {activeUnlockRequests.length > 0 && (
-                        <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-500/25 via-indigo-600/20 to-cyan-500/25 border-2 border-sky-500/60 shadow-xl shadow-sky-500/10 flex items-center justify-between gap-4 flex-wrap animate-in slide-in-from-top-4 duration-300">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 border border-sky-500/40">
-                                    <Lock className="w-6 h-6 text-sky-400 animate-pulse" />
-                                </div>
-                                <div>
-                                    <div className="font-black text-sm uppercase tracking-wider text-sky-300">TABLE UNLOCK REQUESTED!</div>
-                                    <div className="text-xs text-[#d8c3ad] font-bold">
-                                        {activeUnlockRequests.map((r) => `Table #${r.table_number} (${r.branch || 'Bulihan'} Branch)`).join(' • ')}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                                {activeUnlockRequests.map((r) => (
-                                    <div key={r.id || `${r.table_number}-${r.branch}`} className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                                    {visibleWaiterCalls.map((c) => (
                                         <button
-                                            onClick={() => handleApproveUnlockRequest(String(r.table_number), r.branch || tableBranch, 60)}
-                                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-emerald-400 active:scale-95 flex items-center gap-1.5"
-                                            title={`Unlock Table Session for 60 minutes (${r.branch || tableBranch})`}
+                                            key={c.id || c.table_number}
+                                            onClick={() => handleDismissWaiterCall(String(c.table_number), c.branch || tableBranch)}
+                                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#121213] font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-amber-300 active:scale-95 flex items-center gap-1.5"
+                                            title="Acknowledge waiter call and notify diner server is on the way"
                                         >
-                                            <Lock className="w-3.5 h-3.5 text-amber-300" />
-                                            <span>Unlock Table #{r.table_number} {r.branch ? `(${r.branch})` : ''} (60m)</span>
+                                            <Bell className="w-3.5 h-3.5" />
+                                            <span>Acknowledge Call (Table #{c.table_number})</span>
                                         </button>
-                                        <button
-                                            onClick={() => handleDismissUnlockRequest(String(r.table_number), r.branch || tableBranch)}
-                                            className="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-black text-[#a1a1aa] hover:text-white font-bold text-xs transition-all border border-[#3f3f46] cursor-pointer"
-                                            title="Dismiss unlock notification"
-                                        >
-                                            Dismiss
-                                        </button>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
+
+                    {/* DEDICATED TABLE UNLOCK REQUEST BANNER (Strictly Filtered to Current Station Branch) */}
+                    {(() => {
+                        const visibleUnlockRequests = activeUnlockRequests.filter((r) => {
+                            const rBranch = (r.branch || 'Bulihan').toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan';
+                            const currentBranch = tableBranch.toLowerCase().includes('dasma') ? 'Dasma' : 'Bulihan';
+                            return rBranch === currentBranch;
+                        });
+
+                        if (visibleUnlockRequests.length === 0) return null;
+
+                        return (
+                            <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-500/25 via-indigo-600/20 to-cyan-500/25 border-2 border-sky-500/60 shadow-xl shadow-sky-500/10 flex items-center justify-between gap-4 flex-wrap animate-in slide-in-from-top-4 duration-300">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center shrink-0 border border-sky-500/40">
+                                        <Lock className="w-6 h-6 text-sky-400 animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <div className="font-black text-sm uppercase tracking-wider text-sky-300">TABLE UNLOCK REQUESTED!</div>
+                                        <div className="text-xs text-[#d8c3ad] font-bold">
+                                            {visibleUnlockRequests.map((r) => `Table #${r.table_number} (${r.branch || tableBranch} Branch)`).join(' • ')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                                    {visibleUnlockRequests.map((r) => (
+                                        <div key={r.id || `${r.table_number}-${r.branch}`} className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => handleApproveUnlockRequest(String(r.table_number), r.branch || tableBranch, 60)}
+                                                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer border border-emerald-400 active:scale-95 flex items-center gap-1.5"
+                                                title={`Unlock Table Session for 60 minutes (${r.branch || tableBranch})`}
+                                            >
+                                                <Lock className="w-3.5 h-3.5 text-amber-300" />
+                                                <span>Unlock Table #{r.table_number} ({r.branch || tableBranch}) (60m)</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleDismissUnlockRequest(String(r.table_number), r.branch || tableBranch)}
+                                                className="px-3 py-2 rounded-xl bg-[#18181b] hover:bg-black text-[#a1a1aa] hover:text-white font-bold text-xs transition-all border border-[#3f3f46] cursor-pointer"
+                                                title="Dismiss unlock notification"
+                                            >
+                                                Dismiss
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {/* TAB 0: ERGONOMIC TOUCHSCREEN TABLET POS REGISTER */}
                     {activeTab === 'pos' && (

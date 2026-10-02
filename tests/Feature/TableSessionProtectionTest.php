@@ -495,4 +495,88 @@ class TableSessionProtectionTest extends TestCase
         $this->assertTrue($sessionRes->json('data.is_active'));
         $this->assertEquals('active', $sessionRes->json('data.status'));
     }
+
+    public function test_branch_isolation_notifications_and_batch_operations(): void
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        // Ensure both branches are seeded and clean
+        $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', ['branch' => 'Bulihan', 'action' => 'close_all'])->assertOk();
+        $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', ['branch' => 'Dasma', 'action' => 'close_all'])->assertOk();
+
+        // 1. Customer requests access to Dasma Table 3
+        $reqRes = $this->postJson('/api/v1/table-unlock-request', [
+            'table_number' => '03',
+            'branch' => 'Dasma',
+        ]);
+        $reqRes->assertOk();
+
+        // 2. Bulihan cashier must NOT receive this notification
+        $bulihanNotifs = $this->getJson('/api/v1/table-unlock-requests?branch=Bulihan')->json('data');
+        $this->assertFalse(collect($bulihanNotifs)->contains('table_number', '03'));
+        $this->assertCount(0, $bulihanNotifs);
+
+        // 3. Dasma cashier MUST receive this notification
+        $dasmaNotifs = $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data');
+        $this->assertTrue(collect($dasmaNotifs)->contains('table_number', '03'));
+        $this->assertCount(1, $dasmaNotifs);
+
+        // 4. Bulihan cashier performs "Open All"
+        $openBulihan = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'open_all',
+            'branch' => 'Bulihan',
+            'duration_minutes' => 60,
+        ]);
+        $openBulihan->assertOk();
+
+        // Bulihan Table 03 is now active
+        $this->assertTrue(TableSession::isTableActive('03', 'Bulihan'));
+
+        // Dasma Table 03 MUST STILL BE CLOSED!
+        $this->assertFalse(TableSession::isTableActive('03', 'Dasma'));
+
+        // Dasma Table 03 status polling MUST STILL BE PENDING (not affected by Bulihan Open All)
+        $dasmaStatus = $this->getJson('/api/v1/table-unlock-request/status?table_number=03&branch=Dasma')->json('data.status');
+        $this->assertEquals('pending', $dasmaStatus);
+
+        // Dasma active unlock requests MUST STILL EXIST (not wiped by Bulihan Open All)
+        $dasmaNotifsStillThere = $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data');
+        $this->assertCount(1, $dasmaNotifsStillThere);
+
+        // 5. Bulihan cashier performs "Close All"
+        $closeBulihan = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'close_all',
+            'branch' => 'Bulihan',
+        ]);
+        $closeBulihan->assertOk();
+
+        // Bulihan Table 03 is now closed
+        $this->assertFalse(TableSession::isTableActive('03', 'Bulihan'));
+
+        // Dasma Table 03 is still closed and notification still intact
+        $this->assertFalse(TableSession::isTableActive('03', 'Dasma'));
+        $this->assertCount(1, $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data'));
+
+        // 6. Dasma cashier performs "Open All"
+        $openDasma = $this->actingAs($admin)->postJson('/api/v1/table-sessions/batch', [
+            'action' => 'open_all',
+            'branch' => 'Dasma',
+            'duration_minutes' => 60,
+        ]);
+        $openDasma->assertOk();
+
+        // Dasma Table 03 is now active!
+        $this->assertTrue(TableSession::isTableActive('03', 'Dasma'));
+
+        // Bulihan Table 03 is STILL closed!
+        $this->assertFalse(TableSession::isTableActive('03', 'Bulihan'));
+
+        // Dasma status polling is now unlocked
+        $dasmaStatusUnlocked = $this->getJson('/api/v1/table-unlock-request/status?table_number=03&branch=Dasma')->json('data.status');
+        $this->assertEquals('unlocked', $dasmaStatusUnlocked);
+
+        // Dasma unlock requests are cleared after opening
+        $dasmaNotifsCleared = $this->getJson('/api/v1/table-unlock-requests?branch=Dasma')->json('data');
+        $this->assertCount(0, $dasmaNotifsCleared);
+    }
 }
